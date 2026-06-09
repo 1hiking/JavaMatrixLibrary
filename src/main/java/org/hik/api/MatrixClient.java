@@ -126,7 +126,9 @@ public class MatrixClient {
     }
 
     /**
-     * @return A {@link String} that represents the MXC reserved for a multimedia resource
+     * Asynchronously creates a new mxc:// for immediate usage. This request ignores the unused_expires_at key.
+     *
+     * @return A {@link String} representing the MXC
      */
     private CompletableFuture<String> createAndReserveMXC() {
         HttpRequest request = HttpRequest.newBuilder()
@@ -150,35 +152,37 @@ public class MatrixClient {
     }
 
     /**
-     * @param file The file that is going to be uploaded
-     * @return A {@link String} if the object was uploaded with an empty body, signaling no issues.
+     * Asynchronously uploads a local multimedia file to the Matrix media server.
+     *
+     * @param file The local path of the file to upload
+     * @return A {@link CompletableFuture} containing the MXC URI string upon successful upload.
+     * @throws MatrixIOException      if the local file content cannot be read or probed.
+     * @throws MatrixNetworkException via the completed future pipeline if the homeserver rejects the payload.
      */
     private CompletableFuture<String> uploadMultimedia(Path file) {
-        var mxc = createAndReserveMXC().join();
-        String rawPath = mxc.replace("mxc://", "");
+        // Non-blocking approach: Chain the MXC reservation future seamlessly
+        return createAndReserveMXC()
+                .thenCompose(mxc -> {
+                    String rawPath = mxc.replace("mxc://", "");
+                    URI uploadTargetUri = URI.create(this.homeserverUrl
+                            + "/_matrix/media/v3/upload/"
+                            + rawPath
+                            + "?filename=" + file.getFileName().toString());
 
-        URI uploadTargetUri = URI.create(this.homeserverUrl
-                + "/_matrix/media/v3/upload/"
-                + rawPath
-                + "?filename=" + file.getFileName().toString());
+                    try {
+                        HttpRequest uploadRequest = HttpRequest.newBuilder()
+                                .uri(uploadTargetUri)
+                                .header("Authorization", "Bearer " + this.credentials.token())
+                                .header("Content-Type", Files.probeContentType(file))
+                                .PUT(HttpRequest.BodyPublishers.ofFile(file))
+                                .build();
 
-        HttpRequest uploadRequest = null;
-        try {
-            uploadRequest = HttpRequest.newBuilder()
-                    .uri(uploadTargetUri)
-                    .header("Authorization", "Bearer " + this.credentials.token())
-                    .header("Content-Type", Files.probeContentType(file))
-                    .PUT(HttpRequest.BodyPublishers.ofFile(file)) // Stream chunks directly from disk
-                    .build();
-        } catch (IOException _) {
-            throw new MatrixIOException("Failure to open your file content");
-        }
-        return client.sendAsync(uploadRequest, HttpResponse.BodyHandlers.ofString())
-                .thenApply(uploadResponse -> {
-                    if (uploadResponse.statusCode() == 200 || uploadResponse.statusCode() == 201) {
-                        return mxc;
-                    } else {
-                        throw new MatrixNetworkException("Media upload failed with HTTP status: " + uploadResponse.statusCode());
+                        return client.sendAsync(uploadRequest, HttpResponse.BodyHandlers.ofString())
+                                .thenApply(CheckResponsePayload::getStringHttpResponse)
+                                .thenApply(uploadResponse -> mxc);
+
+                    } catch (IOException e) {
+                        return CompletableFuture.failedFuture(new MatrixIOException("Failure to open file content", e));
                     }
                 });
     }
