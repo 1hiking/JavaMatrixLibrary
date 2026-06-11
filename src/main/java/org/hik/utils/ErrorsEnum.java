@@ -1,6 +1,10 @@
 package org.hik.utils;
 
-public enum MatrixErrors {
+/**
+ * @deprecated The reason this is deprecated is that {@link org.hik.dtos.responses.ErrorResponse} accomplishes a better task for informing the user what error is occurring
+ */
+@Deprecated()
+public enum ErrorsEnum {
     M_UNRECOGNIZED(400),
     M_FORBIDDEN(403),
     M_UNKNOWN_TOKEN(401),
@@ -10,7 +14,7 @@ public enum MatrixErrors {
 
     private final int httpStatusCode;
 
-    MatrixErrors(int httpStatusCode) {
+    ErrorsEnum(int httpStatusCode) {
         this.httpStatusCode = httpStatusCode;
     }
 
