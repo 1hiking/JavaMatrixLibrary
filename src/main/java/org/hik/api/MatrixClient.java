@@ -150,7 +150,6 @@ public class MatrixClient {
 
     }
 
-    //TODO * @param filter A JSON RoomEventFilter to filter returned events with.
 
     /**
      *
