@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads;
+package org.hik.dtos.payloads.events;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         visible = true
 )
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
-public sealed interface MatrixMessagePayload
-        permits MatrixTextMessage, MatrixImageMessage {
+public sealed interface MessageTypeEvent
+        permits TextMessageTypeEvent, FileMessageTypeEvent {
     String msgtype();
 
     String body();

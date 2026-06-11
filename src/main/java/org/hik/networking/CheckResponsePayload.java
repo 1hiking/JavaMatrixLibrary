@@ -1,6 +1,6 @@
 package org.hik.networking;
 
-import org.hik.dtos.responses.MatrixErrorResponse;
+import org.hik.dtos.responses.ErrorResponse;
 import org.hik.exceptions.MatrixNetworkException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -20,8 +20,8 @@ public class CheckResponsePayload {
      */
     public static HttpResponse<String> getStringHttpResponse(HttpResponse<String> stringHttpResponse) {
         if (stringHttpResponse.statusCode() != 200) {
-            MatrixErrorResponse payload = objectMapper.readValue(stringHttpResponse.body(), MatrixErrorResponse.class);
-            throw new MatrixNetworkException("The following error has occurred: " + payload.error() + ". Error code:" + payload.errCode());
+            ErrorResponse payload = objectMapper.readValue(stringHttpResponse.body(), ErrorResponse.class);
+            throw new MatrixNetworkException("The following error has occurred: " + payload.error() + ". Error code: " + payload.errCode());
         }
         return stringHttpResponse;
     }

@@ -1,13 +1,13 @@
-package org.hik.dtos.payloads;
+package org.hik.dtos.payloads.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record MatrixImageMessage(
+public record FileMessageTypeEvent(
          String msgtype,
          String body,
          String url,
          ImageInfo info
-) implements MatrixMessagePayload {
+) implements MessageTypeEvent {
 
     public record ImageInfo(
             @JsonProperty("h") Integer h,
