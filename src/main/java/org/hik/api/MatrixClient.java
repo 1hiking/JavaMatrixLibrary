@@ -12,6 +12,7 @@ import org.hik.exceptions.MatrixNetworkException;
 import org.hik.networking.CheckResponsePayload;
 import org.hik.utils.ChronologicalDirectionEvent;
 import org.hik.utils.EventType;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -40,7 +41,7 @@ public class MatrixClient {
     /**
      * Default constructor, which will make the initial payloads to request necessary data for further requests
      *
-     * @param unprocessedBaseUrl The full qualified url of the server, e.g <a href="https://example.org">https://example.org</a>
+     * @param unprocessedBaseUrl The full qualified url of the server, e.g. <a href="https://example.org">https://example.org</a>
      * @param username           The username assigned to a registered account
      * @param authToken          A valid non-expired auth token
      */
@@ -53,7 +54,8 @@ public class MatrixClient {
     /**
      * Method used to obtain the .well-known data and store the base url.
      *
-     * @throws IllegalArgumentException When the homeserver url violates RFC 2396 or is null (since we concat a constant)
+     * @throws IllegalArgumentException when the homeserver url violates RFC 2396 or is null (since we concat a constant)
+     * @throws MatrixIOException        when the payload cannot be processed
      */
     private void getWellKnown() {
         HttpRequest request = HttpRequest.newBuilder()
@@ -62,11 +64,11 @@ public class MatrixClient {
         CompletableFuture<DiscoveryResponse> responseFuture = client
                 .sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
-                .thenApply(response -> {
+                .thenCompose(response -> {
                     try {
-                        return objectMapper.readValue(response, DiscoveryResponse.class);
+                        return CompletableFuture.completedFuture(objectMapper.readValue(response, DiscoveryResponse.class));
                     } catch (JacksonIOException _) {
-                        throw new MatrixIOException("Failed to parse Matrix discovery JSON");
+                        return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix discovery JSON"));
                     }
                 });
 
@@ -102,12 +104,12 @@ public class MatrixClient {
                 .sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(CheckResponsePayload::getStringHttpResponse)
                 .thenApply(HttpResponse::body)
-                .thenApply(response -> {
+                .thenCompose(response -> {
                     try {
                         JsonNode responsePayload = objectMapper.readTree(response);
-                        return responsePayload.get("event_id").stringValue();
+                        return CompletableFuture.completedFuture(responsePayload.get("event_id").stringValue());
                     } catch (JacksonIOException _) {
-                        throw new MatrixIOException("Failed to parse Matrix response JSON");
+                        return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix response JSON"));
                     }
                 });
     }
@@ -121,14 +123,20 @@ public class MatrixClient {
      * @param eventType The {@link EventType} corresponding to what's being uploaded
      * @return A {@link CompletableFuture} with a {@link String} representing a unique identifier of the event
      * @throws MatrixIOException      when the payload cannot be processed
-     * @throws MatrixNetworkException when the response is not successful
+     * @throws MatrixNetworkException when the response status is not successful
      */
     public CompletableFuture<String> publishRoomMessage(Path file, String roomId, EventType eventType) {
         String roomMessageType = "m.room.message";
 
         return uploadMultimedia(file).thenCompose(mxcFile -> {
             MessageTypeEvent messageTypeEvent = new FileMessageTypeEvent(eventType.type, file.getFileName().toString(), mxcFile, null);
-            String jsonPayload = objectMapper.writeValueAsString(messageTypeEvent);
+            String jsonPayload;
+            try {
+                jsonPayload = objectMapper.writeValueAsString(messageTypeEvent);
+            } catch (JacksonException e) {
+                return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse input data", e));
+            }
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(this.homeserverUrl + "/_matrix/client/v3/rooms/" + roomId + "/send/" + roomMessageType + "/" + UUID.randomUUID()))
                     .header("Content-Type", "application/json")
@@ -140,12 +148,14 @@ public class MatrixClient {
                     .sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenApply(CheckResponsePayload::getStringHttpResponse)
                     .thenApply(HttpResponse::body)
-                    .thenApply(response -> {
+                    .thenCompose(response -> {
                         try {
                             JsonNode responsePayload = objectMapper.readTree(response);
-                            return responsePayload.get("event_id").stringValue();
-                        } catch (JacksonIOException _) {
-                            throw new MatrixIOException("Failed to parse Matrix response JSON");
+                            //TODO fix npe
+                            return CompletableFuture.completedFuture(responsePayload.get("event_id").stringValue());
+
+                        } catch (JacksonException e) {
+                            return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix response JSON", e));
                         }
                     });
         });
@@ -170,8 +180,8 @@ public class MatrixClient {
         String basePath = this.homeserverUrl + "/_matrix/client/v3/rooms/" + roomId + "/messages";
 
         StringJoiner queryParams = new StringJoiner("&");
-        if (dir != null && dir.order != null) {
-            queryParams.add("dir=" + dir.order);
+        if (dir != null && dir.getValue() != null) {
+            queryParams.add("dir=" + dir.getValue());
         }
         if (params.from() != null) {
             queryParams.add("from=" + params.from());
@@ -194,11 +204,11 @@ public class MatrixClient {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(CheckResponsePayload::getStringHttpResponse)
                 .thenApply(HttpResponse::body)
-                .thenApply(response -> {
+                .thenCompose(response -> {
                     try {
-                        return objectMapper.readValue(response, MessagesResponse.class);
+                        return CompletableFuture.completedFuture(objectMapper.readValue(response, MessagesResponse.class));
                     } catch (JacksonIOException _) {
-                        throw new MatrixIOException("Failed to parse Matrix discovery JSON");
+                        return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix discovery JSON"));
                     }
                 });
     }
@@ -219,12 +229,12 @@ public class MatrixClient {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(CheckResponsePayload::getStringHttpResponse)
                 .thenApply(HttpResponse::body)
-                .thenApply(response -> {
+                .thenCompose(response -> {
                     try {
                         JsonNode responsePayload = objectMapper.readTree(response);
-                        return responsePayload.get("content_uri").stringValue();
-                    } catch (JacksonIOException e) {
-                        throw new MatrixIOException("Failed to parse Matrix response JSON", e);
+                        return CompletableFuture.completedFuture(responsePayload.get("content_uri").stringValue());
+                    } catch (JacksonException e) {
+                        return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix response JSON", e));
                     }
                 });
     }
@@ -257,7 +267,7 @@ public class MatrixClient {
 
                         return client.sendAsync(uploadRequest, HttpResponse.BodyHandlers.ofString())
                                 .thenApply(CheckResponsePayload::getStringHttpResponse)
-                                .thenApply(uploadResponse -> mxc);
+                                .thenApply(_ -> mxc);
 
                     } catch (IOException e) {
                         return CompletableFuture.failedFuture(new MatrixIOException("Failure to open file content", e));
