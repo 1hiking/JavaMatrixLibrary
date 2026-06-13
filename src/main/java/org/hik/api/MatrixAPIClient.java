@@ -29,9 +29,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * A {@link MatrixClient} provides all the functionality required to interact with a Matrix compliant server.
+ * A {@link MatrixAPIClient} provides all the functionality required to interact with a Matrix compliant server.
  */
-public class MatrixClient {
+public class MatrixAPIClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ClientCredentials credentials;
@@ -45,7 +45,7 @@ public class MatrixClient {
      * @param username           The username assigned to a registered account
      * @param authToken          A valid non-expired auth token
      */
-    public MatrixClient(String unprocessedBaseUrl, String username, String authToken) {
+    public MatrixAPIClient(String unprocessedBaseUrl, String username, String authToken) {
         this.credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
         this.getWellKnown();
 
@@ -79,13 +79,13 @@ public class MatrixClient {
 
     /**
      *
-     * Asynchronously posts a message to a Matrix room.
+     * Asynchronously requests the posting of a message to a Matrix room.
      *
-     * @param message The message to be sent to the room
      * @param roomId  The id corresponding to a room
+     * @param message The message to be sent to the room
      * @return A {@link CompletableFuture} with a {@link String} representing a unique identifier of the event
      */
-    public CompletableFuture<String> publishRoomMessage(String message, String roomId) {
+    public CompletableFuture<String> publishRoomMessage(String roomId, String message) {
         String roomMessageType = "m.room.message";
         String eventType = "m.text";
 
@@ -116,16 +116,16 @@ public class MatrixClient {
 
     /**
      *
-     * Asynchronously posts a file to a Matrix room.
+     * Asynchronously requests the posting of a message to a Matrix room.
      *
-     * @param file      The file to be sent to the room
      * @param roomId    The id corresponding to a room
+     * @param file      The file to be sent to the room
      * @param eventType The {@link EventType} corresponding to what's being uploaded
      * @return A {@link CompletableFuture} with a {@link String} representing a unique identifier of the event
      * @throws MatrixIOException      when the payload cannot be processed
      * @throws MatrixNetworkException when the response status is not successful
      */
-    public CompletableFuture<String> publishRoomMessage(Path file, String roomId, EventType eventType) {
+    public CompletableFuture<String> publishRoomMessage(String roomId, Path file, EventType eventType) {
         String roomMessageType = "m.room.message";
 
         return uploadMultimedia(file).thenCompose(mxcFile -> {

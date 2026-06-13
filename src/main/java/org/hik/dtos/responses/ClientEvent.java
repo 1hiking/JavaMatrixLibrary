@@ -7,15 +7,15 @@ import java.util.Map;
 /**
  * The format used for events when they are returned from a homeserver to a client via the Client-Server API, or sent to an Application Service via the Application Services API.
  *
- * @param content        Required: The body of this event, as created by the client which sent it.
- * @param eventId        Required: The globally unique identifier for this event.
- * @param originServerTs Required: Timestamp (in milliseconds since the unix epoch) on originating homeserver when this event was sent.
- * @param roomId         Required: The ID of the room associated with this event.
- * @param sender         Required: Contains the fully-qualified ID of the user who sent this event.
+ * @param content        The body of this event, as created by the client which sent it.
+ * @param eventId        The globally unique identifier for this event.
+ * @param originServerTs Timestamp (in milliseconds since the Unix epoch) on originating homeserver when this event was sent.
+ * @param roomId         The ID of the room associated with this event.
+ * @param sender         Contains the fully-qualified ID of the user who sent this event.
  * @param stateKey       Present if, and only if, this event is a state event. The key making this piece of state unique in the room. Note that it is often an empty string.
  *                       <p>
  *                       State keys starting with an @ are reserved for referencing user IDs, such as room members. Except a few events, state events set with a given user’s ID as the state key MUST only be set by that user.
- * @param type           Required: The type of the event.
+ * @param type           The type of the event.
  * @param unsigned       Contains optional extra information about the event.
  */
 public record ClientEvent(Map<String, Object> content,

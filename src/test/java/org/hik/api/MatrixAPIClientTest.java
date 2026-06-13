@@ -23,8 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-class MatrixClientTest {
-    private MatrixClient matrixClient;
+class MatrixAPIClientTest {
+    private MatrixAPIClient matrixAPIClient;
     private static final String USER = "test";
     private static final String AUTH_TOKEN = "1234";
 
@@ -51,14 +51,14 @@ class MatrixClientTest {
 
     @Test
     void getWellKnown_WithAllRequiredProperties_thenReturnCorrectSerialization() {
-        matrixClient = new MatrixClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        assertDoesNotThrow(() -> matrixClient, "The client should not throw given a good url.");
+        assertDoesNotThrow(() -> matrixAPIClient, "The client should not throw given a good url.");
     }
 
     @Test
     void getWellKnown_WithBadUrl_thenReturnAnException() {
-        assertThrows(IllegalArgumentException.class, () -> new MatrixClient("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
+        assertThrows(IllegalArgumentException.class, () -> new MatrixAPIClient("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
     }
 
 
@@ -77,9 +77,9 @@ class MatrixClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"event_id\": \"" + expectedEventId + "\"}")));
 
-        matrixClient = new MatrixClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        String actualEventId = matrixClient.publishRoomMessage("Hello World", roomId).join();
+        String actualEventId = matrixAPIClient.publishRoomMessage(roomId, "Hello World").join();
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
@@ -114,10 +114,10 @@ class MatrixClientTest {
                         .withBody("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
         // Initialize client pointing to local WireMock server
-        matrixClient = new MatrixClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         // Act
-        String actualEventId = matrixClient.publishRoomMessage(result.tempFile(), result.roomId(), EventType.FILE).join();
+        String actualEventId = matrixAPIClient.publishRoomMessage(result.roomId(), result.tempFile(), EventType.FILE).join();
 
         // Assert
         assertNotNull(actualEventId, "The returned event ID should not be null");
@@ -152,9 +152,9 @@ class MatrixClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ malformed json : [")));
 
-        matrixClient = new MatrixClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        var actualEventId = matrixClient.publishRoomMessage(result.tempFile(), result.roomId(), EventType.FILE);
+        var actualEventId = matrixAPIClient.publishRoomMessage(result.roomId(), result.tempFile(), EventType.FILE);
 
         // Capture the asynchronous CompletionException wrapper
         var discard = assertThrows(
@@ -202,9 +202,9 @@ class MatrixClientTest {
                                 }
                                 """.formatted(expectedChunkEventId))));
 
-        matrixClient = new MatrixClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        MessagesResponse actualResponse = matrixClient.getListOfMessages(roomId, direction, mockParams).join();
+        MessagesResponse actualResponse = matrixAPIClient.getListOfMessages(roomId, direction, mockParams).join();
 
         assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");
         assertEquals("some_start_token", actualResponse.start(), "The start pagination token should match");
