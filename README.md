@@ -25,6 +25,11 @@ Now you are able to make use of all the features, the following above is an exam
 asynchronous api:
 
 ```java
+var roomId = "test";
+MatrixClient matrixClient = new MatrixClient("https://example.org", "username", "examplefaketoken");
+
+var id = matrixClient.publishRoomMessage("Test", roomId).join();
+
 var image = matrixClient.publishRoomMessage(Path.of("/path/to/image.jpg"), roomId, EventType.IMAGE);
 var file = matrixClient.publishRoomMessage(Path.of("/path/to/file.txt"), roomId, EventType.FILE);
 var audio = matrixClient.publishRoomMessage(Path.of("/path/to/song.mp3"), roomId, EventType.AUDIO);
@@ -37,7 +42,10 @@ CompletableFuture<List<String>> posts = CompletableFuture.allOf(image, file, aud
             list.add(audio.join());
             return list;
         });
-        logger.
+var ids = String.valueOf(posts.join());
 
-info(String.valueOf(posts.join()));
+var messages = matrixClient.getListOfMessages(roomId, ChronologicalDirectionEvent.REVERSE_CHRONOLOGICAL_ORDER, QueryParametersMessages.defaultParams()).join();
+
+
+var messages = messages.toString();
 ```
