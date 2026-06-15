@@ -1,4 +1,4 @@
-package org.hik.utils;
+package org.hik.constants;
 
 /**
  * The chronological order keys used by some queries to inform the server on how should the payload be ordered

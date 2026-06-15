@@ -1,4 +1,4 @@
-package org.hik.utils;
+package org.hik.constants;
 
 public enum EventType {
     IMAGE("m.image"),
