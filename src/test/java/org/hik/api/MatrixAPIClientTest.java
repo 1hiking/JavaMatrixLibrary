@@ -3,13 +3,13 @@ package org.hik.api;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import org.hik.constants.ChronologicalDirectionEvent;
-import org.hik.dtos.payloads.QueryParametersMessages;
-import org.hik.dtos.payloads.events.MatrixEvent;
-import org.hik.dtos.payloads.events.MatrixFile;
-import org.hik.dtos.payloads.events.MatrixText;
-import org.hik.dtos.responses.MessagesResponse;
 import org.hik.exceptions.MatrixIOException;
+import org.hik.payloads.instantmessaging.MatrixEvent;
+import org.hik.payloads.instantmessaging.MatrixFile;
+import org.hik.payloads.instantmessaging.MatrixText;
+import org.hik.payloads.roomevents.ChronologicalDirectionEvent;
+import org.hik.payloads.roomevents.QueryParametersMessages;
+import org.hik.responses.MessagesResponse;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,7 +192,7 @@ class MatrixAPIClientTest {
 
 
         QueryParametersMessages mockParams = new QueryParametersMessages("some_start_token", 20, "some_end_token");
-        org.hik.constants.ChronologicalDirectionEvent direction = ChronologicalDirectionEvent.CHRONOLOGICAL_ORDER; // Adjust to your enum name if needed
+        ChronologicalDirectionEvent direction = ChronologicalDirectionEvent.CHRONOLOGICAL_ORDER; // Adjust to your enum name if needed
 
         wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + roomId + "/messages"))
                 .withQueryParam("dir", equalTo("f"))

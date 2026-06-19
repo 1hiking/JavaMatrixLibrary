@@ -1,14 +1,15 @@
 package org.hik.api;
 
-import org.hik.constants.ChronologicalDirectionEvent;
-import org.hik.dtos.payloads.ClientCredentials;
-import org.hik.dtos.payloads.QueryParametersMessages;
-import org.hik.dtos.payloads.events.MatrixEvent;
-import org.hik.dtos.responses.DiscoveryResponse;
-import org.hik.dtos.responses.MessagesResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
-import org.hik.networking.HttpTransport;
+import org.hik.payloads.instantmessaging.MatrixEvent;
+import org.hik.payloads.roomevents.ChronologicalDirectionEvent;
+import org.hik.payloads.roomevents.CreationRoomType;
+import org.hik.payloads.roomevents.MatrixRoom;
+import org.hik.payloads.roomevents.QueryParametersMessages;
+import org.hik.responses.DiscoveryResponse;
+import org.hik.responses.MessagesResponse;
+import org.hik.services.networking.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.JsonNode;
@@ -73,14 +74,13 @@ public class MatrixAPIClient {
      *
      * Asynchronously requests the posting of a message to a Matrix room.
      *
-     * @param roomId      The id corresponding to a room
-     * @param matrixEvent The {@link MatrixEvent} corresponding to what's being requested to be uploaded
+     * @param roomId      the id of the room to post the event
+     * @param matrixEvent a well constructed {@link MatrixEvent}
      * @return A {@link CompletableFuture} with a {@link String} representing a unique identifier of the event
      * @throws MatrixIOException      when the payload cannot be processed
      * @throws MatrixNetworkException when the response status is not successful
      */
     public CompletableFuture<String> publishRoomMessage(String roomId, MatrixEvent matrixEvent) {
-        String roomMessageType = "m.room.message";
 
         String jsonPayload;
         try {
@@ -89,7 +89,10 @@ public class MatrixAPIClient {
             return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse input data", e));
         }
 
-        var query = httpTransport.putJson(URI.create(this.discoveryResponse.homeserver().baseUrl() + "/_matrix/client/v3/rooms/" + roomId + "/send/" + roomMessageType + "/" + UUID.randomUUID()), jsonPayload, this.credentials.token());
+        var query = httpTransport.putJson(URI.create(
+                        this.discoveryResponse.homeserver().baseUrl() + "/_matrix/client/v3/rooms/" + roomId + "/send/m.room.message/" + UUID.randomUUID()),
+                jsonPayload,
+                this.credentials.token());
 
         return query.thenCompose(response -> {
             try {
@@ -97,6 +100,60 @@ public class MatrixAPIClient {
                 JsonNode idNode = responsePayload.path("event_id");
                 if (idNode.isMissingNode()) {
                     return CompletableFuture.failedFuture(new MatrixIOException("Missing 'event_id' in server response"));
+                }
+                return CompletableFuture.completedFuture(idNode.stringValue());
+            } catch (JacksonException e) {
+                return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix response JSON", e));
+            }
+        });
+
+    }
+
+    /**
+     *
+     * Creates a room, this method will let the homeserver choose the default configuration for most tasks
+     * and the following values will overwrite them if set to a non-null value.
+     *
+     * @param isFederated If the room will be federated
+     * @param name        The room's name, if any.
+     * @param aliasName   The room's canonical alias, if any
+     * @param topic       The room's topic, if any.
+     * @param type        The {@link CreationRoomType}
+     * @param isVisible   If the room will be visible to the public
+     * @return The created room’s ID.
+     * @throws MatrixIOException      when the payload cannot be processed
+     * @throws MatrixNetworkException when the response status is not successful
+     */
+    public CompletableFuture<String> createRoom(boolean isFederated, String name, String aliasName, String topic, CreationRoomType type, boolean isVisible) {
+
+        String visibility = isVisible ? "public" : "private";
+
+        MatrixRoom roomPayload = new MatrixRoom(new MatrixRoom.CreationContent(isFederated),
+                null,
+                null,
+                null,
+                name,
+                type.getValue(),
+                aliasName,
+                topic,
+                visibility);
+
+        String jsonPayload;
+        try {
+            jsonPayload = objectMapper.writeValueAsString(roomPayload);
+        } catch (JacksonException e) {
+            return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse input data", e));
+        }
+
+        var query = httpTransport.postJson(URI.create(this.discoveryResponse.homeserver().baseUrl() + "/_matrix/client/v3/createRoom"),
+                jsonPayload, this.credentials.token());
+
+        return query.thenCompose(response -> {
+            try {
+                JsonNode responsePayload = objectMapper.readTree(response);
+                JsonNode idNode = responsePayload.path("room_id");
+                if (idNode.isMissingNode()) {
+                    return CompletableFuture.failedFuture(new MatrixIOException("Missing 'room_id' in server response"));
                 }
                 return CompletableFuture.completedFuture(idNode.stringValue());
             } catch (JacksonException e) {
@@ -121,6 +178,20 @@ public class MatrixAPIClient {
     public CompletableFuture<MessagesResponse> getListOfMessages(String roomId, ChronologicalDirectionEvent dir, QueryParametersMessages params) {
 
 
+        String finalUrl = getFinalUrl(roomId, dir, params);
+
+        var query = httpTransport.getJson(URI.create(finalUrl), this.credentials.token());
+
+        return query.thenCompose(response -> {
+            try {
+                return CompletableFuture.completedFuture(objectMapper.readValue(response, MessagesResponse.class));
+            } catch (JacksonIOException e) {
+                return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix discovery JSON", e));
+            }
+        });
+    }
+
+    private String getFinalUrl(String roomId, ChronologicalDirectionEvent dir, QueryParametersMessages params) {
         String basePath = this.discoveryResponse.homeserver().baseUrl() + "/_matrix/client/v3/rooms/" + roomId + "/messages";
 
         StringJoiner queryParams = new StringJoiner("&");
@@ -136,17 +207,7 @@ public class MatrixAPIClient {
         if (params.to() != null) {
             queryParams.add("to=" + params.to());
         }
-        String finalUrl = basePath + "?" + queryParams;
-
-        var query = httpTransport.getJson(URI.create(finalUrl), this.credentials.token());
-
-        return query.thenCompose(response -> {
-            try {
-                return CompletableFuture.completedFuture(objectMapper.readValue(response, MessagesResponse.class));
-            } catch (JacksonIOException e) {
-                return CompletableFuture.failedFuture(new MatrixIOException("Failed to parse Matrix discovery JSON", e));
-            }
-        });
+        return basePath + "?" + queryParams;
     }
 
     /**
