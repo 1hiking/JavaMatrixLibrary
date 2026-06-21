@@ -2,11 +2,11 @@ package org.hik.api;
 
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
-import org.hik.payloads.instantmessaging.MatrixEvent;
-import org.hik.payloads.roomevents.ChronologicalDirectionEvent;
-import org.hik.payloads.roomevents.CreationRoomType;
-import org.hik.payloads.roomevents.MatrixRoom;
-import org.hik.payloads.roomevents.QueryParametersMessages;
+import org.hik.payloads.roomevents.MatrixEvent;
+import org.hik.payloads.roomstate.ChronologicalDirectionEvent;
+import org.hik.payloads.roomstate.CreationRoomType;
+import org.hik.payloads.roomstate.MatrixRoom;
+import org.hik.payloads.roomstate.QueryParametersMessages;
 import org.hik.responses.DiscoveryResponse;
 import org.hik.responses.MessagesResponse;
 import org.hik.services.networking.HttpTransport;
@@ -21,43 +21,37 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * A {@link MatrixAPIClient} provides all the functionality required to interact with a Matrix compliant server.
- */
-public class MatrixAPIClient {
+/// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant server.
+public class MatrixClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ClientCredentials credentials;
-    private DiscoveryResponse discoveryResponse;
     private final HttpTransport httpTransport = new HttpTransport();
+    private DiscoveryResponse discoveryResponse;
 
 
-    private MatrixAPIClient(String unprocessedBaseUrl, String username, String authToken) {
+    private MatrixClient(String unprocessedBaseUrl, String username, String authToken) {
         credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
     }
 
-    /**
-     * Default factory, which will make the initial payloads to request necessary data for further requests
-     *
-     * @param unprocessedBaseUrl The full qualified url of the server, for example: <a href="https://example.org">https://example.org</a>
-     * @param username           The username assigned to a registered account
-     * @param authToken          A valid non-expired auth token
-     * @return An authenticated client.
-     * @throws InterruptedException when the HTTP Client is interrupted
-     */
-    public static MatrixAPIClient create(String unprocessedBaseUrl, String username, String authToken) throws InterruptedException {
-        MatrixAPIClient apiClient = new MatrixAPIClient(unprocessedBaseUrl, username, authToken);
+    /// Default factory, which will make the initial payloads to request necessary data for further requests
+    ///
+    /// @param unprocessedBaseUrl The full qualified url of the server, for example: [https://example.org](https://example.org)
+    /// @param username           The username assigned to a registered account
+    /// @param authToken          A valid non-expired auth token
+    /// @return An authenticated client.
+    /// @throws InterruptedException when the HTTP Client is interrupted
+    public static MatrixClient create(String unprocessedBaseUrl, String username, String authToken) throws InterruptedException {
+        MatrixClient apiClient = new MatrixClient(unprocessedBaseUrl, username, authToken);
         apiClient.getWellKnown();
         return apiClient;
     }
 
-    /**
-     * Method used to obtain the .well-known data and store the base url.
-     *
-     * @throws IllegalArgumentException when the homeserver url violates RFC 2396 or is null (since we concat a constant)
-     * @throws MatrixIOException        when the payload cannot be processed
-     * @throws InterruptedException     when the HTTP Client is interrupted
-     */
+    /// Method used to obtain the .well-known data and store the base url.º
+    ///
+    /// @throws IllegalArgumentException when the homeserver url violates RFC 2396 or is null (since we concat a constant)
+    /// @throws MatrixIOException        when the payload cannot be processed
+    /// @throws InterruptedException     when the HTTP Client is interrupted
     private void getWellKnown() throws InterruptedException {
         try {
             URI uri = URI.create(credentials.baseUrl() + "/.well-known/matrix/client");
@@ -72,17 +66,14 @@ public class MatrixAPIClient {
     }
 
 
-    /**
-     *
-     * Asynchronously requests the posting of a message to a Matrix room.
-     *
-     * @param roomId      the id of the room to post the event
-     * @param matrixEvent a well constructed {@link MatrixEvent}
-     * @return A {@link CompletableFuture} with a {@link String} representing a unique identifier of the event
-     * @throws MatrixIOException      when the payload cannot be processed
-     * @throws MatrixNetworkException when the response status is not successful
-     * @throws InterruptedException   when the HTTP Client is interrupted
-     */
+    /// Asynchronously requests the posting of a message to a Matrix room.
+    ///
+    /// @param roomId      the id of the room to post the event
+    /// @param matrixEvent a well constructed [MatrixEvent]
+    /// @return A [CompletableFuture] with a [String] representing a unique identifier of the event
+    /// @throws MatrixIOException      when the payload cannot be processed
+    /// @throws MatrixNetworkException when the response status is not successful
+    /// @throws InterruptedException   when the HTTP Client is interrupted
     public String publishRoomMessage(String roomId, MatrixEvent matrixEvent) throws InterruptedException {
 
         String jsonPayload;
@@ -111,22 +102,19 @@ public class MatrixAPIClient {
 
     }
 
-    /**
-     *
-     * Creates a room, this method will let the homeserver choose the default configuration for most tasks
-     * and the following values will overwrite them if set to a non-null value.
-     *
-     * @param isFederated If the room will be federated
-     * @param name        The room's name, if any.
-     * @param aliasName   The room's canonical alias, if any
-     * @param topic       The room's topic, if any.
-     * @param type        The {@link CreationRoomType}
-     * @param isVisible   If the room will be visible to the public
-     * @return The created room’s ID.
-     * @throws MatrixIOException      when the payload cannot be processed
-     * @throws MatrixNetworkException when the response status is not successful
-     * @throws InterruptedException   when the HTTP Client is interrupted
-     */
+    /// Creates a room, this method will let the homeserver choose the default configuration for most tasks
+    /// and the following values will overwrite them if set to a non-null value.
+    ///
+    /// @param isFederated If the room will be federated
+    /// @param name        The room's name, if any.
+    /// @param aliasName   The room's canonical alias, if any
+    /// @param topic       The room's topic, if any.
+    /// @param type        The [CreationRoomType]
+    /// @param isVisible   If the room will be visible to the public
+    /// @return The created room’s ID.
+    /// @throws MatrixIOException      when the payload cannot be processed
+    /// @throws MatrixNetworkException when the response status is not successful
+    /// @throws InterruptedException   when the HTTP Client is interrupted
     public String createRoom(boolean isFederated, String name, String aliasName, String topic, CreationRoomType type, boolean isVisible) throws InterruptedException {
 
         String visibility = isVisible ? "public" : "private";
@@ -167,18 +155,15 @@ public class MatrixAPIClient {
     }
 
 
-    /**
-     *
-     * Method that asynchronously returns a list of message and state events for a room. It uses pagination query parameters to paginate history in the room.
-     * <p>
-     * The content is not parsed or escaped which means newlines (\n) and such sequences will be treated as they are.
-     *
-     * @param roomId The room to get events from.
-     * @param params The {@link QueryParametersMessages} for the operation
-     * @param dir    The {@link ChronologicalDirectionEvent} to return events from.
-     * @return A {@link CompletableFuture} containing a {@link MessagesResponse} with the messages from the room
-     * @throws InterruptedException when the HTTP Client is interrupted
-     */
+    /// Method that asynchronously returns a list of message and state events for a room. It uses pagination query parameters to paginate history in the room.
+    ///
+    /// The content is not parsed or escaped which means newlines (\n) and such sequences will be treated as they are.
+    ///
+    /// @param roomId The room to get events from.
+    /// @param params The [QueryParametersMessages] for the operation
+    /// @param dir    The [ChronologicalDirectionEvent] to return events from.
+    /// @return A [CompletableFuture] containing a [MessagesResponse] with the messages from the room
+    /// @throws InterruptedException when the HTTP Client is interrupted
     public MessagesResponse getListOfMessages(String roomId, ChronologicalDirectionEvent dir, QueryParametersMessages params) throws InterruptedException {
 
 
@@ -214,12 +199,10 @@ public class MatrixAPIClient {
         return basePath + "?" + queryParams;
     }
 
-    /**
-     * Synchronously creates a new mxc:// for immediate usage.
-     *
-     * @return A {@link String} representing the MXC
-     * @throws InterruptedException when the HTTP Client is interrupted
-     */
+    /// Synchronously creates a new mxc:// for immediate usage.
+    ///
+    /// @return A [String] representing the MXC
+    /// @throws InterruptedException when the HTTP Client is interrupted
     private String createAndReserveMXC() throws InterruptedException {
         try {
             var queryResponse = httpTransport.postJson(URI.create(this.discoveryResponse.homeserver().baseUrl() + "/_matrix/media/v1/create"), null, this.credentials.token());
@@ -232,13 +215,11 @@ public class MatrixAPIClient {
         }
     }
 
-    /**
-     * Synchronously uploads a local multimedia resource to the Matrix media server.
-     *
-     * @param resource The local path of the resource to upload
-     * @return A {@link String} containing the MXC URI string upon successful upload.
-     * @throws InterruptedException when the HTTP Client is interrupted
-     */
+    /// Synchronously uploads a local multimedia resource to the Matrix media server.
+    ///
+    /// @param resource The local path of the resource to upload
+    /// @return A [String] containing the MXC URI string upon successful upload.
+    /// @throws InterruptedException when the HTTP Client is interrupted
     public String uploadResource(Path resource) throws InterruptedException {
         try {
             String mxc = createAndReserveMXC();

@@ -1,15 +1,11 @@
 package org.hik.exceptions;
 
 
-/**
- * Thrown to indicate that the code has not received a successful HTTP status code.
- */
+/// Thrown to indicate that the code has not received a successful HTTP status code.
 public class MatrixNetworkException extends RuntimeException {
-    /**
-     * Constructs a {@link MatrixNetworkException} with a message.
-     *
-     * @param message The detail message. The detail message is saved for later retrieval by the getMessage() method.
-     */
+    /// Constructs a [MatrixNetworkException] with a message.
+    ///
+    /// @param message The detail message. The detail message is saved for later retrieval by the getMessage() method.
     public MatrixNetworkException(String message) {
         super(message);
     }

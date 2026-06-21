@@ -13,16 +13,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
-/**
- * A {@link HttpTransport} is responsible for the construction of asynchronous {@linkplain HttpRequest requests}, this class is transparent
- * such that all methods require providing required datatypes for the payloads, such as with {@link URI URI} and with {@link HttpRequest.BodyPublisher}
- */
+/// A [HttpTransport] is responsible for the construction of asynchronous [requests][HttpRequest], this class is transparent
+/// such that all methods require providing required datatypes for the payloads, such as with [`URI`][URI] and with [HttpRequest.BodyPublisher]
 public class HttpTransport {
-    private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER = "Bearer ";
+    private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
     private void validateHeaders(int code, String body) {
         if (code != 200) {
@@ -32,13 +30,14 @@ public class HttpTransport {
         }
     }
 
-    /**
-     * @param path
-     * @param authToken
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
+    /// Sends a `GET` request to the given endpoint.
+    ///
+    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param authToken if supplied, the `Bearer` token.
+    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @throws IOException              if an I/O error has occurred while sending the request
+    /// @throws InterruptedException     if the operation has been interrupted
+    /// @throws IllegalArgumentException if the path was not supplied
     public String getJson(URI path, String authToken) throws IOException, InterruptedException {
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path)
@@ -58,14 +57,15 @@ public class HttpTransport {
     }
 
 
-    /**
-     * @param path
-     * @param body
-     * @param authToken
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
+    /// Sends a `POST` request to the given endpoint.
+    ///
+    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param body      the parsed JSON payload as a String
+    /// @param authToken if supplied, the `Bearer` token.
+    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @throws IOException              if an I/O error has occurred while sending the request
+    /// @throws InterruptedException     if the operation has been interrupted
+    /// @throws IllegalArgumentException if the path was not supplied
     public String postJson(URI path, String body, String authToken) throws IOException, InterruptedException {
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path);
@@ -89,14 +89,15 @@ public class HttpTransport {
     }
 
 
-    /**
-     * @param path
-     * @param body
-     * @param authToken
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
+    /// Sends a `PUT` request to the given endpoint.
+    ///
+    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param body      the parsed JSON payload as a String
+    /// @param authToken if supplied, the `Bearer` token.
+    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @throws IOException              if an I/O error has occurred while sending the request
+    /// @throws InterruptedException     if the operation has been interrupted
+    /// @throws IllegalArgumentException if the path was not supplied
     public String putJson(URI path, String body, String authToken) throws IOException, InterruptedException {
 
 
@@ -114,14 +115,15 @@ public class HttpTransport {
     }
 
 
-    /**
-     * @param path
-     * @param resource
-     * @param authToken
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
+    /// Sends a `PUT` request to the given endpoint.
+    ///
+    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param resource  a [Path] pointing to the resource to be uploaded.
+    /// @param authToken if supplied, the `Bearer` token.
+    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @throws IOException              if an I/O error has occurred while sending the request
+    /// @throws InterruptedException     if the operation has been interrupted
+    /// @throws IllegalArgumentException if the path was not supplied
     public String putFile(URI path, Path resource, String authToken) throws IOException, InterruptedException {
         var uploadRequest = HttpRequest.newBuilder()
                 .uri(path)

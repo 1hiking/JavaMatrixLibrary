@@ -4,11 +4,11 @@ package org.hik.api;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.payloads.instantmessaging.MatrixEvent;
-import org.hik.payloads.instantmessaging.MatrixFile;
-import org.hik.payloads.instantmessaging.MatrixText;
-import org.hik.payloads.roomevents.ChronologicalDirectionEvent;
-import org.hik.payloads.roomevents.QueryParametersMessages;
+import org.hik.payloads.roomevents.MatrixEvent;
+import org.hik.payloads.roomevents.MatrixFile;
+import org.hik.payloads.roomevents.MatrixText;
+import org.hik.payloads.roomstate.ChronologicalDirectionEvent;
+import org.hik.payloads.roomstate.QueryParametersMessages;
 import org.hik.responses.MessagesResponse;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,14 +52,14 @@ class MatrixAPIClientTest {
 
     @Test
     void getWellKnown_WithAllRequiredProperties_thenReturnCorrectSerialization() throws InterruptedException {
-        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         assertDoesNotThrow(() -> client, "The client should not throw given a good url.");
     }
 
     @Test
     void getWellKnown_WithBadUrl_thenReturnAnException() {
-        assertThrows(IllegalArgumentException.class, () -> MatrixAPIClient.create("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
+        assertThrows(IllegalArgumentException.class, () -> MatrixClient.create("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
     }
 
 
@@ -78,7 +78,7 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"event_id\": \"" + expectedEventId + "\"}")));
 
-        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         MatrixEvent textEvent = new MatrixText("Hello World", null, null);
         var actualEventId = client.publishRoomMessage(roomId, textEvent);
@@ -116,7 +116,7 @@ class MatrixAPIClientTest {
                         .withBody("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
 
-        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var mxc = client.uploadResource(result.tempFile);
 
         MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
@@ -154,7 +154,7 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ malformed json : [")));
 
-        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
 
         assertThrows(MatrixIOException.class, () -> client.uploadResource(result.tempFile));
@@ -195,7 +195,7 @@ class MatrixAPIClientTest {
                                 """.formatted(expectedChunkEventId))));
 
 
-        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         MessagesResponse actualResponse = client.getListOfMessages(roomId, direction, mockParams);
 

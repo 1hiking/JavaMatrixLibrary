@@ -1,12 +1,8 @@
-package org.hik.payloads.instantmessaging;
+package org.hik.payloads.roomevents;
 
-/**
- * Unsupported record
- */
+/// Unsupported record
 public record EncryptedFile() {
-    /**
-     * Unsupported record
-     */
+    /// Unsupported record
     public EncryptedFile() {
         throw new UnsupportedOperationException("Encrypted File information is not yet supported");
     }
