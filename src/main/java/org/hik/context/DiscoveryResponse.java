@@ -1,4 +1,4 @@
-package org.hik.responses;
+package org.hik.context;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

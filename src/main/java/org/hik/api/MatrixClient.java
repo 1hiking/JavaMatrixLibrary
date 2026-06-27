@@ -1,9 +1,11 @@
 package org.hik.api;
 
+import org.hik.context.ClientContext;
+import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.responses.DiscoveryResponse;
 import org.hik.services.modules.Events;
 import org.hik.services.modules.Room;
+import org.hik.services.modules.UserData;
 import org.hik.services.networking.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -13,19 +15,21 @@ import java.net.URI;
 
 /// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant server.
 public class MatrixClient {
-
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ClientCredentials credentials;
     private final HttpTransport httpTransport = new HttpTransport();
-    private DiscoveryResponse discoveryResponse;
-
+    private final DiscoveryResponse discoveryResponse;
     private final Events events;
     private final Room room;
+    private final UserData userData;
 
-    private MatrixClient(String unprocessedBaseUrl, String username, String authToken) {
-        credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
-        this.events = new Events(this);
-        this.room = new Room(this);
+    private MatrixClient(String unprocessedBaseUrl, String username, String authToken) throws InterruptedException {
+        this.credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
+        this.discoveryResponse = fetchWellKnown();
+        var context = new ClientContext(this.credentials, this.discoveryResponse);
+        this.events = new Events(context);
+        this.room = new Room(context);
+        this.userData = new UserData(context);
     }
 
     public Events events() {
@@ -36,14 +40,9 @@ public class MatrixClient {
         return this.room;
     }
 
-    public DiscoveryResponse getDiscoveryResponse() {
-        return discoveryResponse;
+    public UserData userData() {
+        return this.userData;
     }
-
-    public ClientCredentials getCredentials() {
-        return credentials;
-    }
-
 
     /// Default factory, which will make the initial payloads to request necessary data for further requests
     ///
@@ -53,28 +52,23 @@ public class MatrixClient {
     /// @return an authenticated client.
     /// @throws InterruptedException when the HTTP Client is interrupted
     public static MatrixClient create(String unprocessedBaseUrl, String username, String authToken) throws InterruptedException {
-        MatrixClient apiClient = new MatrixClient(unprocessedBaseUrl, username, authToken);
-        apiClient.getWellKnown();
-        return apiClient;
+        return new MatrixClient(unprocessedBaseUrl, username, authToken);
     }
 
-    /// Method used to obtain the .well-known data and store the base url.º
+    /// Method used to obtain the .well-known data and store the base url.
     ///
-    /// @throws IllegalArgumentException when the homeserver url violates RFC 2396 or is null (since we concat a constant)
+    /// @throws IllegalArgumentException when the homeserver url violates RFC 2396 or is null
     /// @throws MatrixIOException        when the payload cannot be processed
     /// @throws InterruptedException     when the HTTP Client is interrupted
-    private void getWellKnown() throws InterruptedException {
+    private DiscoveryResponse fetchWellKnown() throws InterruptedException {
         try {
             URI uri = URI.create(credentials.baseUrl() + "/.well-known/matrix/client");
             var response = httpTransport.getEvent(uri, null);
-            this.discoveryResponse = objectMapper.readValue(response, DiscoveryResponse.class);
-
+            return objectMapper.readValue(response, DiscoveryResponse.class);
         } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix discovery JSON ", e);
+            throw new MatrixIOException("Failed to parse Matrix discovery JSON", e);
         } catch (IOException e) {
-            throw new MatrixIOException("Network error during Matrix discovery ", e);
+            throw new MatrixIOException("Network error during Matrix discovery", e);
         }
     }
-
-
 }
