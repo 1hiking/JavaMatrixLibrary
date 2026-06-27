@@ -1,7 +1,9 @@
 package org.hik.services.networking;
 
+import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
 import org.hik.responses.ErrorResponse;
+import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -22,12 +24,23 @@ public class HttpTransport {
     private static final String BEARER = "Bearer ";
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
-    private void validateHeaders(int code, String body) {
-        if (code != 200) {
-            ErrorResponse errorResponse = new ObjectMapper().readValue(body, ErrorResponse.class);
-            throw new MatrixNetworkException("Error processing exception: " + errorResponse.error() + ", with code: " + errorResponse.errCode());
-
+    private void validateResponse(int code, String body) {
+        if (code >= 200 && code < 300) {
+            return;
         }
+
+        if (body.isBlank()) {
+            throw new MatrixNetworkException("Server returned with unknown error");
+        }
+
+        ErrorResponse errorResponse;
+        try {
+            errorResponse = new ObjectMapper().readValue(body, ErrorResponse.class);
+        } catch (StreamReadException e) {
+            throw new MatrixIOException("Server returned with malformed response", e);
+        }
+
+        throw new MatrixNetworkException("Server returned with error: " + errorResponse.error() + ", and code: " + errorResponse.errCode());
     }
 
     /// Sends a `GET` request to the given endpoint.
@@ -51,7 +64,7 @@ public class HttpTransport {
 
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        this.validateHeaders(response.statusCode(), response.body());
+        this.validateResponse(response.statusCode(), response.body());
         return response.body();
 
     }
@@ -83,7 +96,7 @@ public class HttpTransport {
 
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        this.validateHeaders(response.statusCode(), response.body());
+        this.validateResponse(response.statusCode(), response.body());
         return response.body();
 
     }
@@ -110,7 +123,7 @@ public class HttpTransport {
         var request = builderRequest.build();
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        this.validateHeaders(response.statusCode(), response.body());
+        this.validateResponse(response.statusCode(), response.body());
         return response.body();
     }
 
@@ -133,9 +146,10 @@ public class HttpTransport {
                 .build();
 
         var response = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
-        this.validateHeaders(response.statusCode(), response.body());
+        this.validateResponse(response.statusCode(), response.body());
         return response.body();
 
-
     }
+
+
 }
