@@ -14,9 +14,9 @@ public enum ChronologicalDirectionType {
         this.value = value;
     }
 
-    /// Returns the string query parameter value ('f' or 'b') expected by the Matrix homeserver.
+    /// Returns the query value ('f' or 'b') expected by Matrix servers.
     ///
-    /// @return the raw query parameter string
+    /// @return the query value.
     public String getValue() {
         return this.value;
     }

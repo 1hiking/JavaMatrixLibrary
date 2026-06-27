@@ -2,10 +2,10 @@ package org.hik.payloads.roomstate;
 
 /// The new visibility type for the room.
 public enum VisibilityRoomType {
-    /// Look forward in time (from the oldest message towards the newest messages).
-    PRIVATE("f"),
-    /// Look backward in time (from the newest message towards the oldest historical messages).
-    PUBLIC("b");
+    /// Set the visibility private.
+    PRIVATE("private"),
+    /// Set the visibility to public.
+    PUBLIC("public");
 
 
     private final String value;
@@ -14,9 +14,9 @@ public enum VisibilityRoomType {
         this.value = value;
     }
 
-    /// Returns the string query parameter value ('f' or 'b') expected by the Matrix homeserver.
+    /// Returns the parameter value ('private' or 'public') expected by Matrix servers.
     ///
-    /// @return the raw query parameter string
+    /// @return the parameter visibility value.
     public String getValue() {
         return this.value;
     }
