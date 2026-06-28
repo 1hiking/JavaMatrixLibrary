@@ -1,12 +1,12 @@
 package org.hik.services.modules;
 
+import org.hik.api.Event;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.exceptions.MatrixNetworkException;
+import org.hik.payloads.roomevents.ChronologicalDirectionType;
 import org.hik.payloads.roomevents.MatrixEvent;
-import org.hik.payloads.roomstate.ChronologicalDirectionType;
-import org.hik.payloads.roomstate.Messages;
-import org.hik.payloads.roomstate.QueryParametersMessages;
+import org.hik.payloads.roomevents.Messages;
+import org.hik.payloads.roomevents.QueryParametersMessages;
 import org.hik.services.networking.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -20,10 +20,9 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class Events {
+public class EventService implements Event {
 
     /**
      * Common endpoint for many Room events.
@@ -34,18 +33,11 @@ public class Events {
 
     private final ClientContext client;
 
-    public Events(ClientContext client) {
+    public EventService(ClientContext client) {
         this.client = client;
     }
 
-    /// Asynchronously requests the posting of a message to a Matrix room.
-    ///
-    /// @param roomId      the id of the room to post the event
-    /// @param matrixEvent a well constructed [MatrixEvent]
-    /// @return A [CompletableFuture] with a [String] representing a unique identifier of the event
-    /// @throws MatrixIOException      when the payload cannot be processed
-    /// @throws MatrixNetworkException when the response status is not successful
-    /// @throws InterruptedException   when the HTTP Client is interrupted
+    @Override
     public String publishRoomMessage(String roomId, MatrixEvent matrixEvent) throws InterruptedException {
 
         String jsonPayload;
@@ -88,11 +80,7 @@ public class Events {
         return responsePayload.get("content_uri").stringValue();
     }
 
-    /// Synchronously uploads a local multimedia resource to the Matrix media server.
-    ///
-    /// @param resource the local path of the resource to upload
-    /// @return A [String] containing the MXC URI string upon successful upload.
-    /// @throws InterruptedException when the HTTP Client is interrupted
+    @Override
     public String uploadResource(Path resource) throws InterruptedException {
         try {
             String mxc = createAndReserveMXC();
@@ -111,17 +99,18 @@ public class Events {
         }
     }
 
-    /// Returns a list of message and state events for a room. It uses pagination query parameters to paginate
-    /// history in the room.
-    /// The content is not parsed or escaped which means newlines (\n) and such escape sequences will not be parsed.
-    ///
-    /// @param roomId the target room ID.
-    /// @param params the [QueryParametersMessages] for the operation
-    /// @param dir    the [ChronologicalDirectionType] to return events from.
-    /// @return A [CompletableFuture] containing a [Messages] record with the messages from the room
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted
-    /// @throws NullPointerException when the roomId is null.
+    @Override
+    public void doSync() throws InterruptedException {
+        try {
+            httpTransport.getEvent(URI.create("/_matrix/client/v3/sync"), this.client.credentials().token());
+        } catch (IOException e) {
+            throw new MatrixIOException("Network error while attempting to publish a resource ", e);
+        } catch (JacksonException e) {
+            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
+        }
+    }
+
+    @Override
     public Messages getListOfMessages(String roomId, ChronologicalDirectionType dir, QueryParametersMessages params) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId);
         // filter is NOT mapped

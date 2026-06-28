@@ -3,8 +3,8 @@ package org.hik.api;
 import org.hik.context.ClientContext;
 import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.services.modules.Events;
-import org.hik.services.modules.Room;
+import org.hik.services.modules.EventService;
+import org.hik.services.modules.RoomService;
 import org.hik.services.modules.UserData;
 import org.hik.services.networking.HttpTransport;
 import tools.jackson.core.JacksonException;
@@ -19,25 +19,25 @@ public class MatrixClient {
     private final ClientCredentials credentials;
     private final HttpTransport httpTransport = new HttpTransport();
     private final DiscoveryResponse discoveryResponse;
-    private final Events events;
-    private final Room room;
+    private final Event event;
+    private final Room roomService;
     private final UserData userData;
 
     private MatrixClient(String unprocessedBaseUrl, String username, String authToken) throws InterruptedException {
         this.credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
         this.discoveryResponse = fetchWellKnown();
         var context = new ClientContext(this.credentials, this.discoveryResponse);
-        this.events = new Events(context);
-        this.room = new Room(context);
+        this.event = new EventService(context);
+        this.roomService = new RoomService(context);
         this.userData = new UserData(context);
     }
 
-    public Events events() {
-        return this.events;
+    public Event events() {
+        return this.event;
     }
 
     public Room room() {
-        return this.room;
+        return this.roomService;
     }
 
     public UserData userData() {

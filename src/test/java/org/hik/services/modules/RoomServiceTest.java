@@ -13,7 +13,7 @@ import java.net.URI;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class RoomTest extends MatrixAPIClientTest {
+class RoomServiceTest extends MatrixAPIClientTest {
 
     private static final String USER = "test";
     private static final String AUTH_TOKEN = "1234";

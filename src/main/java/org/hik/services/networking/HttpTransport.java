@@ -1,8 +1,8 @@
 package org.hik.services.networking;
 
+import org.hik.exceptions.ErrorResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
-import org.hik.responses.ErrorResponse;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.databind.ObjectMapper;
 

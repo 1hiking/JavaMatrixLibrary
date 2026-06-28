@@ -5,12 +5,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.hik.api.MatrixAPIClientTest;
 import org.hik.api.MatrixClient;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.payloads.roomevents.MatrixEvent;
-import org.hik.payloads.roomevents.MatrixFile;
-import org.hik.payloads.roomevents.MatrixText;
-import org.hik.payloads.roomstate.ChronologicalDirectionType;
-import org.hik.payloads.roomstate.Messages;
-import org.hik.payloads.roomstate.QueryParametersMessages;
+import org.hik.payloads.roomevents.*;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +20,7 @@ import java.nio.file.Path;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class EventsTest extends MatrixAPIClientTest {
+class EventServiceTest extends MatrixAPIClientTest {
 
     private static final String USER = "test";
     private static final String AUTH_TOKEN = "1234";

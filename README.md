@@ -1,21 +1,30 @@
 > [!CAUTION]
 > This project is in very early stages, use at your own risk.
 
-# Matrix client library for Java
+# A Matrix client library for Java
 
 This is a Java client-side library to interact with the Matrix protocol.
 
 Some of the aims of this project are:
 
-- Maintain low quantity of external dependencies
-- Leverage modern Java features to improve developer experience
-- Maintain the client simple, allowing consumers to pass their own data for serialization in most cases
+- Maintain low quantity of external dependencies.
+- Leverage modern Java features to improve developer experience.
+- Maintain the client simple, allowing consumers to generate and send their own data.
 
-Current features:
+## Feature table:
 
-- Support for the serialization of most of `m.room.message` type events
-- Support for room creation and message reading
+| Module                                              | Supported |
+|-----------------------------------------------------|-----------|
+| Rooms (banning, kicking, room summary, room search) | Yes       |
+| Events (sending posts, reading from rooms)          | Partially |
+|                                                     |           |
+
 
 ### Installation:
 
 Declare the library in your pom
+
+### Testing
+
+- Testing is done via the library Wiremocks and JUnit 5.
+- Each module has their own test file.

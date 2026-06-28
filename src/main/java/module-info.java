@@ -1,18 +1,15 @@
 /// Base Client Module
 module JavaMatrixClient {
 
-    // Required for all our http code
+    // Required for all our networking code
     requires java.net.http;
 
-    // Required for serialization
-    requires com.fasterxml.jackson.annotation;
+    // Required for JSON manipulation
     requires tools.jackson.core;
     requires tools.jackson.databind;
+    requires java.sql;
 
-    // Required for MediaProcessor, might be deleted
-    requires java.desktop;
-
-    // Init
+    // Interfaces and facade
     exports org.hik.api;
     exports org.hik.context;
 

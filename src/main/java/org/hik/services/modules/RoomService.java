@@ -1,8 +1,8 @@
 package org.hik.services.modules;
 
+import org.hik.api.Room;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.exceptions.MatrixNetworkException;
 import org.hik.payloads.roomstate.*;
 import org.hik.services.networking.HttpTransport;
 import tools.jackson.core.JacksonException;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class Room {
+public class RoomService implements Room {
 
     /**
      * Common endpoint for many Room events.
@@ -33,23 +33,11 @@ public class Room {
     private final HttpTransport httpTransport = new HttpTransport();
     private final ClientContext client;
 
-    public Room(ClientContext client) {
+    public RoomService(ClientContext client) {
         this.client = client;
     }
 
-    /// Creates a room, this method will let the homeserver choose the default configuration for most tasks
-    /// and the following parameters will overwrite them if set to a non-null value.
-    ///
-    /// @param isFederated if the room will be federated
-    /// @param name        the room's name, if any.
-    /// @param aliasName   the room's canonical alias, if any
-    /// @param topic       the room's topic, if any.
-    /// @param type        the [CreationRoomType]
-    /// @param isVisible   if the room will be visible to the public
-    /// @return the created room’s ID.
-    /// @throws MatrixIOException      when the payload cannot be processed
-    /// @throws MatrixNetworkException when the response status is not successful
-    /// @throws InterruptedException   when the HTTP Client is interrupted
+    @Override
     public String create(boolean isFederated, String name, String aliasName, String topic, CreationRoomType type,
                          boolean isVisible) throws InterruptedException {
 
@@ -92,15 +80,7 @@ public class Room {
         }
     }
 
-    /// Sends a request to leave the room, upon success, you will forget all messages from this room.
-    /// If all users on a room forget it, the room is eligible for deletion.
-    /// You must [forget](#forget(String)) the room first before calling this method.
-    ///
-    /// @param roomId the target room ID.
-    /// @return `true` if the request finished with no issue.
-    /// @throws MatrixIOException      when the payload cannot be processed.
-    /// @throws MatrixNetworkException when the response status is not successful.
-    /// @throws InterruptedException   when the HTTP Client is interrupted.
+    @Override
     public boolean forget(String roomId) throws InterruptedException {
         var payloadRoomID = Objects.requireNonNull(roomId, "A room id is required.");
 
@@ -116,15 +96,7 @@ public class Room {
 
     }
 
-    /// Sends a request to leave the room, upon success, you will no longer receive new messages from this room.
-    /// If the user was invited to the room, but had not joined, this call serves to reject the invite.
-    /// Some servers MAY additionally `forget` the room when leaving.
-    ///
-    /// @param roomId the target room ID.
-    /// @return true if the roomId was set and the request finished with no issue.
-    /// @throws MatrixIOException      when the payload cannot be processed
-    /// @throws MatrixNetworkException when the response status is not successful
-    /// @throws InterruptedException   when the HTTP Client is interrupted
+    @Override
     public boolean leave(String roomId) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId, "A room id is required.");
         try {
@@ -139,15 +111,7 @@ public class Room {
 
     }
 
-    /// Sends a request to kick someone from a room. Caller must have a configured power level to perform this
-    /// operation.
-    ///
-    /// @param roomId the target room ID.
-    /// @param event  the body to supply the request.
-    /// @return `true` if the request finished with no issue.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public boolean kick(String roomId, RoomMembershipRequest event) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId, "A room id is required.");
         try {
@@ -162,14 +126,7 @@ public class Room {
         return true;
     }
 
-    /// Sends a request to ban someone from a room. Caller must have a configured power level to perform this operation.
-    ///
-    /// @param roomId the target room ID.
-    /// @param event  the body to supply the request.
-    /// @return `true` if the request finished with no issue.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public boolean ban(String roomId, RoomMembershipRequest event) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId, "A room id is required.");
         try {
@@ -184,15 +141,7 @@ public class Room {
         return true;
     }
 
-    /// Sends a request to unban someone from a room. Caller must have a configured power level to perform this
-    /// operation.
-    ///
-    /// @param roomId the target room ID.
-    /// @param event  the body to supply the request.
-    /// @return `true` if the request finished with no issue.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public boolean unban(String roomId, RoomMembershipRequest event) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId);
         try {
@@ -207,15 +156,7 @@ public class Room {
         return true;
     }
 
-    /// Gets the visibility of a given room in the server’s published room directory.
-    /// Authentication is not required to run this request.
-    /// NOTE: This does NOT guarantee join rules are public.
-    ///
-    /// @param roomId the target room ID.
-    /// @return a [String] with the room visibility.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public String getRoomDirectoryVisibilityType(String roomId) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId, "A room id is required.");
         try {
@@ -230,14 +171,7 @@ public class Room {
         }
     }
 
-    /// Sets the visibility of a given room in the server’s published room directory.
-    ///
-    /// @param roomId   the target room ID.
-    /// @param roomType a [VisibilityRoomType] with the room visibility type
-    /// @return `true` if the request finished with no issue.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public boolean setRoomDirectoryVisibilityType(String roomId, VisibilityRoomType roomType) throws InterruptedException {
         var payloadRoomId = Objects.requireNonNull(roomId, "A room id is required.");
 
@@ -261,17 +195,7 @@ public class Room {
     // 26/june/2026: There is a POST equivalent for this endpoint, however I don't see the benefit of implementing it
     // as of now.
 
-    /// Lists a server’s published room directory.
-    ///
-    /// @param limit  limit of records to show
-    /// @param server what server to fetch from, if not supplied it will fetch the local server. Case-sensitive.
-    /// @param since  a pagination token from a previous request, allowing you to get the next or previous
-    /// batch of rooms. The direction of pagination is specified by which token is supplied (not like
-    ///  [ChronologicalDirectionType]).
-    /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published rooms on the server.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public PublicRoomDirectory getPublishedRoomDirectory(Integer limit, String server, String since) throws InterruptedException {
         Map<String, Object> params = new HashMap<>();
         params.put("limit", String.valueOf(limit));
@@ -291,14 +215,7 @@ public class Room {
         }
     }
 
-    /// Retrieves a summary for a room. The response data might yield outdated, partial or even no data.
-    ///
-    /// @param roomIdOrAlias the room id or alias of the room to target
-    /// @param via           the servers to attempt to request the summary from when the local server cannot generate it
-    /// @return a [RoomSummary] containing all the information about the room.
-    /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
-    /// @throws NullPointerException when the roomId is null.
+    @Override
     public RoomSummary getRoomSummary(String roomIdOrAlias, URI via) throws InterruptedException {
         String idToUse = Objects.requireNonNull(roomIdOrAlias, "A room id or room alias is required.");
 

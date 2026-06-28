@@ -1,4 +1,4 @@
-package org.hik.responses;
+package org.hik.exceptions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

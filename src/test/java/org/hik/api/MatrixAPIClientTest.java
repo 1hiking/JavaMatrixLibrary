@@ -38,7 +38,6 @@ public class MatrixAPIClientTest {
     @Test
     void getWellKnown_WithAllRequiredProperties_thenReturnCorrectSerialization() throws InterruptedException {
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-
         assertDoesNotThrow(() -> client, "The client should not throw given a good url.");
     }
 

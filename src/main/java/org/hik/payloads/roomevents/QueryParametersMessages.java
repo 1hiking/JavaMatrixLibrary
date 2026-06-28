@@ -1,4 +1,4 @@
-package org.hik.payloads.roomstate;
+package org.hik.payloads.roomevents;
 
 /// This auxiliary record represents the arguments required to format the URI used to query the get /messages endpoint.
 ///

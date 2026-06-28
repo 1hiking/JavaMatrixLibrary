@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.release>25</maven.compiler.release>
+        <maven.compiler.release>26</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -46,6 +46,12 @@
             <version>3.27.7</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>uk.co.jemos.podam</groupId>
+            <artifactId>podam</artifactId>
+            <version>8.0.2.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
 
 
         <dependency>
@@ -72,7 +78,6 @@
                 <version>3.6.3</version>
                 <configuration>
                     <release>21</release>
-                    <doclint>none</doclint>
                 </configuration>
                 <executions>
                     <execution>
@@ -90,12 +95,10 @@
                 <version>0.8.15</version>
 
                 <configuration>
-                    <excludes>
-                        <exclude>org/hik/exceptions/**</exclude>
-                        <exclude>org/hik/payloads/**</exclude>
-                        <exclude>org/hik/responses/**</exclude>
-                        <exclude>org/hik/services/*</exclude>
-                    </excludes>
+                    <includes>
+                        <include>org/hik/api/*</include>
+                        <include>org/hik/services/**</include>
+                    </includes>
                 </configuration>
 
                 <executions>
