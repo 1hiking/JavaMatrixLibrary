@@ -1,10 +1,9 @@
-package org.hik.services.networking;
+package org.hik.services.utils;
 
 import org.hik.exceptions.ErrorResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
 import tools.jackson.core.exc.StreamReadException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -15,8 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
-/// A [HttpTransport] is responsible for the construction of asynchronous [requests][HttpRequest], this class is transparent
-/// such that all methods require providing required datatypes for the payloads, such as with [`URI`][URI] and with [HttpRequest.BodyPublisher]
+/// A [HttpTransport] is responsible for the construction of asynchronous [requests][HttpRequest], this class is
+/// transparent
+/// such that all methods require providing required datatypes for the payloads, such as with [`URI`][URI] and with
+///  [HttpRequest.BodyPublisher]
 public class HttpTransport {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
@@ -35,7 +36,7 @@ public class HttpTransport {
 
         ErrorResponse errorResponse;
         try {
-            errorResponse = new ObjectMapper().readValue(body, ErrorResponse.class);
+            errorResponse = ConfiguratedMapper.getInstance().readValue(body, ErrorResponse.class);
         } catch (StreamReadException e) {
             throw new MatrixIOException("Server returned with malformed response", e);
         }
@@ -87,7 +88,8 @@ public class HttpTransport {
             builderRequest.header(CONTENT_TYPE, APPLICATION_JSON);
         }
 
-        builderRequest.POST(body != null ? HttpRequest.BodyPublishers.ofString(body) : HttpRequest.BodyPublishers.noBody());
+        builderRequest.POST(body != null ? HttpRequest.BodyPublishers.ofString(body) :
+                HttpRequest.BodyPublishers.noBody());
 
         if (authToken != null) {
             builderRequest.header(AUTHORIZATION, BEARER + authToken);
@@ -119,7 +121,8 @@ public class HttpTransport {
                 .header(AUTHORIZATION, BEARER + authToken)
                 .header(CONTENT_TYPE, APPLICATION_JSON);
 
-        builderRequest.PUT(body != null ? HttpRequest.BodyPublishers.ofString(body) : HttpRequest.BodyPublishers.noBody());
+        builderRequest.PUT(body != null ? HttpRequest.BodyPublishers.ofString(body) :
+                HttpRequest.BodyPublishers.noBody());
         var request = builderRequest.build();
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());

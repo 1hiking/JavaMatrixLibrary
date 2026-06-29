@@ -1,7 +1,5 @@
 package org.hik.payloads.roomevents;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URI;
 
 
@@ -23,7 +21,7 @@ public record MatrixImage(String body,
                           EncryptedFile file,
                           String filename,
                           String format,
-                          @JsonProperty("formatted_body") String formattedBody,
+                          String formattedBody,
                           ImageInfo info,
                           URI url
 
@@ -37,9 +35,12 @@ public record MatrixImage(String body,
 
     /// Additional file information referred in the [MatrixFile] `url` field.
     ///
-    /// @param h             the intended display height of the image in pixels. This may differ from the intrinsic dimensions of the image file.
-    /// @param w             the intended display width of the image in pixels. This may differ from the intrinsic dimensions of the image file.
-    /// @param isAnimated    when set to true, the image SHOULD be assumed to be animated. Leave unset if unable to determine.
+    /// @param h             the intended display height of the image in pixels. This may differ from the intrinsic
+    /// dimensions of the image file.
+    /// @param w             the intended display width of the image in pixels. This may differ from the intrinsic
+    /// dimensions of the image file.
+    /// @param isAnimated    when set to true, the image SHOULD be assumed to be animated. Leave unset if unable to
+    /// determine.
     /// @param mimetype      the mimetype of the image.
     /// @param size          the size of the image in bytes.
     /// @param thumbnailFile information on the encrypted thumbnail file. Currently not supported.
@@ -48,12 +49,12 @@ public record MatrixImage(String body,
     public record ImageInfo(
             Integer h,
             Integer w,
-            @JsonProperty("is_animated") Boolean isAnimated,
+            Boolean isAnimated,
             String mimetype,
             Integer size,
-            @JsonProperty("thumbnail_file") EncryptedFile thumbnailFile,
-            @JsonProperty("thumbnail_info") ThumbnailInfo thumbnailInfo,
-            @JsonProperty("thumbnail_url") String thumbnailUrl
+            EncryptedFile thumbnailFile,
+            ThumbnailInfo thumbnailInfo,
+            String thumbnailUrl
     ) implements HasInfo, HasThumbnail {
 
     }

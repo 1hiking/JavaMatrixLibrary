@@ -5,8 +5,9 @@ import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.services.modules.EventService;
 import org.hik.services.modules.RoomService;
-import org.hik.services.modules.UserData;
-import org.hik.services.networking.HttpTransport;
+import org.hik.services.modules.UserDataService;
+import org.hik.services.utils.ConfiguratedMapper;
+import org.hik.services.utils.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -15,21 +16,20 @@ import java.net.URI;
 
 /// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant server.
 public class MatrixClient {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = ConfiguratedMapper.getInstance();
     private final ClientCredentials credentials;
     private final HttpTransport httpTransport = new HttpTransport();
-    private final DiscoveryResponse discoveryResponse;
     private final Event event;
     private final Room roomService;
-    private final UserData userData;
+    private final UserDataService userDataService;
 
     private MatrixClient(String unprocessedBaseUrl, String username, String authToken) throws InterruptedException {
         this.credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
-        this.discoveryResponse = fetchWellKnown();
-        var context = new ClientContext(this.credentials, this.discoveryResponse);
+        DiscoveryResponse discoveryResponse = fetchWellKnown();
+        var context = new ClientContext(this.credentials, discoveryResponse);
         this.event = new EventService(context);
         this.roomService = new RoomService(context);
-        this.userData = new UserData(context);
+        this.userDataService = new UserDataService(context);
     }
 
     public Event events() {
@@ -40,8 +40,8 @@ public class MatrixClient {
         return this.roomService;
     }
 
-    public UserData userData() {
-        return this.userData;
+    public UserDataService userData() {
+        return this.userDataService;
     }
 
     /// Default factory, which will make the initial payloads to request necessary data for further requests

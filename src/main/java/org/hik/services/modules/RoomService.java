@@ -4,7 +4,8 @@ import org.hik.api.Room;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.payloads.roomstate.*;
-import org.hik.services.networking.HttpTransport;
+import org.hik.services.utils.ConfiguratedMapper;
+import org.hik.services.utils.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -29,7 +30,7 @@ public class RoomService implements Room {
      */
     private static final String DIRECTORY_ENDPOINT = "/_matrix/client/v3/directory/list/room/";
     private static final String PUBLIC_ROOMS_ENDPOINT = "/_matrix/client/v3/publicRooms";
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = ConfiguratedMapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport();
     private final ClientContext client;
 

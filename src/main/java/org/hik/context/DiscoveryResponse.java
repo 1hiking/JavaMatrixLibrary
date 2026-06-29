@@ -22,7 +22,7 @@ public record DiscoveryResponse(
     ///
     /// @param baseUrl The base URL for the homeserver for client-server connections.
     public record HomeserverInfo(
-            @JsonProperty("base_url") String baseUrl
+            String baseUrl
     ) {
     }
 
@@ -30,17 +30,17 @@ public record DiscoveryResponse(
     ///
     /// @param baseUrl The base URL for the identity server for client-server connections.
     public record IdentityServerInfo(
-            @JsonProperty("base_url") String baseUrl
+            String baseUrl
     ) {
     }
 
     /// Experimental record used to store rtc information.
     ///
-    /// @param type The type.
+    /// @param type              The type.
     /// @param livekitServiceUrl The livekit URL.
     public record RtcFocus(
             String type,
-            @JsonProperty("livekit_service_url") String livekitServiceUrl
+            String livekitServiceUrl
     ) {
     }
 }

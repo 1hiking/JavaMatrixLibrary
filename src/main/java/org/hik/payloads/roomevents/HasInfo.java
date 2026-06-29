@@ -8,7 +8,8 @@ package org.hik.payloads.roomevents;
 /// @see MatrixImage.ImageInfo
 /// @see MatrixFile.FileInfo
 /// @see MatrixVideo.VideoInfo
-public sealed interface HasInfo permits MatrixAudio.AudioInfo, MatrixFile.FileInfo, MatrixImage.ImageInfo, MatrixVideo.VideoInfo {
+public sealed interface HasInfo permits MatrixAudio.AudioInfo, MatrixFile.FileInfo, MatrixImage.ImageInfo,
+        MatrixVideo.VideoInfo {
     /// @return the mimetype of the corresponding input resource
     String mimetype();
 

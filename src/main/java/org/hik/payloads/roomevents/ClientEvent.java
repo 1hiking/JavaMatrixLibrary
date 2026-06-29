@@ -1,7 +1,5 @@
 package org.hik.payloads.roomevents;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 
 /// The record used for events when they are returned from a homeserver to a client via the Client-Server API, or
@@ -21,11 +19,11 @@ import java.util.Map;
 /// @param type           the type of the event.
 /// @param unsigned       contains optional extra information about the event.
 public record ClientEvent(Map<String, Object> content,
-                          @JsonProperty("event_id") String eventId,
-                          @JsonProperty("origin_server_ts") Long originServerTs,
-                          @JsonProperty("room_id") String roomId,
+                          String eventId,
+                          Long originServerTs,
+                          String roomId,
                           String sender,
-                          @JsonProperty("state_key") String stateKey,
+                          String stateKey,
                           String type,
                           UnsignedData unsigned
 ) {
@@ -41,7 +39,7 @@ public record ClientEvent(Map<String, Object> content,
     /// /rooms/{roomId}/send/{eventType}/{txnId}`, if the client being given the event is the same one which sent it.
     public record UnsignedData(Long age,
                                String membership,
-                               @JsonProperty("redacted_because") ClientEvent redactedBecause,
-                               @JsonProperty("transaction_id") String transactionId) {
+                               ClientEvent redactedBecause,
+                               String transactionId) {
     }
 }

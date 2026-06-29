@@ -17,7 +17,8 @@ public enum CreationRoomType {
         this.value = value;
     }
 
-    /// Returns the string room type value ('private\_chat', 'public\_chat' or 'trusted\_private\_chat') expected by the Matrix homeserver.
+    /// Returns the string room type value ('private\_chat', 'public\_chat' or 'trusted\_private\_chat') expected by
+    /// the Matrix homeserver.
     ///
     /// @return the parameter string
     public String getValue() {

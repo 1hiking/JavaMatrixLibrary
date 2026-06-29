@@ -1,7 +1,5 @@
 package org.hik.payloads.roomevents;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URI;
 
 /// This message represents a single video clip.
@@ -22,7 +20,7 @@ public record MatrixVideo(String body,
                           EncryptedFile file,
                           String filename,
                           String format,
-                          @JsonProperty("formatted_body") String formattedBody,
+                          String formattedBody,
                           VideoInfo info,
                           URI url
 ) implements MatrixEvent {
@@ -48,9 +46,9 @@ public record MatrixVideo(String body,
                             Integer h,
                             String mimetype,
                             Integer size,
-                            @JsonProperty("thumbnail_file") EncryptedFile thumbnailFile,
-                            @JsonProperty("thumbnail_info") ThumbnailInfo thumbnailInfo,
-                            @JsonProperty("thumbnail_url") String thumbnailUrl,
+                            EncryptedFile thumbnailFile,
+                            ThumbnailInfo thumbnailInfo,
+                            String thumbnailUrl,
                             Integer w
     ) implements HasThumbnail, HasInfo {
     }

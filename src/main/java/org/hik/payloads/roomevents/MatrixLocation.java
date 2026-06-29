@@ -1,7 +1,5 @@
 package org.hik.payloads.roomevents;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /// This message represents a real-world location.
 ///
 /// @param body   the filename of the original upload if `filename` is unset
@@ -9,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /// @param info   metadata for the audio clip referred to by `url`.
 /// @param geoUri A geo URI (RFC5870) representing this location.
 public record MatrixLocation(String body,
-                             @JsonProperty("geo_uri") String geoUri,
+                             String geoUri,
                              LocationInfo info
 ) implements MatrixEvent {
 

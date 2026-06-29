@@ -1,11 +1,10 @@
 package org.hik.payloads.roomevents;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URI;
 
 
-/// This event represents a file resource. If the type of file is known, it's better to use their dedicated event, such as
+/// This event represents a file resource. If the type of file is known, it's better to use their dedicated event,
+/// such as
 /// for [videos][MatrixVideo], [images][MatrixImage], or [audio][MatrixAudio].
 ///
 /// @param body          the filename of the original upload if `filename` is unset
@@ -24,7 +23,7 @@ public record MatrixFile(String body,
                          EncryptedFile file,
                          String filename,
                          String format,
-                         @JsonProperty("formatted_body") String formattedBody,
+                         String formattedBody,
                          FileInfo info,
                          URI url)
         implements MatrixEvent {
@@ -45,9 +44,9 @@ public record MatrixFile(String body,
     public record FileInfo(
             String mimetype,
             Integer size,
-            @JsonProperty("thumbnail_file") EncryptedFile thumbnailFile,
-            @JsonProperty("thumbnail_info") ThumbnailInfo thumbnailInfo,
-            @JsonProperty("thumbnail_url") String thumbnailUrl
+            EncryptedFile thumbnailFile,
+            ThumbnailInfo thumbnailInfo,
+            String thumbnailUrl
     ) implements HasInfo, HasThumbnail {
 
     }

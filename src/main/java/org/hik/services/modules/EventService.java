@@ -7,7 +7,8 @@ import org.hik.payloads.roomevents.ChronologicalDirectionType;
 import org.hik.payloads.roomevents.MatrixEvent;
 import org.hik.payloads.roomevents.Messages;
 import org.hik.payloads.roomevents.QueryParametersMessages;
-import org.hik.services.networking.HttpTransport;
+import org.hik.services.utils.ConfiguratedMapper;
+import org.hik.services.utils.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -28,7 +29,7 @@ public class EventService implements Event {
      * Common endpoint for many Room events.
      */
     private static final String ROOM_ENDPOINT = "/_matrix/client/v3/rooms/";
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = ConfiguratedMapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport();
 
     private final ClientContext client;
@@ -100,7 +101,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public void doSync() throws InterruptedException {
+    public void doSyncPoll() throws InterruptedException {
         try {
             httpTransport.getEvent(URI.create("/_matrix/client/v3/sync"), this.client.credentials().token());
         } catch (IOException e) {

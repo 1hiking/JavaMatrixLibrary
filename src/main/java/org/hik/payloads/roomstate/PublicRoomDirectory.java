@@ -13,7 +13,7 @@ import java.util.List;
 ///  first batch
 /// @param totalRoomCountEstimate if available, an estimate on the total number of published rooms
 public record PublicRoomDirectory(@JsonProperty List<PublishedRoomsChunk> chunk,
-                                  @JsonProperty("next_batch") String nextBatch,
-                                  @JsonProperty("prev_batch") String prevBatch,
-                                  @JsonProperty("total_room_count_estimate") Integer totalRoomCountEstimate) {
+                                  String nextBatch,
+                                  String prevBatch,
+                                  Integer totalRoomCountEstimate) {
 }

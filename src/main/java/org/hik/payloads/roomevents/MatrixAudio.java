@@ -1,7 +1,5 @@
 package org.hik.payloads.roomevents;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URI;
 
 /// This event represents a single audio clip.
@@ -22,7 +20,7 @@ public record MatrixAudio(String body,
                           EncryptedFile file,
                           String filename,
                           String format,
-                          @JsonProperty("formatted_body") String formattedBody,
+                          String formattedBody,
                           AudioInfo info,
                           URI url) implements MatrixEvent {
 

@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
     /// @throws InterruptedException when the HTTP Client is interrupted
     String uploadResource(Path resource) throws InterruptedException;
 
-    void doSync() throws InterruptedException;
+    void doSyncPoll() throws InterruptedException;
 
     /// Returns a list of message and state events for a room. It uses pagination query parameters to paginate
     /// history in the room.
