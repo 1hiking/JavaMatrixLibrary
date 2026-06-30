@@ -101,11 +101,22 @@ public class EventService implements Event {
     }
 
     @Override
-    public void doSyncPoll() throws InterruptedException {
+    public SyncResponse sync(QueryParametersSync params) throws InterruptedException {
+        Map<String, Object> args = new HashMap<>();
+        args.put("filter", params.filter());
+        args.put("full_state", String.valueOf(params.fullState()));
+        args.put("set_presence", params.setPresence());
+        args.put("since", params.since());
+        args.put("timeout", String.valueOf(params.timeout()));
+        args.put("use_state_after", String.valueOf(params.useStateAfter()));
+        String query = this.buildUrlArgs(client.discoveryResponse().homeserver().baseUrl() + "/_matrix/client/v3/sync"
+                , args);
+
         try {
-            httpTransport.getEvent(URI.create("/_matrix/client/v3/sync"), this.client.credentials().token());
+            String queryResponse = httpTransport.getEvent(URI.create(query), client.credentials().token());
+            return objectMapper.readValue(queryResponse, SyncResponse.class);
         } catch (IOException e) {
-            throw new MatrixIOException("Network error while attempting to publish a resource ", e);
+            throw new MatrixIOException("Network error while attempting to fetch messages ", e);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -113,20 +124,20 @@ public class EventService implements Event {
 
     @Override
     public Messages getListOfMessages(String roomId, ChronologicalDirectionType dir, QueryParametersMessages params) throws InterruptedException {
-        var payloadRoomId = Objects.requireNonNull(roomId);
+        String payloadRoomId = Objects.requireNonNull(roomId);
         // filter is NOT mapped
-        Map<String, String> args = Map.ofEntries(
-                Map.entry("dir", dir.getValue()),
-                Map.entry("from", params.from()),
-                Map.entry("to", params.to()),
-                Map.entry("limit", String.valueOf(params.limit())));
+        Map<String, Object> args = new HashMap<>();
+        args.put("dir", dir.getValue());
+        args.put("from", params.from());
+        args.put("to", params.to());
+        args.put("limit", params.limit());
         String finalUrl =
                 this.buildUrlArgs(client.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
                         "/messages", args);
 
 
         try {
-            var queryResponse = httpTransport.getEvent(URI.create(finalUrl), client.credentials().token());
+            String queryResponse = httpTransport.getEvent(URI.create(finalUrl), client.credentials().token());
             return objectMapper.readValue(queryResponse, Messages.class);
         } catch (IOException e) {
             throw new MatrixIOException("Network error while attempting to fetch messages ", e);
@@ -141,12 +152,12 @@ public class EventService implements Event {
     /// @param basePath the path to insert the parameters
     /// @param params   a list of parameters, null parameters will be ignored.
     /// @return A [String] with the URI to query against
-    private String buildUrlArgs(String basePath, Map<String, String> params) {
+    private String buildUrlArgs(String basePath, Map<String, Object> params) {
         if (params.isEmpty()) return basePath;
         String query = params.entrySet().stream()
                 .filter(e -> e.getValue() != null)
                 .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8)
-                        + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                        + "=" + URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
         return basePath + "?" + query;
     }

@@ -14,7 +14,7 @@ package org.hik.payloads.roomevents;
 /// @param limit The maximum number of events to return. If not set the default is 10.
 /// @param to    The token to stop returning events at. This token can be obtained from a prev\_batch or next\_batch
 /// token returned by the /sync endpoint, or from an end token returned by a previous request to this endpoint.
-public record QueryParametersMessages(String from, int limit, String to) {
+public record QueryParametersMessages(String from, Integer limit, String to) {
     /// Utility instantiation method that notifies the client that no specific queries are required.
     ///
     /// @return An instantiation record with  default query parameters.

@@ -6,7 +6,6 @@ import org.hik.api.MatrixAPIClientTest;
 import org.hik.api.MatrixClient;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.payloads.roomevents.*;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -16,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -101,7 +101,7 @@ class EventServiceTest extends MatrixAPIClientTest {
         assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
     }
 
-    private static @NonNull Result getResult(Path tempDir) throws IOException {
+    private static Result getResult(Path tempDir) throws IOException {
         String roomId = "1234";
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
@@ -180,6 +180,182 @@ class EventServiceTest extends MatrixAPIClientTest {
         var firstEventId = actualResponse.chunk().getFirst().eventId();
         assertEquals(expectedChunkEventId, firstEventId, "The mapped chunk payload did not match the expected event " +
                 "structure");
+    }
+
+    @Test
+    void getSync_WithValidQueryParameters_thenReturnSyncResponse() throws InterruptedException {
+        String joinedRoomId = "!exampleRoomId:matrix.org";
+        String invitedRoomId = "!inviteRoomId:matrix.org";
+        String knockedRoomId = "!knockRoomId:matrix.org";
+        String leftRoomId = "!leftRoomId:matrix.org";
+        String expectedChunkEventId = "$abcdefg12345:matrix.org";
+        // Author's note: Yes it is this long.... and it's not even all the records.
+        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/sync"))
+                .willReturn(okJson("""
+                        {
+                          "next_batch": "some_next_batch_token",
+                          "account_data": {
+                            "events": [
+                              {
+                                "type": "m.push_rules",
+                                "content": { "global": {} }
+                              }
+                            ]
+                          },
+                          "presence": {
+                            "events": [
+                              {
+                                "type": "m.presence",
+                                "content": { "presence": "online", "last_active_ago": 5000 }
+                              }
+                            ]
+                          },
+                          "device_lists": {
+                            "changed": [ "@alice:matrix.org" ],
+                            "left": [ "@bob:matrix.org" ]
+                          },
+                          "device_one_time_keys_count": {
+                            "signed_curve25519": 50
+                          },
+                          "to_device": {
+                            "events": [
+                              {
+                                "type": "m.room_key",
+                                "content": { "algorithm": "m.megolm.v1.aes-sha2" }
+                              }
+                            ]
+                          },
+                          "rooms": {
+                            "join": {
+                              "%s": {
+                                "summary": {
+                                  "m.heroes": [ "@alice:matrix.org" ],
+                                  "m.joined_member_count": 2,
+                                  "m.invited_member_count": 0
+                                },
+                                "state": {
+                                  "events": [
+                                    {
+                                      "event_id": "$state1:matrix.org",
+                                      "type": "m.room.create",
+                                      "sender": "@alice:matrix.org",
+                                      "state_key": "",
+                                      "content": { "creator": "@alice:matrix.org" }
+                                    }
+                                  ]
+                                },
+                                "timeline": {
+                                  "events": [
+                                    {
+                                      "event_id": "%s",
+                                      "type": "m.room.message",
+                                      "sender": "@test:matrix.org",
+                                      "content": { "msgtype": "m.text", "body": "Hello timeline!" }
+                                    }
+                                  ],
+                                  "limited": false,
+                                  "prev_batch": "some_prev_batch_token"
+                                },
+                                "ephemeral": {
+                                  "events": [
+                                    {
+                                      "type": "m.typing",
+                                      "content": { "user_ids": [ "@alice:matrix.org" ] }
+                                    }
+                                  ]
+                                },
+                                "account_data": {
+                                  "events": []
+                                },
+                                "unread_notifications": {
+                                  "highlight_count": 1,
+                                  "notification_count": 3
+                                }
+                              }
+                            },
+                            "invite": {
+                              "%s": {
+                                "invite_state": {
+                                  "events": [
+                                    {
+                                      "type": "m.room.member",
+                                      "sender": "@alice:matrix.org",
+                                      "state_key": "@test:matrix.org",
+                                      "content": { "membership": "invite" }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "knock": {
+                              "%s": {
+                                "knock_state": {
+                                  "events": [
+                                    {
+                                      "type": "m.room.member",
+                                      "sender": "@test:matrix.org",
+                                      "state_key": "@test:matrix.org",
+                                      "content": { "membership": "knock" }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "leave": {
+                              "%s": {
+                                "state": {
+                                  "events": []
+                                },
+                                "timeline": {
+                                  "events": [],
+                                  "limited": false
+                                },
+                                "account_data": {
+                                  "events": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                        """.formatted(joinedRoomId, expectedChunkEventId, invitedRoomId, knockedRoomId, leftRoomId))));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+
+
+        SyncResponse actualResponse = client.events().sync(new QueryParametersSync(null, null, null, null, null, null));
+
+        assertNotNull(actualResponse, "The returned SyncResponse payload shouldn't be null");
+        assertEquals("some_next_batch_token", actualResponse.nextBatch(), "The next_batch token should match");
+
+        // rooms.join
+        assertTrue(actualResponse.rooms().join().containsKey(joinedRoomId), "Joined rooms should contain the test room");
+        var joinedRoom = actualResponse.rooms().join().get(joinedRoomId);
+        assertFalse(joinedRoom.timeline().events().isEmpty(), "Joined room timeline should contain events");
+        assertEquals(expectedChunkEventId, joinedRoom.timeline().events().getFirst().eventId(),
+                "The mapped timeline event did not match the expected event structure");
+        assertEquals(2, joinedRoom.summary().mJoinedMemberCount(), "Joined member count should match");
+        assertEquals(1, joinedRoom.unreadNotifications().highlightCount(), "Highlight count should match");
+
+        // rooms.invite
+        assertTrue(actualResponse.rooms().invite().containsKey(invitedRoomId), "Invited rooms should contain the test" +
+                " room");
+        assertFalse(actualResponse.rooms().invite().get(invitedRoomId).inviteState().events().isEmpty(),
+                "Invite state should contain stripped state events");
+
+        // rooms.knock
+        assertTrue(actualResponse.rooms().knock().containsKey(knockedRoomId), "Knocked rooms should contain the test " +
+                "room");
+        assertFalse(actualResponse.rooms().knock().get(knockedRoomId).knockState().events().isEmpty(),
+                "Knock state should contain stripped state events");
+
+        // rooms.leave
+        assertTrue(actualResponse.rooms().leave().containsKey(leftRoomId), "Left rooms should contain the test room");
+
+        // top-level fields
+        assertFalse(actualResponse.accountData().events().isEmpty(), "Account data events should be present");
+        assertFalse(actualResponse.presence().events().isEmpty(), "Presence events should be present");
+        assertEquals(List.of("@alice:matrix.org"), actualResponse.deviceLists().changed(), "Device list changed should match");
+        assertFalse(actualResponse.toDevice().events().isEmpty(), "To-device events should be present");
     }
 
 }
