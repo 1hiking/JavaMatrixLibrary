@@ -3,10 +3,7 @@ package org.hik.services.modules;
 import org.hik.api.Event;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.payloads.roomevents.ChronologicalDirectionType;
-import org.hik.payloads.roomevents.MatrixEvent;
-import org.hik.payloads.roomevents.Messages;
-import org.hik.payloads.roomevents.QueryParametersMessages;
+import org.hik.payloads.roomevents.*;
 import org.hik.services.utils.ConfiguratedMapper;
 import org.hik.services.utils.HttpTransport;
 import tools.jackson.core.JacksonException;
@@ -18,6 +15,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -73,7 +71,7 @@ public class EventService implements Event {
     ///
     /// @return a [String] representing the MXC
     private String createAndReserveMXC() throws JacksonException, IOException, InterruptedException {
-        var queryResponse =
+        String queryResponse =
                 httpTransport.postEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
                         "/media/v1/create"), null, this.client.credentials().token());
 
