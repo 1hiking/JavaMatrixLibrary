@@ -62,7 +62,7 @@ public class HttpTransport {
         var request = builderRequest.build();
 
 
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
@@ -102,7 +102,7 @@ public class HttpTransport {
         var request = builderRequest.build();
 
 
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
@@ -138,7 +138,7 @@ public class HttpTransport {
                 HttpRequest.BodyPublishers.noBody());
         var request = builderRequest.build();
 
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
@@ -162,7 +162,7 @@ public class HttpTransport {
     /// @throws MatrixNetworkException   if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
     public String putResource(URI path, Path resource, String authToken) {
-        HttpRequest uploadRequest = null;
+        HttpRequest uploadRequest;
         try {
             uploadRequest = HttpRequest.newBuilder()
                     .uri(path)
@@ -174,7 +174,7 @@ public class HttpTransport {
             throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
         }
 
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
