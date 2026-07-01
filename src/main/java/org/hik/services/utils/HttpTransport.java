@@ -49,10 +49,8 @@ public class HttpTransport {
     /// @param path      the [URI] of the selected endpoint to query.
     /// @param authToken if supplied, the `Bearer` token.
     /// @return an unparsed JSON [String] when the operation is successful.
-    /// @throws IOException              if an I/O error has occurred while sending the request
-    /// @throws InterruptedException     if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String getEvent(URI path, String authToken) throws IOException, InterruptedException {
+    public String getEvent(URI path, String authToken) {
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path)
                 .header(CONTENT_TYPE, APPLICATION_JSON)
@@ -64,7 +62,15 @@ public class HttpTransport {
         var request = builderRequest.build();
 
 
-        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MatrixNetworkException("This request has been interrupted", e);
+        }
         this.validateResponse(response.statusCode(), response.body());
         return response.body();
 
@@ -77,10 +83,9 @@ public class HttpTransport {
     /// @param body      the parsed JSON payload as a String
     /// @param authToken if supplied, the `Bearer` token.
     /// @return an unparsed JSON [String] when the operation is successful.
-    /// @throws IOException              if an I/O error has occurred while sending the request
-    /// @throws InterruptedException     if the operation has been interrupted
-    /// @throws IllegalArgumentException if the path was not supplied
-    public String postEvent(URI path, String body, String authToken) throws IOException, InterruptedException {
+    /// @throws MatrixIOException      if an I/O error has occurred while sending the request
+    /// @throws MatrixNetworkException if the path was not supplied
+    public String postEvent(URI path, String body, String authToken) {
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path);
 
@@ -97,7 +102,15 @@ public class HttpTransport {
         var request = builderRequest.build();
 
 
-        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MatrixNetworkException("This request has been interrupted", e);
+        }
         this.validateResponse(response.statusCode(), response.body());
         return response.body();
 
@@ -110,10 +123,10 @@ public class HttpTransport {
     /// @param body      the parsed JSON payload as a String
     /// @param authToken if supplied, the `Bearer` token.
     /// @return an unparsed JSON [String] when the operation is successful.
-    /// @throws IOException              if an I/O error has occurred while sending the request
-    /// @throws InterruptedException     if the operation has been interrupted
+    /// @throws MatrixIOException        if an I/O error has occurred while sending the request
+    /// @throws MatrixNetworkException   if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String putEvent(URI path, String body, String authToken) throws IOException, InterruptedException {
+    public String putEvent(URI path, String body, String authToken) {
 
 
         var builderRequest = HttpRequest.newBuilder()
@@ -125,7 +138,15 @@ public class HttpTransport {
                 HttpRequest.BodyPublishers.noBody());
         var request = builderRequest.build();
 
-        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MatrixNetworkException("This request has been interrupted", e);
+        }
         this.validateResponse(response.statusCode(), response.body());
         return response.body();
     }
@@ -137,18 +158,31 @@ public class HttpTransport {
     /// @param resource  a [Path] pointing to the resource to be uploaded.
     /// @param authToken if supplied, the `Bearer` token.
     /// @return an unparsed JSON [String] when the operation is successful.
-    /// @throws IOException              if an I/O error has occurred while sending the request
-    /// @throws InterruptedException     if the operation has been interrupted
+    /// @throws MatrixIOException        if an I/O error has occurred while sending the request
+    /// @throws MatrixNetworkException   if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String putResource(URI path, Path resource, String authToken) throws IOException, InterruptedException {
-        var uploadRequest = HttpRequest.newBuilder()
-                .uri(path)
-                .header(AUTHORIZATION, BEARER + authToken)
-                .header(CONTENT_TYPE, Files.probeContentType(resource))
-                .PUT(HttpRequest.BodyPublishers.ofFile(resource))
-                .build();
+    public String putResource(URI path, Path resource, String authToken) {
+        HttpRequest uploadRequest = null;
+        try {
+            uploadRequest = HttpRequest.newBuilder()
+                    .uri(path)
+                    .header(AUTHORIZATION, BEARER + authToken)
+                    .header(CONTENT_TYPE, Files.probeContentType(resource))
+                    .PUT(HttpRequest.BodyPublishers.ofFile(resource))
+                    .build();
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        }
 
-        var response = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MatrixNetworkException("This request has been interrupted", e);
+        }
         this.validateResponse(response.statusCode(), response.body());
         return response.body();
 
