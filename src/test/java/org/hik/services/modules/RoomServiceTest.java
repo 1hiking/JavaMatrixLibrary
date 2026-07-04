@@ -2,13 +2,11 @@ package org.hik.services.modules;
 
 import org.hik.api.MatrixAPIClientTest;
 import org.hik.api.MatrixClient;
-import org.hik.payloads.roomstate.CreationRoomType;
-import org.hik.payloads.roomstate.RoomMembershipRequest;
-import org.hik.payloads.roomstate.VisibilityRoomType;
+import org.hik.api.rooms.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,24 +15,25 @@ class RoomServiceTest extends MatrixAPIClientTest {
 
     private static final String USER = "test";
     private static final String AUTH_TOKEN = "1234";
-
+    private static final String ROOM_ID = "!ekkTuJPNWnbuCJHvYB:kde.org";
 
     @BeforeEach
     void setUp() {
         wireMockServer.stubFor(get(urlEqualTo("/.well-known/matrix/client"))
                 .willReturn(okJson("{\"m.homeserver\": {\"base_url\": \"" + wireMockServer.baseUrl() + "\"}}")));
-
     }
 
+    // -------------------------------------------------------------------------
+    // create
+    // -------------------------------------------------------------------------
+
     @Test
-    void sendCreateRequest_WithACorrectPayload_thenReturnAString() throws InterruptedException {
-        String expectedEventId = "!sefiuhWgwghwWgh:example.com";
+    void sendCreateRequest_WithACorrectPayload_thenReturnARoomId() throws InterruptedException {
+        String expectedRoomId = "!sefiuhWgwghwWgh:example.com";
         wireMockServer.stubFor(post("/_matrix/client/v3/createRoom")
                 .withRequestBody(equalToJson("""
                         {
-                          "creation_content": {
-                            "m.federate": true
-                          },
+                          "creation_content": { "m.federate": true },
                           "name": "name",
                           "preset": "public_chat",
                           "room_alias_name": "alias",
@@ -43,151 +42,297 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """, true, true))
                 .willReturn(okJson("""
-                        {
-                          "room_id": "%s"
-                        }
-                        """.formatted(expectedEventId))));
+                        { "room_id": "%s" }
+                        """.formatted(expectedRoomId))));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().create(true, "name", "alias", "topic", CreationRoomType.PUBLIC_CHAT, true);
 
-        assertEquals(expectedEventId, response);
-
+        assertEquals(expectedRoomId, response);
     }
 
+    // -------------------------------------------------------------------------
+    // alias management
+    // -------------------------------------------------------------------------
 
     @Test
-    void sendForgetRequest_WithCorrectPayload_thenReturnABoolean() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + room + "/forget").willReturn(okJson("{}")));
+    void sendSetAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        String alias = "#general:example.com";
+        wireMockServer.stubFor(put("/_matrix/client/v3/directory/room/" + alias)
+                .withRequestBody(equalToJson("""
+                        { "room_id": "%s" }
+                        """.formatted(ROOM_ID), true, true))
+                .willReturn(okJson("{}")));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().forget(room);
-        assertTrue(response);
-    }
+        client.room().setAlias(alias, ROOM_ID);
 
-    @Test
-    void sendLeaveRequest_WithCorrectPayload_thenReturnABoolean() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + room + "/leave").willReturn(okJson("{}")));
-
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().leave(room);
-        assertTrue(response);
+        wireMockServer.verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + alias)));
     }
 
     @Test
-    void sendKickRequest_WithCorrectPayload_thenReturnABoolean() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + room + "/kick")
-                .withRequestBody(equalToJson(
-                        """
-                                {
-                                  "reason": "Test reason",
-                                  "user_id": "user"
-                                }
-                                """, true, true
-                )).willReturn(okJson("{}")));
+    void sendResolveAliasRequest_WithCorrectPayload_thenReturnResolvedAlias() throws InterruptedException {
+        String alias = "#general:example.com";
+        wireMockServer.stubFor(get("/_matrix/client/v3/directory/room/" + alias)
+                .willReturn(okJson("""
+                        {
+                          "room_id": "%s",
+                          "servers": ["example.com", "other.org"]
+                        }
+                        """.formatted(ROOM_ID))));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().kick(room, new RoomMembershipRequest("Test reason", "user"));
-        assertTrue(response);
-    }
+        var response = client.room().resolveAlias(alias);
 
-    @Test
-    void sendBanRequest_WithCorrectPayload_thenReturnABoolean() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + room + "/ban")
-                .withRequestBody(equalToJson(
-                        """
-                                {
-                                  "reason": "Test reason",
-                                  "user_id": "user"
-                                }
-                                """, true, true
-                )).willReturn(okJson("{}")));
-
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().ban(room, new RoomMembershipRequest("Test reason", "user"));
-        assertTrue(response);
-    }
-
-    @Test
-    void sendUnbanRequest_WithCorrectPayload_thenReturnABoolean() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + room + "/unban")
-                .withRequestBody(equalToJson(
-                        """
-                                {
-                                  "reason": "Test reason",
-                                  "user_id": "user"
-                                }
-                                """, true, true
-                )).willReturn(okJson("{}")));
-
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().unban(room, new RoomMembershipRequest("Test reason", "user"));
-        assertTrue(response);
-    }
-
-    @Test
-    void sendRoomDirVisTypeRequest_WithCorrectPayload_thenReturnAString() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(get("/_matrix/client/v3/directory/list/room/" + room)
-                .willReturn(okJson(
-                        """
-                                {
-                                "visibility": "public"
-                                }
-                                """)));
-
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().getRoomDirectoryVisibilityType(room);
         assertNotNull(response);
+        assertEquals(ROOM_ID, response.roomId());
+        assertFalse(response.servers().isEmpty());
     }
 
     @Test
-    void sendSetRoomDirVisTypeRequest_WithCorrectPayload_thenReturnABoolean() throws InterruptedException {
-        String room = "!ekkTuJPNWnbuCJHvYB:kde.org";
-        wireMockServer.stubFor(put("/_matrix/client/v3/directory/list/room/" + room)
-                .willReturn(okJson(
-                        """
-                                {
-                                "visibility": "public"
-                                }
-                                """)));
+    void sendDeleteAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        String alias = "#general:example.com";
+        wireMockServer.stubFor(delete("/_matrix/client/v3/directory/room/" + alias)
+                .willReturn(okJson("{}")));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().setRoomDirectoryVisibilityType(room, VisibilityRoomType.PRIVATE);
-        assertTrue(response);
+        client.room().deleteAlias(alias);
+
+        wireMockServer.verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + alias)));
     }
 
     @Test
-    void sendRoomSummaryRequest_WithCorrectPayload_thenReturnAPayload() throws InterruptedException {
-        wireMockServer.stubFor(get(
-                urlPathEqualTo("/_matrix/client/v3/publicRooms"))
+    void sendGetAliasesRequest_WithCorrectPayload_thenReturnAliases() throws InterruptedException {
+        wireMockServer.stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/aliases")
+                .willReturn(okJson("""
+                        {
+                          "aliases": ["#general:example.com", "#main:example.com"]
+                        }
+                        """)));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var response = client.room().getAliasesOfARoom(ROOM_ID);
+
+        assertNotNull(response);
+        assertFalse(response.aliases().isEmpty());
+        assertEquals(2, response.aliases().size());
+    }
+
+    // -------------------------------------------------------------------------
+    // membership
+    // -------------------------------------------------------------------------
+
+    @Test
+    void sendGetJoinedRoomsRequest_thenReturnJoinedRooms() throws InterruptedException {
+        wireMockServer.stubFor(get("/_matrix/client/v3/joined_rooms")
+                .willReturn(okJson("""
+                        {
+                          "joined_rooms": ["%s"]
+                        }
+                        """.formatted(ROOM_ID))));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var response = client.room().getJoinedRooms();
+
+        assertNotNull(response);
+        assertFalse(response.joinedRooms().isEmpty());
+        assertEquals(ROOM_ID, response.joinedRooms().getFirst());
+    }
+
+    @Test
+    void sendInviteRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/invite")
+                .withRequestBody(equalToJson("""
+                        {
+                          "reason": "Welcome!",
+                          "user_id": "@alice:example.com"
+                        }
+                        """, true, true))
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().inviteUser(ROOM_ID, new RoomMembershipRequest("Welcome!", "@alice:example.com"));
+
+        wireMockServer.verify(postRequestedFor(
+                urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/invite")));
+    }
+
+    @Test
+    void sendJoinByRoomIdOrAliasRequest_WithCorrectPayload_thenReturnRoomId() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/join/" + ROOM_ID)
+                .willReturn(okJson("""
+                        { "room_id": "%s" }
+                        """.formatted(ROOM_ID))));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var response = client.room().joinByRoomIdOrAliasIfAllowed(ROOM_ID, new JoinRoomRequest(null, null));
+
+        assertNotNull(response);
+        assertEquals(ROOM_ID, response);
+    }
+
+    @Test
+    void sendJoinByRoomIdRequest_WithCorrectPayload_thenReturnRoomId() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/join")
+                .willReturn(okJson("""
+                        { "room_id": "%s" }
+                        """.formatted(ROOM_ID))));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var response = client.room().joinByRoomIdIfAllowed(ROOM_ID, new JoinRoomRequest(null, null));
+
+        assertNotNull(response);
+        assertEquals(ROOM_ID, response);
+    }
+
+    @Test
+    void sendKnockRequest_WithViaParams_thenReturnRoomId() throws InterruptedException {
+        wireMockServer.stubFor(post(urlPathEqualTo("/_matrix/client/v3/knock/" + ROOM_ID))
+                .withQueryParam("via", equalTo("server1.org"))
+                .withRequestBody(matchingJsonPath("$.reason", equalTo("I want to join")))
+                .willReturn(okJson("""
+                        { "room_id": "%s" }
+                        """.formatted(ROOM_ID))));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var response = client.room().knockOn(ROOM_ID, "I want to join", List.of("server1.org"));
+
+        assertNotNull(response);
+        assertEquals(ROOM_ID, response);
+    }
+
+    @Test
+    void sendForgetRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().forget(ROOM_ID);
+
+        wireMockServer.verify(postRequestedFor(
+                urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")));
+    }
+
+    @Test
+    void sendLeaveRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().leave(ROOM_ID);
+
+        wireMockServer.verify(postRequestedFor(
+                urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")));
+    }
+
+    @Test
+    void sendKickRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/kick")
+                .withRequestBody(equalToJson("""
+                        {
+                          "reason": "Test reason",
+                          "user_id": "user"
+                        }
+                        """, true, true))
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().kick(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
+
+        wireMockServer.verify(postRequestedFor(
+                urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/kick")));
+    }
+
+    @Test
+    void sendBanRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/ban")
+                .withRequestBody(equalToJson("""
+                        {
+                          "reason": "Test reason",
+                          "user_id": "user"
+                        }
+                        """, true, true))
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().ban(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
+
+        wireMockServer.verify(postRequestedFor(
+                urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/ban")));
+    }
+
+    @Test
+    void sendUnbanRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/unban")
+                .withRequestBody(equalToJson("""
+                        {
+                          "reason": "Test reason",
+                          "user_id": "user"
+                        }
+                        """, true, true))
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().unban(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
+
+        wireMockServer.verify(postRequestedFor(
+                urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/unban")));
+    }
+
+    // -------------------------------------------------------------------------
+    // directory
+    // -------------------------------------------------------------------------
+
+    @Test
+    void sendGetRoomDirVisTypeRequest_WithCorrectPayload_thenReturnVisibility() throws InterruptedException {
+        wireMockServer.stubFor(get("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
+                .willReturn(okJson("""
+                        { "visibility": "public" }
+                        """)));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var response = client.room().getRoomDirectoryVisibilityType(ROOM_ID);
+
+        assertNotNull(response);
+        assertEquals("public", response);
+    }
+
+    @Test
+    void sendSetRoomDirVisTypeRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+        wireMockServer.stubFor(put("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
+                .willReturn(okJson("{}")));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        client.room().setRoomDirectoryVisibilityType(ROOM_ID, VisibilityRoomType.PRIVATE);
+
+        wireMockServer.verify(putRequestedFor(
+                urlEqualTo("/_matrix/client/v3/directory/list/room/" + ROOM_ID)));
+    }
+
+    @Test
+    void sendGetPublicRoomDirRequest_WithQueryParams_thenReturnDirectory() throws InterruptedException {
+        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/publicRooms"))
                 .withQueryParam("server", equalTo("example.com"))
                 .withQueryParam("limit", equalTo("1"))
-                .willReturn(okJson(
-                        """
-                                {
-                                    "chunk": [
-                                        {
-                                            "room_id": "!abc123:example.com",
-                                            "name": "General",
-                                            "topic": "A test room",
-                                            "avatar_url": "mxc://example.com/abc123",
-                                            "num_joined_members": 42,
-                                            "world_readable": true,
-                                            "guest_can_join": false,
-                                            "join_rule": "public"
-                                        }
-                                    ],
-                                    "next_batch": "p190q",
-                                    "prev_batch": "p1902",
-                                    "total_room_count_estimate": 1
-                                }
-                                """)));
+                .willReturn(okJson("""
+                        {
+                          "chunk": [
+                            {
+                              "room_id": "!abc123:example.com",
+                              "name": "General",
+                              "topic": "A test room",
+                              "avatar_url": "mxc://example.com/abc123",
+                              "num_joined_members": 42,
+                              "world_readable": true,
+                              "guest_can_join": false,
+                              "join_rule": "public"
+                            }
+                          ],
+                          "next_batch": "p190q",
+                          "prev_batch": "p1902",
+                          "total_room_count_estimate": 1
+                        }
+                        """)));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().getPublishedRoomDirectory(1, "example.com", null);
@@ -200,37 +345,61 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendGetPubRoomDirRequest_WithCorrectPayload_thenReturnAString() throws InterruptedException {
-        String roomIdOrAlias = "!abc123:example.com";
-        wireMockServer.stubFor(get(
-                urlPathEqualTo("/_matrix/client/v1/room_summary/" + roomIdOrAlias))
-                .withQueryParam("via", equalTo("example.com"))
-                .willReturn(okJson(
-                        """
+    void sendGetPublicRoomDirPostRequest_WithBody_thenReturnDirectory() throws InterruptedException {
+        wireMockServer.stubFor(post("/_matrix/client/v3/publicRooms")
+                .willReturn(okJson("""
                         {
-                            "room_id": "!abc123:example.com",
-                            "canonical_alias": "#general:example.com",
-                            "name": "General",
-                            "topic": "A test room",
-                            "avatar_url": "mxc://example.com/abc123",
-                            "num_joined_members": 42,
-                            "world_readable": true,
-                            "guest_can_join": false,
-                            "join_rule": "public",
-                            "room_type": null,
-                            "room_version": "10",
-                            "membership": null
+                          "chunk": [
+                            {
+                              "room_id": "!abc123:example.com",
+                              "name": "General",
+                              "num_joined_members": 10,
+                              "world_readable": false,
+                              "guest_can_join": false,
+                              "join_rule": "public"
+                            }
+                          ],
+                          "total_room_count_estimate": 1
                         }
                         """)));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().getRoomSummary(roomIdOrAlias, URI.create("example.com"));
+        var response = client.room().getPublishedRoomDirectory(new PublicRoomRequest(null, null, 10, null, null));
+
+        assertNotNull(response);
+        assertFalse(response.chunk().isEmpty());
+        assertEquals("!abc123:example.com", response.chunk().getFirst().roomId());
+    }
+
+    @Test
+    void sendGetRoomSummaryRequest_WithViaParam_thenReturnSummary() throws InterruptedException {
+        String roomIdOrAlias = "!abc123:example.com";
+        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v1/room_summary/" + roomIdOrAlias))
+                .withQueryParam("via", equalTo("example.com"))
+                .willReturn(okJson("""
+                        {
+                          "room_id": "!abc123:example.com",
+                          "canonical_alias": "#general:example.com",
+                          "name": "General",
+                          "topic": "A test room",
+                          "avatar_url": "mxc://example.com/abc123",
+                          "num_joined_members": 42,
+                          "world_readable": true,
+                          "guest_can_join": false,
+                          "join_rule": "public",
+                          "room_type": null,
+                          "room_version": "10",
+                          "membership": null
+                        }
+                        """)));
+
+        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        // fix: pass List<String> not URI
+        var response = client.room().getRoomSummary(roomIdOrAlias, List.of("example.com"));
 
         assertNotNull(response);
         assertEquals("!abc123:example.com", response.roomId());
         assertEquals("General", response.name());
         assertEquals(42, response.numJoinedMembers());
     }
-
-
 }
