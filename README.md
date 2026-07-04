@@ -14,7 +14,7 @@ Some of the aims of this project are:
 
 ## Feature table:
 
-| Module                                              | Supported   |
+| Service                                             | Supported   |
 |-----------------------------------------------------|-------------|
 | Rooms (banning, kicking, room summary, room search) | Yes         |
 | Events (sending posts, reading from rooms)          | Partially   |
