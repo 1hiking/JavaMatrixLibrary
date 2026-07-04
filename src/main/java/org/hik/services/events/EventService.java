@@ -1,9 +1,9 @@
-package org.hik.services.modules;
+package org.hik.services.events;
 
 import org.hik.api.Event;
+import org.hik.api.events.*;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.payloads.roomevents.*;
 import org.hik.services.utils.ConfiguratedMapper;
 import org.hik.services.utils.HttpTransport;
 import tools.jackson.core.JacksonException;
@@ -23,9 +23,7 @@ import java.util.stream.Collectors;
 
 public class EventService implements Event {
 
-    /**
-     * Common endpoint for many Room events.
-     */
+    /// Common endpoint for many Room events.
     private static final String ROOM_ENDPOINT = "/_matrix/client/v3/rooms/";
     private final ObjectMapper objectMapper = ConfiguratedMapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport();
@@ -37,7 +35,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public String publishRoomMessage(String roomId, MatrixEvent matrixEvent) throws InterruptedException {
+    public String publishRoomMessage(String roomId, MatrixEvent matrixEvent) {
 
         String jsonPayload;
         try {
@@ -58,8 +56,6 @@ public class EventService implements Event {
                 throw new MatrixIOException("Missing 'event_id' in server response ");
             }
             return idNode.stringValue();
-        } catch (IOException e) {
-            throw new MatrixIOException("Network error while attempting to publish an event ", e);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -70,7 +66,7 @@ public class EventService implements Event {
     /// Synchronously creates a new mxc:// for immediate usage.
     ///
     /// @return a [String] representing the MXC
-    private String createAndReserveMXC() throws JacksonException, IOException, InterruptedException {
+    private String createAndReserveMXC() throws JacksonException {
         String queryResponse =
                 httpTransport.postEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
                         "/media/v1/create"), null, this.client.credentials().token());
@@ -80,7 +76,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public String uploadResource(Path resource) throws InterruptedException {
+    public String uploadResource(Path resource) {
         try {
             String mxc = createAndReserveMXC();
 
@@ -99,7 +95,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public SyncResponse sync(QueryParametersSync params) throws InterruptedException {
+    public SyncResponse sync(QueryParametersSync params) {
         Map<String, Object> args = new HashMap<>();
         args.put("filter", params.filter());
         args.put("full_state", String.valueOf(params.fullState()));
@@ -113,15 +109,13 @@ public class EventService implements Event {
         try {
             String queryResponse = httpTransport.getEvent(URI.create(query), client.credentials().token());
             return objectMapper.readValue(queryResponse, SyncResponse.class);
-        } catch (IOException e) {
-            throw new MatrixIOException("Network error while attempting to fetch messages ", e);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
     }
 
     @Override
-    public Messages getListOfMessages(String roomId, ChronologicalDirectionType dir, QueryParametersMessages params) throws InterruptedException {
+    public Messages getListOfMessages(String roomId, ChronologicalDirectionType dir, QueryParametersMessages params) {
         String payloadRoomId = Objects.requireNonNull(roomId);
         // filter is NOT mapped
         Map<String, Object> args = new HashMap<>();
@@ -137,8 +131,6 @@ public class EventService implements Event {
         try {
             String queryResponse = httpTransport.getEvent(URI.create(finalUrl), client.credentials().token());
             return objectMapper.readValue(queryResponse, Messages.class);
-        } catch (IOException e) {
-            throw new MatrixIOException("Network error while attempting to fetch messages ", e);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }

@@ -8,16 +8,18 @@ module JavaMatrixClient {
     requires tools.jackson.core;
     requires tools.jackson.databind;
     requires java.sql;
+    requires org.jspecify;
 
     // Interfaces and facade
     exports org.hik.api;
     exports org.hik.context;
 
     // Records and Interfaces
-    exports org.hik.payloads.roomstate;
-    exports org.hik.payloads.roomevents;
+    exports org.hik.api.rooms;
+    exports org.hik.api.events;
 
     // Common exceptions
     exports org.hik.exceptions;
+
 
 }

@@ -188,5 +188,25 @@ public class HttpTransport {
 
     }
 
+    public String deleteEvent(URI path, String authToken) {
+        HttpRequest deleteRequest = HttpRequest.newBuilder()
+                .uri(path)
+                .header(AUTHORIZATION, BEARER + authToken)
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response;
+        try {
+            response = client.send(deleteRequest, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MatrixNetworkException("This request has been interrupted", e);
+        }
+        this.validateResponse(response.statusCode(), response.body());
+        return response.body();
+    }
+
 
 }

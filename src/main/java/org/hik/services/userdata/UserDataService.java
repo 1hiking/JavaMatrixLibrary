@@ -1,4 +1,4 @@
-package org.hik.services.modules;
+package org.hik.services.userdata;
 
 import org.hik.api.UserData;
 import org.hik.context.ClientContext;
@@ -22,7 +22,29 @@ public class UserDataService implements UserData {
     public void searchUsersByTerm(Integer limit, String searchTerm) throws InterruptedException {
         String searchTermToUse = Objects.requireNonNull(searchTerm, "A search term is required.");
         int limitToUse = Objects.requireNonNullElse(limit, 10);
-        String rawTextPayload = "{\"limit\": \"%d\",\"search_term\":\"%s\"}\n".formatted(limitToUse, searchTerm);
+        String rawTextPayload = """
+                {"limit": "%d","search_term":"%s"}
+                """.formatted(limitToUse, searchTerm);
+
+    }
+
+    @Override
+    public void getUserProfile() throws InterruptedException {
+
+    }
+
+    @Override
+    public void getUserProfileByProperty() throws InterruptedException {
+
+    }
+
+    @Override
+    public void setUserProfileProperty() throws InterruptedException {
+
+    }
+
+    @Override
+    public void deleteUserProfileProperty() throws InterruptedException {
 
     }
 }
