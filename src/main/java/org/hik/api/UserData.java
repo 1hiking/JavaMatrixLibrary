@@ -1,5 +1,7 @@
 package org.hik.api;
 
+import org.hik.api.userdata.UsersFound;
+
 /// Core interface for executing Matrix protocol operations against user data.
 ///
 /// All operations in this interface are blocking. Implementations must ensure
@@ -10,14 +12,14 @@ package org.hik.api;
 /// <a href="https://spec.matrix.org/v1.18/client-server-api/#user-data">Matrix Client-Server API Specification for User Data</a>
 public interface UserData {
 
-    void searchUsersByTerm(Integer limit, String searchTerm) throws InterruptedException;
+    UsersFound searchUsersByTerm(Integer limit, String searchTerm);
 
-    void getUserProfile() throws InterruptedException;
+    void getUserProfile();
 
-    void getUserProfileByProperty() throws InterruptedException;
+    void getUserProfileByProperty();
 
-    void setUserProfileProperty() throws InterruptedException;
+    void setUserProfileProperty();
 
-    void deleteUserProfileProperty() throws InterruptedException;
+    void deleteUserProfileProperty();
 
 }
