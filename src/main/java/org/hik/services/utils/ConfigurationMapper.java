@@ -6,11 +6,11 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
 
-public class ConfiguratedMapper {
+public class ConfigurationMapper {
 
     private static final ObjectMapper INSTANCE = buildMapper();
 
-    private ConfiguratedMapper() {
+    private ConfigurationMapper() {
     }
 
     public static ObjectMapper getInstance() {
@@ -32,7 +32,7 @@ public class ConfiguratedMapper {
     public static String getStringFromSingleObject(String json, String key) {
         JsonNode tree = INSTANCE.readTree(json);
         if (tree.isMissingNode()) {
-            throw new MatrixIOException("Missing 'room_id' in server response ");
+            throw new MatrixIOException("Missing '%s' in server response ".formatted(key));
         }
         return tree.get(key).stringValue();
     }
