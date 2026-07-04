@@ -4,33 +4,30 @@ import org.hik.api.Event;
 import org.hik.api.events.*;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.services.utils.ConfiguratedMapper;
+import org.hik.services.utils.ConfigurationMapper;
 import org.hik.services.utils.HttpTransport;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class EventService implements Event {
 
     /// Common endpoint for many Room events.
     private static final String ROOM_ENDPOINT = "/_matrix/client/v3/rooms/";
-    private final ObjectMapper objectMapper = ConfiguratedMapper.getInstance();
+    private final ObjectMapper objectMapper = ConfigurationMapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport();
 
-    private final ClientContext client;
+    private final ClientContext context;
 
-    public EventService(ClientContext client) {
-        this.client = client;
+    public EventService(ClientContext context) {
+        this.context = context;
     }
 
     @Override
@@ -45,10 +42,10 @@ public class EventService implements Event {
 
         try {
             String queryResponse =
-                    httpTransport.putEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() +
+                    httpTransport.putEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() +
                                     ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID()),
                             jsonPayload,
-                            client.credentials().token());
+                            context.credentials().token());
             JsonNode responsePayload = objectMapper.readTree(queryResponse);
             JsonNode idNode = responsePayload.path("event_id");
             if (idNode.isMissingNode()) {
@@ -67,8 +64,8 @@ public class EventService implements Event {
     /// @return a [String] representing the MXC
     private String createAndReserveMXC() throws JacksonException {
         String queryResponse =
-                httpTransport.postEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
-                        "/media/v1/create"), null, this.client.credentials().token());
+                httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
+                        "/media/v1/create"), null, this.context.credentials().token());
 
         JsonNode responsePayload = objectMapper.readTree(queryResponse);
         return responsePayload.get("content_uri").stringValue();
@@ -80,9 +77,9 @@ public class EventService implements Event {
             String mxc = createAndReserveMXC();
 
             String rawPath = mxc.replace("mxc://", "");
-            URI uploadTargetUri = URI.create(client.discoveryResponse().homeserver().baseUrl() + "/_matrix/media" +
+            URI uploadTargetUri = URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix/media" +
                     "/v3/upload/" + rawPath + "?filename=" + resource.getFileName().toString());
-            httpTransport.putResource(uploadTargetUri, resource, client.credentials().token());
+            httpTransport.putResource(uploadTargetUri, resource, context.credentials().token());
 
             return mxc;
 
@@ -100,11 +97,12 @@ public class EventService implements Event {
         args.put("since", params.since());
         args.put("timeout", String.valueOf(params.timeout()));
         args.put("use_state_after", String.valueOf(params.useStateAfter()));
-        String query = this.buildUrlArgs(client.discoveryResponse().homeserver().baseUrl() + "/_matrix/client/v3/sync"
+        String query = httpTransport.buildUrlArgs(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
+                        "/client/v3/sync"
                 , args);
 
         try {
-            String queryResponse = httpTransport.getEvent(URI.create(query), client.credentials().token());
+            String queryResponse = httpTransport.getEvent(URI.create(query), context.credentials().token());
             return objectMapper.readValue(queryResponse, SyncResponse.class);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
@@ -121,12 +119,12 @@ public class EventService implements Event {
         args.put("to", params.to());
         args.put("limit", params.limit());
         String finalUrl =
-                this.buildUrlArgs(client.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
+                httpTransport.buildUrlArgs(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
                         "/messages", args);
 
 
         try {
-            String queryResponse = httpTransport.getEvent(URI.create(finalUrl), client.credentials().token());
+            String queryResponse = httpTransport.getEvent(URI.create(finalUrl), context.credentials().token());
             return objectMapper.readValue(queryResponse, Messages.class);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
@@ -134,19 +132,5 @@ public class EventService implements Event {
 
     }
 
-    /// Generates an URL GET query with their arguments
-    ///
-    /// @param basePath the path to insert the parameters
-    /// @param params   a list of parameters, null parameters will be ignored.
-    /// @return A [String] with the URI to query against
-    private String buildUrlArgs(String basePath, Map<String, Object> params) {
-        if (params.isEmpty()) return basePath;
-        String query = params.entrySet().stream()
-                .filter(e -> e.getValue() != null)
-                .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8)
-                        + "=" + URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))
-                .collect(Collectors.joining("&"));
-        return basePath + "?" + query;
-    }
 
 }
