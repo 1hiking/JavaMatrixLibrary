@@ -74,11 +74,31 @@ public interface Room {
     ///  for another type of invitation.
     void inviteUser(String roomId, RoomMembershipRequest event);
 
-    String joinByRoomIdOrAliasIfAllowed(String roomIdOrAlias, JoinRoomRequest request);
+    /// If allowed, it starts participation in a room.
+    ///
+    /// @param roomIdOrAlias the target room, either the ID or Alias.
+    /// @param request       a [JoinRoomRequest] where additional information can be passed.
+    /// @param via           the servers to attempt to join the room through. One of the servers must be
+    /// participating in the room.
+    /// @return the room ID
+    String joinByRoomIdOrAliasIfAllowed(String roomIdOrAlias, JoinRoomRequest request, List<String> via);
 
-    String joinByRoomIdIfAllowed(String roomId, JoinRoomRequest request);
+    /// If allowed, it starts participation in a room.
+    ///
+    /// @param roomId  the target room ID.
+    /// @param request a [JoinRoomRequest] where additional information can be passed.
+    /// @param via     the servers to attempt to join the room through. One of the servers must be
+    /// participating in the room.
+    /// @return the room ID
+    String joinByRoomIdIfAllowed(String roomId, JoinRoomRequest request, List<String> via);
 
-
+    /// Knock on a room to ask for permission to join. Acceptance of this request happens out of band.
+    ///
+    /// @param roomIdOrAlias the target room, either the ID or Alias.
+    /// @param reason        an optional reason to include in the event.
+    /// @param via           the servers to attempt to join the room through. One of the servers must be
+    /// participating in the room.
+    /// @return the room ID of the knocked room.
     String knockOn(String roomIdOrAlias, String reason, List<String> via);
 
     /// Sends a request to leave the room, upon success, you will forget all messages from this room.
@@ -155,6 +175,10 @@ public interface Room {
     /// @throws NullPointerException when the roomId is null.
     PublicRoomDirectory getPublishedRoomDirectory(Integer limit, String server, String since);
 
+    /// Lists a server’s published room directory.
+    ///
+    /// @param request a [PublicRoomRequest] with additional filters for the request.
+    /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published rooms on the server.
     PublicRoomDirectory getPublishedRoomDirectory(PublicRoomRequest request);
 
     /// Retrieves a summary for a room. The response data might yield outdated, partial or even no data.

@@ -171,7 +171,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """.formatted(ROOM_ID))));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().joinByRoomIdOrAliasIfAllowed(ROOM_ID, new JoinRoomRequest(null, null));
+        var response = client.room().joinByRoomIdOrAliasIfAllowed(ROOM_ID, new JoinRoomRequest(null, null), null);
 
         assertNotNull(response);
         assertEquals(ROOM_ID, response);
@@ -185,7 +185,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """.formatted(ROOM_ID))));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var response = client.room().joinByRoomIdIfAllowed(ROOM_ID, new JoinRoomRequest(null, null));
+        var response = client.room().joinByRoomIdIfAllowed(ROOM_ID, new JoinRoomRequest(null, null), null);
 
         assertNotNull(response);
         assertEquals(ROOM_ID, response);
