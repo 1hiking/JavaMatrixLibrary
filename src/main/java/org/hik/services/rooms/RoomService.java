@@ -233,7 +233,7 @@ public class RoomService implements Room {
         var params = new HashMap<String, Object>();
         params.put("via", via);
 
-        var url = this.buildUrlArgs(
+        var url = this.httpTransport.buildUrlArgs(
                 this.client.discoveryResponse().homeserver().baseUrl()
                         + "/_matrix/client/v3/knock/"
                         + payloadRoomID,
