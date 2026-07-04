@@ -43,7 +43,7 @@ public class HttpTransport {
 
         ErrorResponse errorResponse;
         try {
-            errorResponse = ConfiguratedMapper.getInstance().readValue(body, ErrorResponse.class);
+            errorResponse = ConfigurationMapper.getInstance().readValue(body, ErrorResponse.class);
         } catch (StreamReadException e) {
             throw new MatrixIOException("Server returned with malformed response", e);
         }
