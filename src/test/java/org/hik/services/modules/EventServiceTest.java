@@ -43,7 +43,7 @@ class EventServiceTest extends MatrixAPIClientTest {
 
 
     @Test
-    void sendPublishRoomMessage_WithACorrectPayload_thenReturnAString() throws InterruptedException {
+    void sendPublishRoomMessage_WithACorrectPayload_thenReturnAString() {
         String roomId = "1234";
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
@@ -70,8 +70,7 @@ class EventServiceTest extends MatrixAPIClientTest {
 
 
     @Test
-    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException,
-            InterruptedException {
+    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException {
         Result result = getResult(tempDir);
 
         // Mock the MXC Request (v1 create endpoint)
@@ -120,7 +119,7 @@ class EventServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir) throws IOException, InterruptedException {
+    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir) throws IOException {
         Result result = getResult(tempDir);
 
         wireMockServer.stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
@@ -136,7 +135,7 @@ class EventServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void getListOfMessages_WithValidQueryParameters_thenReturnMessagesResponse() throws InterruptedException {
+    void getListOfMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
         String roomId = "!exampleRoomId:matrix.org";
         String expectedChunkEventId = "$abcdefg12345:matrix.org";
 
@@ -183,7 +182,7 @@ class EventServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void getSync_WithValidQueryParameters_thenReturnSyncResponse() throws InterruptedException {
+    void getSync_WithValidQueryParameters_thenReturnSyncResponse() {
         String joinedRoomId = "!exampleRoomId:matrix.org";
         String invitedRoomId = "!inviteRoomId:matrix.org";
         String knockedRoomId = "!knockRoomId:matrix.org";
@@ -328,7 +327,8 @@ class EventServiceTest extends MatrixAPIClientTest {
         assertEquals("some_next_batch_token", actualResponse.nextBatch(), "The next_batch token should match");
 
         // rooms.join
-        assertTrue(actualResponse.rooms().join().containsKey(joinedRoomId), "Joined rooms should contain the test room");
+        assertTrue(actualResponse.rooms().join().containsKey(joinedRoomId), "Joined rooms should contain the test " +
+                "room");
         var joinedRoom = actualResponse.rooms().join().get(joinedRoomId);
         assertFalse(joinedRoom.timeline().events().isEmpty(), "Joined room timeline should contain events");
         assertEquals(expectedChunkEventId, joinedRoom.timeline().events().getFirst().eventId(),
@@ -354,7 +354,8 @@ class EventServiceTest extends MatrixAPIClientTest {
         // top-level fields
         assertFalse(actualResponse.accountData().events().isEmpty(), "Account data events should be present");
         assertFalse(actualResponse.presence().events().isEmpty(), "Presence events should be present");
-        assertEquals(List.of("@alice:matrix.org"), actualResponse.deviceLists().changed(), "Device list changed should match");
+        assertEquals(List.of("@alice:matrix.org"), actualResponse.deviceLists().changed(), "Device list changed " +
+                "should match");
         assertFalse(actualResponse.toDevice().events().isEmpty(), "To-device events should be present");
     }
 

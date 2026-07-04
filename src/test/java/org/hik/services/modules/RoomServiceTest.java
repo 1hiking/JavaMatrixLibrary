@@ -28,7 +28,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void sendCreateRequest_WithACorrectPayload_thenReturnARoomId() throws InterruptedException {
+    void sendCreateRequest_WithACorrectPayload_thenReturnARoomId() {
         String expectedRoomId = "!sefiuhWgwghwWgh:example.com";
         wireMockServer.stubFor(post("/_matrix/client/v3/createRoom")
                 .withRequestBody(equalToJson("""
@@ -56,9 +56,11 @@ class RoomServiceTest extends MatrixAPIClientTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void sendSetAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendSetAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         String alias = "#general:example.com";
-        wireMockServer.stubFor(put("/_matrix/client/v3/directory/room/" + alias)
+        String encodedAlias = alias.replace("#", "%23");  // patch the uri
+
+        wireMockServer.stubFor(put("/_matrix/client/v3/directory/room/" + encodedAlias)
                 .withRequestBody(equalToJson("""
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID), true, true))
@@ -67,13 +69,15 @@ class RoomServiceTest extends MatrixAPIClientTest {
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().setAlias(alias, ROOM_ID);
 
-        wireMockServer.verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + alias)));
+        wireMockServer.verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
     }
 
     @Test
-    void sendResolveAliasRequest_WithCorrectPayload_thenReturnResolvedAlias() throws InterruptedException {
+    void sendResolveAliasRequest_WithCorrectPayload_thenReturnResolvedAlias() {
         String alias = "#general:example.com";
-        wireMockServer.stubFor(get("/_matrix/client/v3/directory/room/" + alias)
+        String encodedAlias = alias.replace("#", "%23");  // patch the uri
+
+        wireMockServer.stubFor(get("/_matrix/client/v3/directory/room/" + encodedAlias)
                 .willReturn(okJson("""
                         {
                           "room_id": "%s",
@@ -90,19 +94,21 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendDeleteAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendDeleteAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         String alias = "#general:example.com";
-        wireMockServer.stubFor(delete("/_matrix/client/v3/directory/room/" + alias)
+        String encodedAlias = alias.replace("#", "%23");  // patch the uri
+
+        wireMockServer.stubFor(delete("/_matrix/client/v3/directory/room/" + encodedAlias)
                 .willReturn(okJson("{}")));
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().deleteAlias(alias);
 
-        wireMockServer.verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + alias)));
+        wireMockServer.verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
     }
 
     @Test
-    void sendGetAliasesRequest_WithCorrectPayload_thenReturnAliases() throws InterruptedException {
+    void sendGetAliasesRequest_WithCorrectPayload_thenReturnAliases() {
         wireMockServer.stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/aliases")
                 .willReturn(okJson("""
                         {
@@ -123,7 +129,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void sendGetJoinedRoomsRequest_thenReturnJoinedRooms() throws InterruptedException {
+    void sendGetJoinedRoomsRequest_thenReturnJoinedRooms() {
         wireMockServer.stubFor(get("/_matrix/client/v3/joined_rooms")
                 .willReturn(okJson("""
                         {
@@ -140,7 +146,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendInviteRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendInviteRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/invite")
                 .withRequestBody(equalToJson("""
                         {
@@ -158,7 +164,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendJoinByRoomIdOrAliasRequest_WithCorrectPayload_thenReturnRoomId() throws InterruptedException {
+    void sendJoinByRoomIdOrAliasRequest_WithCorrectPayload_thenReturnRoomId() {
         wireMockServer.stubFor(post("/_matrix/client/v3/join/" + ROOM_ID)
                 .willReturn(okJson("""
                         { "room_id": "%s" }
@@ -172,7 +178,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendJoinByRoomIdRequest_WithCorrectPayload_thenReturnRoomId() throws InterruptedException {
+    void sendJoinByRoomIdRequest_WithCorrectPayload_thenReturnRoomId() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/join")
                 .willReturn(okJson("""
                         { "room_id": "%s" }
@@ -186,7 +192,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendKnockRequest_WithViaParams_thenReturnRoomId() throws InterruptedException {
+    void sendKnockRequest_WithViaParams_thenReturnRoomId() {
         wireMockServer.stubFor(post(urlPathEqualTo("/_matrix/client/v3/knock/" + ROOM_ID))
                 .withQueryParam("via", equalTo("server1.org"))
                 .withRequestBody(matchingJsonPath("$.reason", equalTo("I want to join")))
@@ -202,7 +208,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendForgetRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendForgetRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")
                 .willReturn(okJson("{}")));
 
@@ -214,7 +220,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendLeaveRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendLeaveRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")
                 .willReturn(okJson("{}")));
 
@@ -226,7 +232,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendKickRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendKickRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/kick")
                 .withRequestBody(equalToJson("""
                         {
@@ -244,7 +250,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendBanRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendBanRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/ban")
                 .withRequestBody(equalToJson("""
                         {
@@ -262,7 +268,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendUnbanRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendUnbanRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/unban")
                 .withRequestBody(equalToJson("""
                         {
@@ -284,7 +290,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void sendGetRoomDirVisTypeRequest_WithCorrectPayload_thenReturnVisibility() throws InterruptedException {
+    void sendGetRoomDirVisTypeRequest_WithCorrectPayload_thenReturnVisibility() {
         wireMockServer.stubFor(get("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
                 .willReturn(okJson("""
                         { "visibility": "public" }
@@ -298,7 +304,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendSetRoomDirVisTypeRequest_WithCorrectPayload_thenHitCorrectEndpoint() throws InterruptedException {
+    void sendSetRoomDirVisTypeRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
         wireMockServer.stubFor(put("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
                 .willReturn(okJson("{}")));
 
@@ -310,7 +316,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendGetPublicRoomDirRequest_WithQueryParams_thenReturnDirectory() throws InterruptedException {
+    void sendGetPublicRoomDirRequest_WithQueryParams_thenReturnDirectory() {
         wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/publicRooms"))
                 .withQueryParam("server", equalTo("example.com"))
                 .withQueryParam("limit", equalTo("1"))
@@ -345,7 +351,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendGetPublicRoomDirPostRequest_WithBody_thenReturnDirectory() throws InterruptedException {
+    void sendGetPublicRoomDirPostRequest_WithBody_thenReturnDirectory() {
         wireMockServer.stubFor(post("/_matrix/client/v3/publicRooms")
                 .willReturn(okJson("""
                         {
@@ -372,7 +378,7 @@ class RoomServiceTest extends MatrixAPIClientTest {
     }
 
     @Test
-    void sendGetRoomSummaryRequest_WithViaParam_thenReturnSummary() throws InterruptedException {
+    void sendGetRoomSummaryRequest_WithViaParam_thenReturnSummary() {
         String roomIdOrAlias = "!abc123:example.com";
         wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v1/room_summary/" + roomIdOrAlias))
                 .withQueryParam("via", equalTo("example.com"))
