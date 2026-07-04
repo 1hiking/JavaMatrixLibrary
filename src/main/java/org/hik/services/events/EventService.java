@@ -10,7 +10,6 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -87,8 +86,6 @@ public class EventService implements Event {
 
             return mxc;
 
-        } catch (IOException e) {
-            throw new MatrixIOException("Network error while attempting to publish a resource ", e);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
