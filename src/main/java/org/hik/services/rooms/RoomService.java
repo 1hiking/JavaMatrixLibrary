@@ -12,6 +12,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -82,14 +83,26 @@ public class RoomService implements Room {
     public void setAlias(String roomAlias, String roomId) {
         var payloadRoomAlias = Validator.roomAlias(roomAlias);
         var payloadRoomId = Validator.roomId(roomId);
-
+        URI uri = null;
+        try {
+            URI base = URI.create(client.discoveryResponse().homeserver().baseUrl());
+            uri = new URI(
+                    base.getScheme(),
+                    base.getAuthority(),
+                    DIRECTORY_ENDPOINT_ROOM + payloadRoomAlias,
+                    null,
+                    null
+            );
+        } catch (URISyntaxException e) {
+            throw new MatrixIOException("Failure parsing URI", e);
+        }
         // It is faster in a case like this where only 1 parameter is expected.
         var rawStringPayloadRoomId =
                 """
                         {"room_id": "%s"}
                         """.formatted(payloadRoomId);
 
-        httpTransport.putEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT_ROOM + payloadRoomAlias),
+        httpTransport.putEvent(uri,
                 rawStringPayloadRoomId,
                 client.credentials().token());
     }
@@ -97,9 +110,21 @@ public class RoomService implements Room {
     @Override
     public ResolvedAlias resolveAlias(String roomAlias) {
         var payloadRoom = Validator.roomAlias(roomAlias);
-
+        URI uri = null;
+        try {
+            URI base = URI.create(client.discoveryResponse().homeserver().baseUrl());
+            uri = new URI(
+                    base.getScheme(),
+                    base.getAuthority(),
+                    DIRECTORY_ENDPOINT_ROOM + payloadRoom,
+                    null,
+                    null
+            );
+        } catch (URISyntaxException e) {
+            throw new MatrixIOException("Failure parsing URI", e);
+        }
         var responseBody =
-                httpTransport.getEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT_ROOM + payloadRoom),
+                httpTransport.getEvent(uri,
                         client.credentials().token());
         try {
             return objectMapper.readValue(responseBody, ResolvedAlias.class);
@@ -112,9 +137,20 @@ public class RoomService implements Room {
     @Override
     public void deleteAlias(String roomAlias) {
         var payloadRoomId = Validator.roomAlias(roomAlias);
-
-        httpTransport.deleteEvent(URI.create(client.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT_ROOM + payloadRoomId),
-                client.credentials().token());
+        URI uri = null;
+        try {
+            URI base = URI.create(client.discoveryResponse().homeserver().baseUrl());
+            uri = new URI(
+                    base.getScheme(),
+                    base.getAuthority(),
+                    DIRECTORY_ENDPOINT_ROOM + payloadRoomId,
+                    null,
+                    null
+            );
+        } catch (URISyntaxException e) {
+            throw new MatrixIOException("Failure parsing URI", e);
+        }
+        httpTransport.deleteEvent(uri, client.credentials().token());
 
     }
 
