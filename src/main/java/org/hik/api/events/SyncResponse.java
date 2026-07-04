@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

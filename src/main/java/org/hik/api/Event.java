@@ -1,8 +1,8 @@
 package org.hik.api;
 
+import org.hik.api.events.*;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
-import org.hik.payloads.roomevents.*;
 
 import java.nio.file.Path;
 
@@ -22,15 +22,14 @@ public interface Event {
     /// @return a [String] representing a unique identifier of the event.
     /// @throws MatrixIOException      when the payload cannot be processed.
     /// @throws MatrixNetworkException when the response status is not successful.
-    /// @throws InterruptedException   when the HTTP Client is interrupted.
-    String publishRoomMessage(String roomId, MatrixEvent matrixEvent) throws InterruptedException;
+    String publishRoomMessage(String roomId, MatrixEvent matrixEvent);
 
     /// Synchronously uploads a local multimedia resource to the Matrix media server.
     ///
     /// @param resource the local path of the resource to upload.
     /// @return a [String] containing the MXC URI string upon successful upload.
-    /// @throws InterruptedException when the HTTP Client is interrupted
-    String uploadResource(Path resource) throws InterruptedException;
+    /// @ when the HTTP Client is interrupted
+    String uploadResource(Path resource);
 
     /// Sends a `/sync` request, this method is not responsible for any type of HTTP Polling.
     ///
@@ -38,8 +37,7 @@ public interface Event {
     /// @return a [SyncResponse] with all the corresponding information.
     /// @throws MatrixIOException      when the payload cannot be processed.
     /// @throws MatrixNetworkException when the response status is not successful.
-    /// @throws InterruptedException   when the HTTP Client is interrupted.
-    SyncResponse sync(QueryParametersSync params) throws InterruptedException;
+    SyncResponse sync(QueryParametersSync params);
 
 
     /// Returns a list of message and state events for a room. It uses pagination query parameters to paginate
@@ -51,7 +49,6 @@ public interface Event {
     /// @param dir    the [ChronologicalDirectionType] to return events from.
     /// @return a [Messages] record with the available data.
     /// @throws MatrixIOException    when the payload cannot be processed.
-    /// @throws InterruptedException when the HTTP Client is interrupted.
     /// @throws NullPointerException when the roomId is null.
-    Messages getListOfMessages(String roomId, ChronologicalDirectionType dir, QueryParametersMessages params) throws InterruptedException;
+    Messages getListOfMessages(String roomId, ChronologicalDirectionType dir, QueryParametersMessages params);
 }

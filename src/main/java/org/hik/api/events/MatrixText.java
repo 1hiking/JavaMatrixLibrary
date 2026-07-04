@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 /// The most basic message type, used to represent plain or formatted text.
 ///

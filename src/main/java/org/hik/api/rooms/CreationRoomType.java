@@ -1,4 +1,4 @@
-package org.hik.payloads.roomstate;
+package org.hik.api.rooms;
 
 /// The room type keys used to tell the client what available preset should the server create the room with.
 public enum CreationRoomType {

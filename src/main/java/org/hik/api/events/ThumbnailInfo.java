@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 /// This record is used by various events to store metadata information
 ///

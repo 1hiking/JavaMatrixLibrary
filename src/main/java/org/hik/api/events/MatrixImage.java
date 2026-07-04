@@ -1,11 +1,12 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 import java.net.URI;
 
-/// This message represents a single video clip.
+
+/// This event represents an image
 ///
 /// @param body          the filename of the original upload if `filename` is unset
-///                      or identical to it; otherwise, a caption for the video.
+///                      or identical to it; otherwise, a caption for the image.
 /// @param file          information on the encrypted file, as specified in End-to-end
 ///                      encryption. Required if the file is encrypted.
 /// @param filename      the original filename of the uploaded file.
@@ -16,40 +17,48 @@ import java.net.URI;
 ///                      Required if `format` is specified.
 /// @param info          metadata for the audio clip referred to by `url`.
 /// @param url           required if the file is unencrypted.
-public record MatrixVideo(String body,
+public record MatrixImage(String body,
                           EncryptedFile file,
                           String filename,
                           String format,
                           String formattedBody,
-                          VideoInfo info,
+                          ImageInfo info,
                           URI url
-) implements MatrixEvent {
 
+) implements MatrixEvent {
 
     @Override
     public String msgtype() {
-        return "m.video";
+        return "m.image";
     }
 
 
-    /// Additional file information referred in the [MatrixAudio] `url` field.
+    /// Additional file information referred in the [MatrixFile] `url` field.
     ///
-    /// @param h             the height of the video in pixels.
-    /// @param w             The width of the video in pixels.
+    /// @param h             the intended display height of the image in pixels. This may differ from the intrinsic
+    /// dimensions of the image file.
+    /// @param w             the intended display width of the image in pixels. This may differ from the intrinsic
+    /// dimensions of the image file.
+    /// @param isAnimated    when set to true, the image SHOULD be assumed to be animated. Leave unset if unable to
+    /// determine.
     /// @param mimetype      the mimetype of the image.
     /// @param size          the size of the image in bytes.
     /// @param thumbnailFile information on the encrypted thumbnail file. Currently not supported.
     /// @param thumbnailInfo metadata about the image referred to in `thumbnailUrl`.
     /// @param thumbnailUrl  the URL to the thumbnail of the file. Only present if the thumbnail is unencrypted.
-    /// @param duration      the duration of the video in milliseconds.
-    public record VideoInfo(Integer duration,
-                            Integer h,
-                            String mimetype,
-                            Integer size,
-                            EncryptedFile thumbnailFile,
-                            ThumbnailInfo thumbnailInfo,
-                            String thumbnailUrl,
-                            Integer w
-    ) implements HasThumbnail, HasInfo {
+    public record ImageInfo(
+            Integer h,
+            Integer w,
+            Boolean isAnimated,
+            String mimetype,
+            Integer size,
+            EncryptedFile thumbnailFile,
+            ThumbnailInfo thumbnailInfo,
+            String thumbnailUrl
+    ) implements HasInfo, HasThumbnail {
+
     }
+
+
 }
+

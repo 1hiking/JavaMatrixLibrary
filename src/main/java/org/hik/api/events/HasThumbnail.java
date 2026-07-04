@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 /// Marks event content that includes thumbnail metadata such as E2E metadata
 /// their width, size and height and url

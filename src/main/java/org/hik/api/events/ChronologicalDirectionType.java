@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 /// The chronological order keys used by some queries to inform the server on how should the payload be ordered
 public enum ChronologicalDirectionType {

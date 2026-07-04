@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 /// Marks event content that includes file metadata such as a MIME type
 /// and size in bytes, as described by the Matrix specification's

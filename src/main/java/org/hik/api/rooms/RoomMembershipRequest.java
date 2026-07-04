@@ -1,4 +1,4 @@
-package org.hik.payloads.roomstate;
+package org.hik.api.rooms;
 
 import java.util.Objects;
 

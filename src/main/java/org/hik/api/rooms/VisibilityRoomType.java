@@ -1,4 +1,4 @@
-package org.hik.payloads.roomstate;
+package org.hik.api.rooms;
 
 /// The new visibility type for the room.
 public enum VisibilityRoomType {

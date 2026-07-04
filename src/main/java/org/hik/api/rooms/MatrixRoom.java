@@ -1,4 +1,4 @@
-package org.hik.payloads.roomstate;
+package org.hik.api.rooms;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,4 +1,4 @@
-package org.hik.payloads.roomevents;
+package org.hik.api.events;
 
 /// This auxiliary record represents the arguments required to format the URI used to query the get /sync endpoint.
 ///

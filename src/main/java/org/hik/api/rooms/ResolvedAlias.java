@@ -1,4 +1,4 @@
-package org.hik.payloads.roomstate;
+package org.hik.api.rooms;
 
 import java.util.List;
 
@@ -7,6 +7,6 @@ import java.util.List;
 /// @param roomId  the room id for the room alias.
 /// @param servers a list of servers aware of said alias.
 ///
-public record RoomAliasData(String roomId,
+public record ResolvedAlias(String roomId,
                             List<String> servers) {
 }
