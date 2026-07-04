@@ -7,12 +7,19 @@ import tools.jackson.core.exc.StreamReadException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /// A [HttpTransport] is responsible for the construction of asynchronous [requests][HttpRequest], this class is
 /// transparent
@@ -209,4 +216,34 @@ public class HttpTransport {
     }
 
 
+    /// Generates a URL with query parameters appended.
+    ///
+    /// @param basePath the base path to append parameters to, for example:
+    ///                 `/_matrix/client/v3/join/!room:example.org`
+    /// @param params   the query parameters to append, accepts both Object wrapped primitives and lists.
+    /// @return the base path with query parameters appended, or the base
+    ///         path unchanged if all parameters were null or the map was empty
+    public String buildUrlArgs(String basePath, Map<String, Object> params) {
+        if (params.isEmpty()) return basePath;
+        String query = params.entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .flatMap(e -> {
+                    if (e.getValue() instanceof List<?> list) {
+                        return list.stream()
+                                .filter(Objects::nonNull)
+                                .map(item -> encode(e.getKey()) + "=" + encode(item.toString()));
+                    }
+                    return Stream.of(encode(e.getKey()) + "=" + encode(e.getValue().toString()));
+                })
+                .collect(Collectors.joining("&"));
+        return query.isEmpty() ? basePath : basePath + "?" + query;
+    }
+
+    /// URL-encodes a string using UTF-8.
+    ///
+    /// @param value the string to encode
+    /// @return the URL-encoded string
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
 }
