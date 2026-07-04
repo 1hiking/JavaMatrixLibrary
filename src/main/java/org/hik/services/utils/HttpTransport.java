@@ -30,7 +30,12 @@ public class HttpTransport {
     private static final String APPLICATION_JSON = "application/json";
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER = "Bearer ";
-    private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+    private final HttpClient client;
+
+    public HttpTransport(int timeOut) {
+        client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(timeOut)).build();
+    }
 
     private void validateResponse(int code, String body) {
         if (code >= 200 && code < 300) {
@@ -138,8 +143,7 @@ public class HttpTransport {
 
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path)
-                .header(AUTHORIZATION, BEARER + authToken)
-                .header(CONTENT_TYPE, APPLICATION_JSON);
+                .headers(AUTHORIZATION, BEARER + authToken, CONTENT_TYPE, APPLICATION_JSON);
 
         builderRequest.PUT(body != null ? HttpRequest.BodyPublishers.ofString(body) :
                 HttpRequest.BodyPublishers.noBody());
@@ -173,8 +177,7 @@ public class HttpTransport {
         try {
             uploadRequest = HttpRequest.newBuilder()
                     .uri(path)
-                    .header(AUTHORIZATION, BEARER + authToken)
-                    .header(CONTENT_TYPE, Files.probeContentType(resource))
+                    .headers(AUTHORIZATION, BEARER + authToken, CONTENT_TYPE, Files.probeContentType(resource))
                     .PUT(HttpRequest.BodyPublishers.ofFile(resource))
                     .build();
         } catch (IOException e) {

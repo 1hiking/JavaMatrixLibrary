@@ -28,7 +28,7 @@ public class RoomService implements Room {
     /// Common endpoint for other Directory events.
     private static final String DIRECTORY_ENDPOINT_ROOM = "/_matrix/client/v3/directory/room/";
     private final ObjectMapper objectMapper = ConfigurationMapper.getInstance();
-    private final HttpTransport httpTransport = new HttpTransport();
+    private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
     public RoomService(ClientContext context) {

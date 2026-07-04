@@ -17,7 +17,7 @@ import java.net.URI;
 public class MatrixClient {
     private final ObjectMapper objectMapper = ConfigurationMapper.getInstance();
     private final ClientCredentials credentials;
-    private final HttpTransport httpTransport = new HttpTransport();
+    private final HttpTransport httpTransport = new HttpTransport(10);
     private final Event event;
     private final Room roomService;
     private final UserData userDataService;
