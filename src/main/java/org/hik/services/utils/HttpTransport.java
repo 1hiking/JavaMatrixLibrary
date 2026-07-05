@@ -198,6 +198,14 @@ public class HttpTransport {
 
     }
 
+    /// Sends a `DELETE` request to the given endpoint.
+    ///
+    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param authToken if supplied, the `Bearer` token.
+    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @throws MatrixIOException        if an I/O error has occurred while sending the request
+    /// @throws MatrixNetworkException   if the operation has been interrupted
+    /// @throws IllegalArgumentException if the path was not supplied
     public String deleteEvent(URI path, String authToken) {
         HttpRequest deleteRequest = HttpRequest.newBuilder()
                 .uri(path)
