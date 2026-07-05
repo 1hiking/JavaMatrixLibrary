@@ -6,8 +6,8 @@ import org.hik.exceptions.MatrixIOException;
 import org.hik.services.events.EventService;
 import org.hik.services.rooms.RoomService;
 import org.hik.services.userdata.UserDataService;
-import org.hik.services.utils.ConfigurationMapper;
 import org.hik.services.utils.HttpTransport;
+import org.hik.services.utils.Mapper;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -15,7 +15,7 @@ import java.net.URI;
 
 /// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant server.
 public class MatrixClient {
-    private final ObjectMapper objectMapper = ConfigurationMapper.getInstance();
+    private final ObjectMapper objectMapper = Mapper.getInstance();
     private final ClientCredentials credentials;
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final Event event;

@@ -5,12 +5,15 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
-public class ConfigurationMapper {
+import java.util.Map;
+
+public class Mapper {
 
     private static final ObjectMapper INSTANCE = buildMapper();
 
-    private ConfigurationMapper() {
+    private Mapper() {
     }
 
     public static ObjectMapper getInstance() {
@@ -35,5 +38,19 @@ public class ConfigurationMapper {
             throw new MatrixIOException("Missing '%s' in server response ".formatted(key));
         }
         return tree.get(key).stringValue();
+    }
+
+    /// Creates an object from a map of key values, convenient when the input is simple and doesn't demand a record.
+    ///
+    /// @param map the key-values for the JSON Object
+    /// @return a serialized [String].
+    public static String createObjectFromMap(Map<String, String> map) {
+        if (map == null) {
+            return null;
+        }
+
+        ObjectNode x = INSTANCE.createObjectNode();
+        map.forEach(x::put);
+        return x.toString();
     }
 }

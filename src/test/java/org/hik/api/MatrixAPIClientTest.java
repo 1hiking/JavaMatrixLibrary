@@ -11,7 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-
+@SuppressWarnings("java:S5786")
 public class MatrixAPIClientTest {
     private static final String USER = "test";
     private static final String AUTH_TOKEN = "1234";

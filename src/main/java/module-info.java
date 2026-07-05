@@ -7,7 +7,6 @@ module JavaMatrixClient {
     // Required for JSON manipulation
     requires tools.jackson.core;
     requires tools.jackson.databind;
-    requires java.sql;
     requires org.jspecify;
 
     // Interfaces and facade
@@ -17,6 +16,7 @@ module JavaMatrixClient {
     // Records and Interfaces
     exports org.hik.api.rooms;
     exports org.hik.api.events;
+    exports org.hik.api.userdata;
 
     // Common exceptions
     exports org.hik.exceptions;

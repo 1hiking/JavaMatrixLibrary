@@ -4,8 +4,8 @@ import org.hik.api.Event;
 import org.hik.api.events.*;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.services.utils.ConfigurationMapper;
 import org.hik.services.utils.HttpTransport;
+import org.hik.services.utils.Mapper;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -21,7 +21,7 @@ public class EventService implements Event {
 
     /// Common endpoint for many Room events.
     private static final String ROOM_ENDPOINT = "/_matrix/client/v3/rooms/";
-    private final ObjectMapper objectMapper = ConfigurationMapper.getInstance();
+    private final ObjectMapper objectMapper = Mapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport(10);
 
     private final ClientContext context;

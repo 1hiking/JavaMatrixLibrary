@@ -7,7 +7,7 @@ import java.util.List;
 
 /// This record is used to store discovery information about the domain.
 ///
-/// This includes non-spec keys such as `org.matrix.msc2965.authentication` and `org.matrix.msc4143.rtc_foci`
+/// This includes non-spec keys such as `org.matrix.msc4143.rtc_foci`
 ///
 /// @param homeserver     Used to discover homeserver information.
 /// @param identityServer Used to discover identity server information.

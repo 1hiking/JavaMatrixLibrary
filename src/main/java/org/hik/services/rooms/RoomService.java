@@ -4,8 +4,8 @@ import org.hik.api.Room;
 import org.hik.api.rooms.*;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.services.utils.ConfigurationMapper;
 import org.hik.services.utils.HttpTransport;
+import org.hik.services.utils.Mapper;
 import org.hik.services.utils.Validator;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -27,7 +27,7 @@ public class RoomService implements Room {
     private static final String DIRECTORY_ENDPOINT = "/_matrix/client/v3/directory/list/room/";
     /// Common endpoint for other Directory events.
     private static final String DIRECTORY_ENDPOINT_ROOM = "/_matrix/client/v3/directory/room/";
-    private final ObjectMapper objectMapper = ConfigurationMapper.getInstance();
+    private final ObjectMapper objectMapper = Mapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
@@ -65,7 +65,7 @@ public class RoomService implements Room {
                                     "/_matrix/client/v3/createRoom"),
                             jsonPayload, context.credentials().token());
 
-            return ConfigurationMapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, "room_id");
 
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
@@ -200,7 +200,7 @@ public class RoomService implements Room {
                     httpTransport.postEvent(URI.create(url),
                             serializedInputData,
                             context.credentials().token());
-            return ConfigurationMapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, "room_id");
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -244,7 +244,7 @@ public class RoomService implements Room {
                 """.formatted(reason);
         String responseBody = httpTransport.postEvent(URI.create(url), reasonBody, context.credentials().token());
         try {
-            return ConfigurationMapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, "room_id");
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -321,7 +321,7 @@ public class RoomService implements Room {
             var responseBody = httpTransport.getEvent(
                     URI.create(context.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT + payloadRoomId),
                     null);
-            return ConfigurationMapper.getStringFromSingleObject(responseBody, "visibility");
+            return Mapper.getStringFromSingleObject(responseBody, "visibility");
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }

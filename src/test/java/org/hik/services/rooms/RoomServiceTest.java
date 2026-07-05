@@ -1,4 +1,4 @@
-package org.hik.services.modules;
+package org.hik.services.rooms;
 
 import org.hik.api.MatrixAPIClientTest;
 import org.hik.api.MatrixClient;

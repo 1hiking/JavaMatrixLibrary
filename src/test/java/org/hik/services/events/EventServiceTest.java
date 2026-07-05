@@ -1,4 +1,4 @@
-package org.hik.services.modules;
+package org.hik.services.events;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -62,7 +62,6 @@ class EventServiceTest extends MatrixAPIClientTest {
 
         MatrixEvent textEvent = new MatrixText("Hello World", null, null);
         var actualEventId = client.events().publishRoomMessage(roomId, textEvent);
-
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
