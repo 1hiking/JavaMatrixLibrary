@@ -28,7 +28,6 @@ public interface Event {
     ///
     /// @param resource the local path of the resource to upload.
     /// @return a [String] containing the MXC URI string upon successful upload.
-    /// @ when the HTTP Client is interrupted
     String uploadResource(Path resource);
 
     /// Sends a `/sync` request, this method is not responsible for any type of HTTP Polling.
