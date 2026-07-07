@@ -14,8 +14,8 @@ import java.util.List;
 /// default state events set in the new room.
 /// @param userIds         An array of user IDs to invite to the room. The server will be responsible for handling
 /// these invitations,
-/// @param isDirect        Sets a flag on m.room.member events. See the [spec](https://spec.matrix.org/v1
-/// .18/client-server-api/#direct-messaging) for more information,
+/// @param isDirect        Sets a flag on m.room.member events. See the [spec](https://spec.matrix.org/v1.18/client-server-api/#direct-messaging)
+/// for more information,
 /// @param name            Sets the name of the room. Overwrites `initialState`.
 /// @param preset          Convenience parameter for setting various default state events based on a preset.
 ///                        If unset, it will use `visibility`, use [CreationRoomType] to determine which one.
@@ -36,7 +36,7 @@ public record MatrixRoom(CreationContent creationContent,
     /// Extra keys, such as m.federate, to be added to the content of the m.room.create event.
     ///
     /// @param isFederated If the room will be federated.
-    public record CreationContent(@JsonProperty("m.federate") boolean isFederated) {
+    public record CreationContent(@JsonProperty("m.federate") Boolean isFederated) {
     }
 
     /// A list of state events to set in the new room.

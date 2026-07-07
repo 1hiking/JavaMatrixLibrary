@@ -6,7 +6,5 @@ public record PublicRoomRequest(Filter filter,
                                 String since,
                                 String thirdPartyInstanceId) {
 
-    public record Filter(String genericSearchTerm,
-                         String roomTypes) {
-    }
+
 }
