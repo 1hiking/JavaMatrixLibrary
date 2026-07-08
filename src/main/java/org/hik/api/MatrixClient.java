@@ -31,14 +31,23 @@ public class MatrixClient {
         this.userDataService = new UserDataService(context);
     }
 
+    /// Exposes the underlying [Event] for operations.
+    ///
+    /// @return the underlying [Event] instance.
     public Event events() {
         return this.event;
     }
 
+    /// Exposes the underlying [Room] for operations.
+    ///
+    /// @return the underlying [Room] instance.
     public Room room() {
         return this.roomService;
     }
 
+    /// Exposes the underlying [UserData] for operations.
+    ///
+    /// @return the underlying [UserData] instance.
     public UserData userData() {
         return this.userDataService;
     }
