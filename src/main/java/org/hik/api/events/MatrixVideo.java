@@ -2,7 +2,7 @@ package org.hik.api.events;
 
 import java.net.URI;
 
-/// This message represents a single video clip.
+/// This type of message represents a single video clip.
 ///
 /// @param body          the filename of the original upload if `filename` is unset
 ///                      or identical to it; otherwise, a caption for the video.
@@ -23,7 +23,7 @@ public record MatrixVideo(String body,
                           String formattedBody,
                           VideoInfo info,
                           URI url
-) implements MatrixEvent {
+) implements MatrixRoomMessageEvent {
 
 
     @Override

@@ -1,6 +1,6 @@
 package org.hik.api.events;
 
-/// This message represents a real-world location.
+/// This type of message represents a real-world location.
 ///
 /// @param body   the filename of the original upload if `filename` is unset
 ///               or identical to it; otherwise, a caption for the image.
@@ -9,7 +9,7 @@ package org.hik.api.events;
 public record MatrixLocation(String body,
                              String geoUri,
                              LocationInfo info
-) implements MatrixEvent {
+) implements MatrixRoomMessageEvent {
 
 
     @Override

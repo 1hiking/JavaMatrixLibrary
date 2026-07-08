@@ -3,7 +3,7 @@ package org.hik.api.events;
 
 import java.util.List;
 
-/// This record is returned as a list of messages and state events for a room.
+/// This record returns a list of messages and state events from a room.
 /// It is paginated if queried as such with [ChronologicalDirectionType].
 ///
 /// @param start A token corresponding to the start of chunk. This will be the same as the value given in from.

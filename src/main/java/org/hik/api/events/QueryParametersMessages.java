@@ -1,6 +1,6 @@
 package org.hik.api.events;
 
-/// This auxiliary record represents the arguments required to format the URI used to query the get /messages endpoint.
+/// This record represents the arguments required to format the URI used to query the get /messages endpoint.
 ///
 /// @param from  the token to start returning events from. This token can be obtained from a prev\_batch or
 /// next\_batch token returned by the /sync endpoint, or from an end token returned by a previous request to this

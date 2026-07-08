@@ -9,7 +9,7 @@ public record MatrixText(
         String body,
         String format,
         String formattedBody
-) implements MatrixEvent {
+) implements MatrixRoomMessageEvent {
 
     @Override
     public String msgtype() {

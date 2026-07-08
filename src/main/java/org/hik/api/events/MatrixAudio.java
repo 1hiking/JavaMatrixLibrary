@@ -2,7 +2,7 @@ package org.hik.api.events;
 
 import java.net.URI;
 
-/// This event represents a single audio clip.
+/// This type of message represents a single audio clip.
 ///
 /// @param body          the filename of the original upload if `filename` is unset
 ///                      or identical to it; otherwise, a caption for the audio.
@@ -22,7 +22,7 @@ public record MatrixAudio(String body,
                           String format,
                           String formattedBody,
                           AudioInfo info,
-                          URI url) implements MatrixEvent {
+                          URI url) implements MatrixRoomMessageEvent {
 
 
     @Override

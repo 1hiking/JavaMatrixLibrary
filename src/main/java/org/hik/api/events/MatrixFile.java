@@ -3,7 +3,7 @@ package org.hik.api.events;
 import java.net.URI;
 
 
-/// This event represents a file resource. If the type of file is known, it's better to use their dedicated event,
+/// This type of message represents a file resource. If the type of file is known, it's better to use their dedicated event,
 /// such as
 /// for [videos][MatrixVideo], [images][MatrixImage], or [audio][MatrixAudio].
 ///
@@ -26,7 +26,7 @@ public record MatrixFile(String body,
                          String formattedBody,
                          FileInfo info,
                          URI url)
-        implements MatrixEvent {
+        implements MatrixRoomMessageEvent {
 
     @Override
     public String msgtype() {

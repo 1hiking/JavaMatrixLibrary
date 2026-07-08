@@ -31,11 +31,11 @@ public class EventService implements Event {
     }
 
     @Override
-    public String publishRoomMessage(String roomId, MatrixEvent matrixEvent) {
+    public String publishRoomMessage(String roomId, MatrixRoomMessageEvent matrixRoomMessageEvent) {
 
         String jsonPayload;
         try {
-            jsonPayload = objectMapper.writeValueAsString(matrixEvent);
+            jsonPayload = objectMapper.writeValueAsString(matrixRoomMessageEvent);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse input data", e);
         }

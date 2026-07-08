@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /// The interface that all matrix m.room.events have to inherit.
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
-public sealed interface MatrixEvent
+public sealed interface MatrixRoomMessageEvent
         permits MatrixAudio, MatrixFile, MatrixLocation, MatrixImage, MatrixText, MatrixVideo {
 
     /// @return the event type represented with a "m." prefix.

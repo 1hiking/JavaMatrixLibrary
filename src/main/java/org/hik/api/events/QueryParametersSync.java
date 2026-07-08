@@ -1,6 +1,6 @@
 package org.hik.api.events;
 
-/// This auxiliary record represents the arguments required to format the URI used to query the get /sync endpoint.
+/// This record represents the arguments required to format the URI used to query the get /sync endpoint.
 ///
 /// @param filter        The ID of a filter created using the filter API or a filter JSON object encoded as a string.
 /// @param fullState     Controls whether to include the full state for all rooms the user is a member of. The

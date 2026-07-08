@@ -60,7 +60,7 @@ class EventServiceTest extends MatrixAPIClientTest {
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        MatrixEvent textEvent = new MatrixText("Hello World", null, null);
+        MatrixRoomMessageEvent textEvent = new MatrixText("Hello World", null, null);
         var actualEventId = client.events().publishRoomMessage(roomId, textEvent);
 
         assertNotNull(actualEventId, "The returned event ID should not be null");

@@ -18,11 +18,11 @@ public interface Event {
     /// Creates a `m.room.message`event to a Matrix room.
     ///
     /// @param roomId      the id of the room to post the event.
-    /// @param matrixEvent a well constructed [MatrixEvent].
+    /// @param matrixRoomMessageEvent a well constructed [MatrixRoomMessageEvent].
     /// @return a [String] representing a unique identifier of the event.
     /// @throws MatrixIOException      when the payload cannot be processed.
     /// @throws MatrixNetworkException when the response status is not successful.
-    String publishRoomMessage(String roomId, MatrixEvent matrixEvent);
+    String publishRoomMessage(String roomId, MatrixRoomMessageEvent matrixRoomMessageEvent);
 
     /// Synchronously uploads a local multimedia resource to the Matrix media server.
     ///

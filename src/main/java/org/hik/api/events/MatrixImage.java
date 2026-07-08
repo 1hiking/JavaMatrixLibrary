@@ -3,7 +3,7 @@ package org.hik.api.events;
 import java.net.URI;
 
 
-/// This event represents an image
+/// This type of message represents an image
 ///
 /// @param body          the filename of the original upload if `filename` is unset
 ///                      or identical to it; otherwise, a caption for the image.
@@ -25,7 +25,7 @@ public record MatrixImage(String body,
                           ImageInfo info,
                           URI url
 
-) implements MatrixEvent {
+) implements MatrixRoomMessageEvent {
 
     @Override
     public String msgtype() {
