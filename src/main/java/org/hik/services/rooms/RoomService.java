@@ -26,6 +26,8 @@ public class RoomService implements Room {
     private static final String DIRECTORY_ENDPOINT = "/_matrix/client/v3/directory/list/room/";
     /// Common endpoint for other Directory events.
     private static final String DIRECTORY_ENDPOINT_ROOM = "/_matrix/client/v3/directory/room/";
+    /// Common return field value by many responses.
+    public static final String ROOM_ID = "room_id";
     private final ObjectMapper objectMapper = Mapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
@@ -64,7 +66,7 @@ public class RoomService implements Room {
                                     "/_matrix/client/v3/createRoom"),
                             jsonPayload, context.credentials().token());
 
-            return Mapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
 
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
@@ -90,7 +92,7 @@ public class RoomService implements Room {
         }
 
         Map<String, String> map = new HashMap<>();
-        map.put("room_id", roomId);
+        map.put(ROOM_ID, roomId);
 
         httpTransport.putEvent(uri,
                 Mapper.createObjectFromMap(map),
@@ -197,7 +199,7 @@ public class RoomService implements Room {
                     httpTransport.postEvent(URI.create(url),
                             serializedInputData,
                             context.credentials().token());
-            return Mapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -218,7 +220,7 @@ public class RoomService implements Room {
                     httpTransport.postEvent(URI.create(url),
                             serializedInputData,
                             context.credentials().token());
-            return Mapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -240,7 +242,7 @@ public class RoomService implements Room {
         String responseBody = httpTransport.postEvent(URI.create(url), Mapper.createObjectFromMap(map),
                 context.credentials().token());
         try {
-            return Mapper.getStringFromSingleObject(responseBody, "room_id");
+            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }

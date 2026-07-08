@@ -8,11 +8,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public sealed interface MatrixRoomMessageEvent
         permits MatrixAudio, MatrixFile, MatrixLocation, MatrixImage, MatrixText, MatrixVideo {
 
+    /// Message type constant field required by all messages.
+    ///
     /// @return the event type represented with a "m." prefix.
     @JsonProperty("msgtype")
-    // required or it will break serialization
     String msgtype();
 
+    /// The body field that all messages require.
+    ///
     /// @return depending on the event it can either be an url mxc:// or a text to show.
     String body();
 
