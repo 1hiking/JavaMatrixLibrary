@@ -4,11 +4,9 @@ import org.hik.api.UserData;
 import org.hik.api.userdata.UserProfile;
 import org.hik.api.userdata.UsersFound;
 import org.hik.context.ClientContext;
-import org.hik.exceptions.MatrixIOException;
 import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
 import org.hik.services.utils.Validator;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -38,13 +36,10 @@ public class UserDataService implements UserData {
                 {"limit": "%d","search_term":"%s"}
                 """.formatted(limitToUse, searchTermToUse);
 
-        String responseBody = httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_DIR),
+        String responseBody =
+                httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_DIR),
                 rawTextPayload, context.credentials().token());
-        try {
-            return objectMapper.readValue(responseBody, UsersFound.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+        return Mapper.getObjectFromString(responseBody, UsersFound.class);
     }
 
     @Override
@@ -54,11 +49,8 @@ public class UserDataService implements UserData {
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId),
                 context.credentials().token());
-        try {
-            return objectMapper.readValue(responseBody, UserProfile.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+        return Mapper.getObjectFromString(responseBody, UserProfile.class);
+
 
     }
 

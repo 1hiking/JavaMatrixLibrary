@@ -115,15 +115,12 @@ public class RoomService implements Room {
         } catch (URISyntaxException e) {
             throw new MatrixIOException("Failure parsing URI", e);
         }
+
         var responseBody =
                 httpTransport.getEvent(uri,
                         context.credentials().token());
-        try {
-            return objectMapper.readValue(responseBody, ResolvedAlias.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
+        return Mapper.getObjectFromString(responseBody, ResolvedAlias.class);
 
-        }
     }
 
     @Override
@@ -153,11 +150,8 @@ public class RoomService implements Room {
         String response =
                 httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId + "/aliases"),
                         context.credentials().token());
-        try {
-            return objectMapper.readValue(response, RoomAliases.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+        return Mapper.getObjectFromString(response, RoomAliases.class);
+
     }
 
     @Override
@@ -166,11 +160,8 @@ public class RoomService implements Room {
                 httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
                                 "/client/v3/joined_rooms"),
                         context.credentials().token());
-        try {
-            return objectMapper.readValue(response, JoinedRooms.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+
+        return Mapper.getObjectFromString(response, JoinedRooms.class);
     }
 
     @Override
@@ -346,26 +337,21 @@ public class RoomService implements Room {
 
         String url = this.httpTransport.buildUrlArgs(
                 context.discoveryResponse().homeserver().baseUrl() + "/_matrix/client/v3/publicRooms", params);
-        try {
-            var responseBody = httpTransport.getEvent(URI.create(url), context.credentials().token());
-            return objectMapper.readValue(responseBody, PublicRoomDirectory.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+        var responseBody = httpTransport.getEvent(URI.create(url), context.credentials().token());
+
+        return Mapper.getObjectFromString(responseBody, PublicRoomDirectory.class);
+
     }
 
     @Override
     public PublicRoomDirectory getPublishedRoomDirectory(PublicRoomRequest request) {
-        try {
-            String serializedInputData = objectMapper.writeValueAsString(request);
+        String serializedInputData = objectMapper.writeValueAsString(request);
 
-            var responseBody = httpTransport.postEvent(URI.create(
-                            context.discoveryResponse().homeserver().baseUrl() + "/_matrix/client/v3/publicRooms"),
-                    serializedInputData, context.credentials().token());
-            return objectMapper.readValue(responseBody, PublicRoomDirectory.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+        var responseBody = httpTransport.postEvent(URI.create(
+                        context.discoveryResponse().homeserver().baseUrl() + "/_matrix/client/v3/publicRooms"),
+                serializedInputData, context.credentials().token());
+        return Mapper.getObjectFromString(responseBody, PublicRoomDirectory.class);
+
     }
 
     @Override
@@ -375,14 +361,9 @@ public class RoomService implements Room {
         String url = this.httpTransport.buildUrlArgs(
                 context.discoveryResponse().homeserver().baseUrl() + "/_matrix/client/v1/room_summary/" + idToUse,
                 Map.ofEntries(Map.entry("via", via)));
+        var responseBody = httpTransport.getEvent(URI.create(url), context.credentials().token());
 
-        try {
-            var responseBody = httpTransport.getEvent(URI.create(url), context.credentials().token());
-            return objectMapper.readValue(responseBody, RoomSummary.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
-
+        return Mapper.getObjectFromString(responseBody, RoomSummary.class);
     }
 
 }

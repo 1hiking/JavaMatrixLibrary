@@ -1,6 +1,7 @@
 package org.hik.services.utils;
 
 import org.hik.exceptions.MatrixIOException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -52,5 +53,23 @@ public class Mapper {
         ObjectNode x = INSTANCE.createObjectNode();
         map.forEach(x::put);
         return x.toString();
+    }
+
+    /// Deserializes a JSON response body into an instance of the given type.
+    ///
+    /// @param responseBody the raw JSON string returned by the Matrix API
+    /// @param type         the target class to deserialize into
+    /// @param <T>          the class type to deserialize into
+    /// @return the deserialized object
+    /// @throws MatrixIOException if the JSON cannot be parsed into the target type
+    public static <T> T getObjectFromString(String responseBody, Class<T> type) {
+        if (responseBody == null || type == null) {
+            throw new IllegalArgumentException("responseBody and type must not be null");
+        }
+        try {
+            return INSTANCE.readValue(responseBody, type);
+        } catch (JacksonException e) {
+            throw new MatrixIOException("Failed to parse Matrix response JSON", e);
+        }
     }
 }

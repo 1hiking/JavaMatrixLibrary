@@ -6,8 +6,8 @@ import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
+import org.hik.services.utils.Validator;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -32,7 +32,7 @@ public class EventService implements Event {
 
     @Override
     public String publishRoomMessage(String roomId, MatrixRoomMessageEvent matrixRoomMessageEvent) {
-
+        roomId = Validator.roomId(roomId);
         String jsonPayload;
         try {
             jsonPayload = objectMapper.writeValueAsString(matrixRoomMessageEvent);
@@ -40,22 +40,12 @@ public class EventService implements Event {
             throw new MatrixIOException("Failed to parse input data", e);
         }
 
-        try {
-            String queryResponse =
-                    httpTransport.putEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() +
-                                    ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID()),
-                            jsonPayload,
-                            context.credentials().token());
-            JsonNode responsePayload = objectMapper.readTree(queryResponse);
-            JsonNode idNode = responsePayload.path("event_id");
-            if (idNode.isMissingNode()) {
-                throw new MatrixIOException("Missing 'event_id' in server response ");
-            }
-            return idNode.stringValue();
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
 
+        String queryResponse = httpTransport.putEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() +
+                        ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID()),
+                jsonPayload,
+                context.credentials().token());
+        return Mapper.getStringFromSingleObject(queryResponse, "event_id");
 
     }
 
@@ -67,8 +57,7 @@ public class EventService implements Event {
                 httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
                         "/media/v1/create"), null, this.context.credentials().token());
 
-        JsonNode responsePayload = objectMapper.readTree(queryResponse);
-        return responsePayload.get("content_uri").stringValue();
+        return Mapper.getStringFromSingleObject(queryResponse, "content_uri");
     }
 
     @Override
@@ -98,15 +87,11 @@ public class EventService implements Event {
         args.put("timeout", String.valueOf(params.timeout()));
         args.put("use_state_after", String.valueOf(params.useStateAfter()));
         String query = httpTransport.buildUrlArgs(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
-                        "/client/v3/sync"
-                , args);
+                "/client/v3/sync", args);
 
-        try {
-            String queryResponse = httpTransport.getEvent(URI.create(query), context.credentials().token());
-            return objectMapper.readValue(queryResponse, SyncResponse.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
+        String queryResponse = httpTransport.getEvent(URI.create(query), context.credentials().token());
+        return Mapper.getObjectFromString(queryResponse, SyncResponse.class);
+
     }
 
     @Override
@@ -120,16 +105,11 @@ public class EventService implements Event {
         args.put("limit", params.limit());
         String finalUrl =
                 httpTransport.buildUrlArgs(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
-                        "/messages", args);
+                "/messages", args);
 
+        String queryResponse = httpTransport.getEvent(URI.create(finalUrl), context.credentials().token());
 
-        try {
-            String queryResponse = httpTransport.getEvent(URI.create(finalUrl), context.credentials().token());
-            return objectMapper.readValue(queryResponse, Messages.class);
-        } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
-        }
-
+        return Mapper.getObjectFromString(queryResponse, Messages.class);
     }
 
 
