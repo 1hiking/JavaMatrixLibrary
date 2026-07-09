@@ -29,7 +29,6 @@ public interface Room {
     /// @return the created room’s ID.
     /// @throws MatrixIOException      when the payload cannot be processed
     /// @throws MatrixNetworkException when the response status is not successful
-    /// @ when the HTTP Client is interrupted
     String create(boolean isFederated, String name, String aliasName, String topic, CreationRoomType type,
                   boolean isVisible);
 
