@@ -17,7 +17,7 @@ package org.hik.api.events;
 /// @see
 /// <a href="https://spec.matrix.org/v1.18/client-server-api/#filtering">Filter spec details for more information about filtering</a>
 public record QueryParametersSync(String filter,
-                                  Boolean fullState,
+                                  boolean fullState,
                                   String setPresence,
                                   String since,
                                   Integer timeout,
