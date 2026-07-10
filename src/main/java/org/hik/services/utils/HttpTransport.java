@@ -239,8 +239,8 @@ public class HttpTransport {
     /// Builds a URI from a base URL, path, and query parameters, with the path and
     /// query percent-encoded to UTF-8.
     ///
-    /// @param baseUrl the base URL, e.g. `https://example.org`
-    /// @param path    the path, e.g. `/_matrix/client/v3/join/!room:example.org`
+    /// @param baseUrl the base URL, for example: `https://example.org`
+    /// @param path    the path, for example: `/_matrix/client/v3/join/!room:example.org`
     /// @param params  query parameters; accepts wrapped primitives and Lists for
     ///                repeated parameters. Null values, null list items, or a null/empty
     ///                map are all safely ignored.
