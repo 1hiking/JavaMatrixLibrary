@@ -25,9 +25,10 @@ public class FilterService implements Filter {
     public String publishFilter(String userId, FilterDefinition filter) {
         userId = Validator.userId(userId);
         var serializedInputData = objectMapper.writeValueAsString(filter);
+        URI uri = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+                USER_FILTER_ENDPOINT + userId + "/filter", null);
         String responseBody = httpTransport.postEvent(
-                URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_FILTER_ENDPOINT + userId +
-                        "/filter"),
+                uri,
                 serializedInputData,
                 context.credentials().token());
 
@@ -36,6 +37,11 @@ public class FilterService implements Filter {
 
     @Override
     public FilterDefinition getFilter(String userId, String filterId) {
-        return null;
+        userId = Validator.userId(userId);
+        filterId = Validator.notNull(filterId, "The filter ID");
+        URI uri = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+                USER_FILTER_ENDPOINT + userId + "/filter/" + filterId, null);
+        return Mapper.getObjectFromString(httpTransport.getEvent(uri, context.credentials().token()),
+                FilterDefinition.class);
     }
 }
