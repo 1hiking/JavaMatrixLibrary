@@ -1,30 +1,60 @@
 > [!CAUTION]
-> This project is in very early stages, use at your own risk.
+> This project is in early development. APIs may change without notice — use at your own risk.
 
-# A Matrix client library for Java
+# A Matrix Client Library for Java
 
-This is a Java client-side library to interact with the Matrix protocol.
+A client-side Java library for the [Matrix](https://matrix.org) protocol. Use it to build bots,
+user-facing clients, scripts, or any application that needs to talk to a Matrix homeserver.
 
-Some of the aims of this project are:
+## Project goals
 
-- Maintain low quantity of external dependencies.
-- Leverage modern Java features to improve developer experience.
-- Maintain the client simple, allowing consumers to process their own data, in return the library safely returns
-  serialized immutable data.
+- This library aims to maintain a low amount of external dependencies.
+- Leverage modern Java language features to improve developer experience.
+- The library returns immutable, serialized data and callers decide how to store, cache, or process it.
 
-## Feature table:
+## Quick start
 
-| Service                                             | Supported   |
-|-----------------------------------------------------|-------------|
-| Rooms (banning, kicking, room summary, room search) | Yes         |
-| Events (sending posts, reading from rooms)          | Partially   |
-| User Data                                           | In progress |
+```java
 
-### Installation:
+MatrixClient client = MatrixClient.create("https://matrix.example.org", userId, accessToken);
 
-Declare the library in your pom
 
-### Testing
+// Now you can do any operation!, as an example:
+ResolvedAlias roomId = client.room().resolveAlias("#general:example.org");
+```
 
-- Testing is done via the library `Wiremocks` and `JUnit 5`.
-- Each module has their own test file. All tests must pass.
+## Feature support
+
+| Service   | Capabilities                                   | Status      |
+|-----------|------------------------------------------------|-------------|
+| Rooms     | Banning, kicking, room summary, room search    | ✅ Supported |
+| Events    | Sending messages, reading room events, `/sync` | 🟡 Partial  |
+| User Data | Profile search, profile modification           | ✅ Supported |
+| Filtering | Creating and retrieving filters                | 🟡 Partial  |
+
+## Installation
+
+(None currently!)
+
+### Requirements
+
+- Java 23+
+
+## Testing
+
+- Tests use [WireMock](https://wiremock.org/) for HTTP stubbing and JUnit 5 as the test framework.
+- Each module has its own test file; all tests must pass before merging.
+
+To run the test suite:
+
+```bash
+./mvnw test
+```
+
+## Dependencies
+
+- [Jackson](https://github.com/FasterXML/jackson) 3.x — JSON serialization/deserialization
+
+## License
+
+None for now
