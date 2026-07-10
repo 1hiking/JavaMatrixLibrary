@@ -2,10 +2,10 @@ package org.hik.api.events;
 
 import java.util.Map;
 
-/// The record used for events when they are returned from a homeserver to a client via the Client-Server API, or
-/// sent to an Application Service via the Application Services API.
+
+/// Record used to store events returned from the server.
 ///
-/// @param content        the body of this event, as created by the client which sent it.
+/// @param content        the body of this event, as created by the user which sent it.
 /// @param eventId        the globally unique identifier for this event.
 /// @param originServerTs timestamp (in milliseconds since the Unix epoch) on originating homeserver when this event
 /// was sent.
@@ -20,7 +20,7 @@ import java.util.Map;
 /// @param unsigned       contains optional extra information about the event.
 public record ClientEvent(Map<String, Object> content,
                           String eventId,
-                          Long originServerTs,
+                          long originServerTs,
                           String roomId,
                           String sender,
                           String stateKey,
