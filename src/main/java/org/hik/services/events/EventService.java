@@ -40,11 +40,9 @@ public class EventService implements Event {
             throw new MatrixIOException("Failed to parse input data", e);
         }
 
-
-        String queryResponse = httpTransport.putEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() +
-                        ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID()),
-                jsonPayload,
-                context.credentials().token());
+        URI uri = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+                ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID(), null);
+        String queryResponse = httpTransport.putEvent(uri, jsonPayload, context.credentials().token());
         return Mapper.getStringFromSingleObject(queryResponse, "event_id");
 
     }
@@ -86,10 +84,10 @@ public class EventService implements Event {
         args.put("since", params.since());
         args.put("timeout", String.valueOf(params.timeout()));
         args.put("use_state_after", String.valueOf(params.useStateAfter()));
-        String query = httpTransport.buildUrlArgs(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
-                "/client/v3/sync", args);
+        URI query = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+                "/_matrix/client/v3/sync", args);
 
-        String queryResponse = httpTransport.getEvent(URI.create(query), context.credentials().token());
+        String queryResponse = httpTransport.getEvent(query, context.credentials().token());
         return Mapper.getObjectFromString(queryResponse, SyncResponse.class);
 
     }
@@ -103,11 +101,9 @@ public class EventService implements Event {
         args.put("from", params.from());
         args.put("to", params.to());
         args.put("limit", params.limit());
-        String finalUrl =
-                httpTransport.buildUrlArgs(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
-                "/messages", args);
-
-        String queryResponse = httpTransport.getEvent(URI.create(finalUrl), context.credentials().token());
+        URI uri = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+                ROOM_ENDPOINT + payloadRoomId + "/messages", args);
+        String queryResponse = httpTransport.getEvent(uri, context.credentials().token());
 
         return Mapper.getObjectFromString(queryResponse, Messages.class);
     }

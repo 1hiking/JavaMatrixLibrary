@@ -75,9 +75,9 @@ class RoomServiceTest extends MatrixAPIClientTest {
     @Test
     void sendResolveAliasRequest_WithCorrectPayload_thenReturnResolvedAlias() {
         String alias = "#general:example.com";
-        String encodedAlias = alias.replace("#", "%23");  // patch the uri
+        String expectedPath = "%23general:example.com";
 
-        wireMockServer.stubFor(get("/_matrix/client/v3/directory/room/" + encodedAlias)
+        wireMockServer.stubFor(get("/_matrix/client/v3/directory/room/" + expectedPath)
                 .willReturn(okJson("""
                         {
                           "room_id": "%s",

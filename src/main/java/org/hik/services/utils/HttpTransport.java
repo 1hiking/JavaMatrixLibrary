@@ -7,6 +7,7 @@ import tools.jackson.core.exc.StreamReadException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -227,34 +228,44 @@ public class HttpTransport {
     }
 
 
-    /// Generates a URL with query parameters appended.
-    ///
-    /// @param basePath the base path to append parameters to, for example:
-    ///                 `/_matrix/client/v3/join/!room:example.org`
-    /// @param params   the query parameters to append, accepts both Object wrapped primitives and lists.
-    /// @return the base path with query parameters appended, or the base
-    ///         path unchanged if all parameters were null or the map was empty
-    public String buildUrlArgs(String basePath, Map<String, Object> params) {
-        if (params.isEmpty()) return basePath;
-        String query = params.entrySet().stream()
-                .filter(e -> e.getValue() != null)
-                .flatMap(e -> {
-                    if (e.getValue() instanceof List<?> list) {
-                        return list.stream()
-                                .filter(Objects::nonNull)
-                                .map(item -> encode(e.getKey()) + "=" + encode(item.toString()));
-                    }
-                    return Stream.of(encode(e.getKey()) + "=" + encode(e.getValue().toString()));
-                })
-                .collect(Collectors.joining("&"));
-        return query.isEmpty() ? basePath : basePath + "?" + query;
-    }
-
     /// URL-encodes a string using UTF-8.
     ///
     /// @param value the string to encode
     /// @return the URL-encoded string
     private String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    /// Builds a URI from a base URL, path, and query parameters, with the path and
+    /// query percent-encoded to UTF-8.
+    ///
+    /// @param baseUrl the base URL, e.g. `https://example.org`
+    /// @param path    the path, e.g. `/_matrix/client/v3/join/!room:example.org`
+    /// @param params  query parameters; accepts wrapped primitives and Lists for
+    ///                repeated parameters. Null values, null list items, or a null/empty
+    ///                map are all safely ignored.
+    /// @return a safe, fully composed URI
+    public URI generateCodifiedURI(String baseUrl, String path, Map<String, Object> params) {
+        String query = encodeQueryParams(params);
+        try {
+            URI base = URI.create(baseUrl);
+            return new URI(base.getScheme(), base.getAuthority(), path, query.isEmpty() ? null : query, null);
+        } catch (URISyntaxException e) {
+            throw new MatrixIOException("Failure parsing URI", e);
+        }
+    }
+
+    private String encodeQueryParams(Map<String, Object> params) {
+        if (params == null || params.isEmpty()) return "";
+        return params.entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .flatMap(e -> valuesOf(e.getValue()).map(v -> encode(e.getKey()) + "=" + encode(v.toString())))
+                .collect(Collectors.joining("&"));
+    }
+
+    private Stream<?> valuesOf(Object value) {
+        return value instanceof List<?> list
+                ? list.stream().filter(Objects::nonNull)
+                : Stream.of(value);
     }
 }

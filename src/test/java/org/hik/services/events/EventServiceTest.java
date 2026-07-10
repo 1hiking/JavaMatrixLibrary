@@ -320,7 +320,7 @@ class EventServiceTest extends MatrixAPIClientTest {
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
 
-        SyncResponse actualResponse = client.events().sync(new QueryParametersSync(null, null, null, null, null, null));
+        SyncResponse actualResponse = client.events().sync(new QueryParametersSync(null, true, null, null, null, null));
 
         assertNotNull(actualResponse, "The returned SyncResponse payload shouldn't be null");
         assertEquals("some_next_batch_token", actualResponse.nextBatch(), "The next_batch token should match");

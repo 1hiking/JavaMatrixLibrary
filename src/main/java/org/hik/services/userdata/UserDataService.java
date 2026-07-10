@@ -7,7 +7,6 @@ import org.hik.context.ClientContext;
 import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
 import org.hik.services.utils.Validator;
-import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.util.Map;
@@ -18,9 +17,9 @@ import java.util.Objects;
 /// query and search of users.
 public class UserDataService implements UserData {
 
+    ///
     public static final String USER_DIR = "/_matrix/client/v3/user_directory/search";
     private static final String PROFILE_DIR = "/_matrix/client/v3/profile/";
-    private final ObjectMapper objectMapper = Mapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
@@ -38,14 +37,13 @@ public class UserDataService implements UserData {
 
         String responseBody =
                 httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_DIR),
-                rawTextPayload, context.credentials().token());
+                        rawTextPayload, context.credentials().token());
         return Mapper.getObjectFromString(responseBody, UsersFound.class);
     }
 
     @Override
     public UserProfile getUserProfile(String userId) {
         userId = Validator.userId(userId);
-
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId),
                 context.credentials().token());
