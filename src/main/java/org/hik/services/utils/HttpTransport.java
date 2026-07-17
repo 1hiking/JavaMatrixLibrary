@@ -22,10 +22,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/// A [HttpTransport] is responsible for the construction of asynchronous [requests][HttpRequest], this class is
-/// transparent
-/// such that all methods require providing required datatypes for the payloads, such as with [`URI`][URI] and with
-///  [HttpRequest.BodyPublisher]
+/// [HttpTransport] handles all network-related tasks shared across the library,
+/// including issuing requests, processing responses, and URI encoding.
+///
+/// Unless otherwise documented, requests expect JSON bodies as [String]s and
+/// return unprocessed response bodies as [String]s, callers are responsible
+/// for their own (de)serialization.
+///
+/// Failed requests are validated against the server's response and throw
+/// [MatrixNetworkException], populated with the HTTP status code and any
+/// error message returned by the server, and [MatrixIOException] if the server
+/// JSON response wasn't even sent.
 public class HttpTransport {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
@@ -49,7 +56,7 @@ public class HttpTransport {
 
         ErrorResponse errorResponse;
         try {
-            errorResponse = Mapper.getInstance().readValue(body, ErrorResponse.class);
+            errorResponse = Mapper.getObjectFromString(body, ErrorResponse.class);
         } catch (StreamReadException e) {
             throw new MatrixIOException("Server returned with malformed response", e);
         }
@@ -59,9 +66,9 @@ public class HttpTransport {
 
     /// Sends a `GET` request to the given endpoint.
     ///
-    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param path      the [URI] of the endpoint to `GET`.
     /// @param authToken if supplied, the `Bearer` token.
-    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @return a JSON [String].
     /// @throws IllegalArgumentException if the path was not supplied
     public String getEvent(URI path, String authToken) {
         var builderRequest = HttpRequest.newBuilder()
@@ -92,10 +99,10 @@ public class HttpTransport {
 
     /// Sends a `POST` request to the given endpoint.
     ///
-    /// @param path      the [URI] of the selected endpoint to query.
-    /// @param body      the parsed JSON payload as a String
+    /// @param path      the [URI] of the endpoint to `POST`.
+    /// @param body      a JSON [String].
     /// @param authToken if supplied, the `Bearer` token.
-    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @return a JSON [String].
     /// @throws MatrixIOException      if an I/O error has occurred while sending the request
     /// @throws MatrixNetworkException if the path was not supplied
     public String postEvent(URI path, String body, String authToken) {
@@ -129,13 +136,47 @@ public class HttpTransport {
 
     }
 
+    /// Sends a `POST` request to the given endpoint.
+    ///
+    /// @param path the [URI] of the endpoint to query.
+    /// @param body a JSON [String].
+    /// @return a JSON [String].
+    /// @throws MatrixIOException      if an I/O error has occurred while sending the request
+    /// @throws MatrixNetworkException if the path was not supplied
+    public String postEventAuth(URI path, String body) {
+        var builderRequest = HttpRequest.newBuilder()
+                .uri(path);
+
+
+        builderRequest.header(CONTENT_TYPE, "application/x-www-form-urlencoded");
+
+        builderRequest.POST(body != null ? HttpRequest.BodyPublishers.ofString(body) :
+                HttpRequest.BodyPublishers.noBody());
+
+        var request = builderRequest.build();
+
+
+        HttpResponse<String> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new MatrixIOException("There has been an I/O error attempting to process this request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MatrixNetworkException("This request has been interrupted", e);
+        }
+        this.validateResponse(response.statusCode(), response.body());
+        return response.body();
+
+    }
+
 
     /// Sends a `PUT` request to the given endpoint.
     ///
-    /// @param path      the [URI] of the selected endpoint to query.
-    /// @param body      the parsed JSON payload as a String
+    /// @param path      the [URI] of the endpoint to query.
+    /// @param body      a JSON [String]
     /// @param authToken if supplied, the `Bearer` token.
-    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @return a JSON [String] when the operation is successful.
     /// @throws MatrixIOException        if an I/O error has occurred while sending the request
     /// @throws MatrixNetworkException   if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
@@ -166,10 +207,10 @@ public class HttpTransport {
 
     /// Sends a `PUT` request to the given endpoint.
     ///
-    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param path      the [URI] of the endpoint to query.
     /// @param resource  a [Path] pointing to the resource to be uploaded.
     /// @param authToken if supplied, the `Bearer` token.
-    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @return a JSON [String].
     /// @throws MatrixIOException        if an I/O error has occurred while sending the request
     /// @throws MatrixNetworkException   if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
@@ -201,9 +242,9 @@ public class HttpTransport {
 
     /// Sends a `DELETE` request to the given endpoint.
     ///
-    /// @param path      the [URI] of the selected endpoint to query.
+    /// @param path      the [URI] of the endpoint to query.
     /// @param authToken if supplied, the `Bearer` token.
-    /// @return an unparsed JSON [String] when the operation is successful.
+    /// @return a JSON [String].
     /// @throws MatrixIOException        if an I/O error has occurred while sending the request
     /// @throws MatrixNetworkException   if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
@@ -236,17 +277,37 @@ public class HttpTransport {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    /// Builds a URI from a base URL, path, and query parameters, with the path and
+    /// Builds a [URI] from a base, path, and query parameters, with the path and
     /// query percent-encoded to UTF-8.
     ///
-    /// @param baseUrl the base URL, for example: `https://example.org`
+    /// @param baseUrl the base [URI] containing a schema and an authority.
     /// @param path    the path, for example: `/_matrix/client/v3/join/!room:example.org`
     /// @param params  query parameters; accepts wrapped primitives and Lists for
     ///                repeated parameters. Null values, null list items, or a null/empty
     ///                map are all safely ignored.
-    /// @return a safe, fully composed URI
-    public URI generateCodifiedURI(String baseUrl, String path, Map<String, Object> params) {
+    /// @return a safe, fully composed [URI]
+    public URI generateEncodedURI(String baseUrl, String path, Map<String, Object> params) {
         String query = encodeQueryParams(params);
+        try {
+            URI base = URI.create(baseUrl);
+            return new URI(base.getScheme(), base.getAuthority(), path, query.isEmpty() ? null : query, null);
+        } catch (URISyntaxException e) {
+            throw new MatrixIOException("Failure parsing URI", e);
+        }
+    }
+
+
+    /// Builds a [URI] from a base, path, and query parameters.
+    /// This method WON'T encode to UTF-8 the queries
+    ///
+    /// @param baseUrl the base [URI] containing a schema and an authority.
+    /// @param path    the path, for example: `/_matrix/client/v3/join/!room:example.org`
+    /// @param params  query parameters; accepts wrapped primitives and Lists for
+    ///                repeated parameters. Null values, null list items, or a null/empty
+    ///                map are all safely ignored.
+    /// @return a safe, fully composed [URI]
+    public URI generateRawURI(String baseUrl, String path, Map<String, Object> params) {
+        String query = rawQueryParams(params);
         try {
             URI base = URI.create(baseUrl);
             return new URI(base.getScheme(), base.getAuthority(), path, query.isEmpty() ? null : query, null);
@@ -263,9 +324,18 @@ public class HttpTransport {
                 .collect(Collectors.joining("&"));
     }
 
+    private String rawQueryParams(Map<String, Object> params) {
+        if (params == null || params.isEmpty()) return "";
+        return params.entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .flatMap(e -> valuesOf(e.getValue()).map(v -> e.getKey() + "=" + v.toString()))
+                .collect(Collectors.joining("&"));
+    }
+
     private Stream<?> valuesOf(Object value) {
         return value instanceof List<?> list
                 ? list.stream().filter(Objects::nonNull)
                 : Stream.of(value);
     }
+
 }
