@@ -37,7 +37,7 @@ public class UserDataService implements UserData {
 
         String responseBody =
                 httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_DIR),
-                        rawTextPayload, context.credentials().token());
+                        rawTextPayload, context.token());
         return Mapper.getObjectFromString(responseBody, UsersFound.class);
     }
 
@@ -46,7 +46,7 @@ public class UserDataService implements UserData {
         userId = Validator.userId(userId);
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId),
-                context.credentials().token());
+                context.token());
         return Mapper.getObjectFromString(responseBody, UserProfile.class);
 
 
@@ -58,7 +58,7 @@ public class UserDataService implements UserData {
         keyName = Validator.notNull(keyName, "The key name");
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
-                context.credentials().token());
+                context.token());
 
         return Mapper.getStringFromSingleObject(responseBody, keyName);
     }
@@ -73,7 +73,7 @@ public class UserDataService implements UserData {
         httpTransport.putEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
                 serializedJson,
-                context.credentials().token());
+                context.token());
     }
 
     @Override
@@ -83,6 +83,6 @@ public class UserDataService implements UserData {
 
         httpTransport.deleteEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
-                context.credentials().token());
+                context.token());
     }
 }

@@ -1,7 +1,12 @@
 package org.hik.services.events;
 
 import org.hik.api.Event;
-import org.hik.api.events.*;
+import org.hik.api.events.ChronologicalDirectionType;
+import org.hik.api.events.MatrixRoomMessageEvent;
+import org.hik.api.events.Messages;
+import org.hik.api.events.QueryParametersMessages;
+import org.hik.api.events.QueryParametersSync;
+import org.hik.api.events.SyncResponse;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.services.utils.HttpTransport;
@@ -40,9 +45,9 @@ public class EventService implements Event {
             throw new MatrixIOException("Failed to parse input data", e);
         }
 
-        URI uri = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+        URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
                 ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID(), null);
-        String queryResponse = httpTransport.putEvent(uri, jsonPayload, context.credentials().token());
+        String queryResponse = httpTransport.putEvent(uri, jsonPayload, context.token());
         return Mapper.getStringFromSingleObject(queryResponse, "event_id");
 
     }
@@ -53,7 +58,7 @@ public class EventService implements Event {
     private String createAndReserveMXC() throws JacksonException {
         String queryResponse =
                 httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
-                        "/media/v1/create"), null, this.context.credentials().token());
+                        "/media/v1/create"), null, this.context.token());
 
         return Mapper.getStringFromSingleObject(queryResponse, "content_uri");
     }
@@ -66,7 +71,7 @@ public class EventService implements Event {
             String rawPath = mxc.replace("mxc://", "");
             URI uploadTargetUri = URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix/media" +
                     "/v3/upload/" + rawPath + "?filename=" + resource.getFileName().toString());
-            httpTransport.putResource(uploadTargetUri, resource, context.credentials().token());
+            httpTransport.putResource(uploadTargetUri, resource, context.token());
 
             return mxc;
 
@@ -84,10 +89,10 @@ public class EventService implements Event {
         args.put("since", params.since());
         args.put("timeout", String.valueOf(params.timeout()));
         args.put("use_state_after", String.valueOf(params.useStateAfter()));
-        URI query = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+        URI query = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
                 "/_matrix/client/v3/sync", args);
 
-        String queryResponse = httpTransport.getEvent(query, context.credentials().token());
+        String queryResponse = httpTransport.getEvent(query, context.token());
         return Mapper.getObjectFromString(queryResponse, SyncResponse.class);
 
     }
@@ -101,9 +106,9 @@ public class EventService implements Event {
         args.put("from", params.from());
         args.put("to", params.to());
         args.put("limit", params.limit());
-        URI uri = httpTransport.generateCodifiedURI(context.discoveryResponse().homeserver().baseUrl(),
+        URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
                 ROOM_ENDPOINT + payloadRoomId + "/messages", args);
-        String queryResponse = httpTransport.getEvent(uri, context.credentials().token());
+        String queryResponse = httpTransport.getEvent(uri, context.token());
 
         return Mapper.getObjectFromString(queryResponse, Messages.class);
     }
