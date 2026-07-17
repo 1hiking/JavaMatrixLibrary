@@ -11,7 +11,7 @@ import tools.jackson.databind.node.ObjectNode;
 import java.util.List;
 import java.util.Map;
 
-/// The [Mapper] class handles the global configuration of an [ObjectMapper] instance and also exposes additional
+/// [Mapper] handles the global configuration of an [ObjectMapper] instance and also exposes additional
 /// methods to parse JSON [String] responses safely.
 public class Mapper {
 
