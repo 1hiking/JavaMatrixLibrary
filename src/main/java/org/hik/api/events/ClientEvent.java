@@ -20,7 +20,7 @@ import java.util.Map;
 /// @param unsigned       contains optional extra information about the event.
 public record ClientEvent(Map<String, Object> content,
                           String eventId,
-                          long originServerTs,
+                          Long originServerTs,
                           String roomId,
                           String sender,
                           String stateKey,
