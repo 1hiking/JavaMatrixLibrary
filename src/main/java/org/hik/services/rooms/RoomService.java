@@ -1,17 +1,7 @@
 package org.hik.services.rooms;
 
 import org.hik.api.Room;
-import org.hik.api.rooms.CreationRoomType;
-import org.hik.api.rooms.JoinRoomRequest;
-import org.hik.api.rooms.JoinedRooms;
-import org.hik.api.rooms.MatrixRoom;
-import org.hik.api.rooms.PublicRoomDirectory;
-import org.hik.api.rooms.PublicRoomRequest;
-import org.hik.api.rooms.ResolvedAlias;
-import org.hik.api.rooms.RoomAliases;
-import org.hik.api.rooms.RoomMembershipRequest;
-import org.hik.api.rooms.RoomSummary;
-import org.hik.api.rooms.VisibilityRoomType;
+import org.hik.api.rooms.*;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.services.utils.HttpTransport;
@@ -29,14 +19,14 @@ import java.util.Map;
 /// perform activities such as kicking, banning, listing of, and creation of rooms.
 public class RoomService implements Room {
 
+    /// Common return field value by many responses.
+    public static final String ROOM_ID = "room_id";
     /// Common endpoint for many Room events.
     private static final String ROOM_ENDPOINT = "/_matrix/client/v3/rooms/";
     /// Common endpoint for many Directory events.
     private static final String DIRECTORY_ENDPOINT = "/_matrix/client/v3/directory/list/room/";
     /// Common endpoint for other Directory events.
     private static final String DIRECTORY_ENDPOINT_ROOM = "/_matrix/client/v3/directory/room/";
-    /// Common return field value by many responses.
-    public static final String ROOM_ID = "room_id";
     private final ObjectMapper objectMapper = Mapper.getInstance();
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;

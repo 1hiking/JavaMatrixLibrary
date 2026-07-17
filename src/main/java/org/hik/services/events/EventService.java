@@ -1,12 +1,7 @@
 package org.hik.services.events;
 
 import org.hik.api.Event;
-import org.hik.api.events.ChronologicalDirectionType;
-import org.hik.api.events.MatrixRoomMessageEvent;
-import org.hik.api.events.Messages;
-import org.hik.api.events.QueryParametersMessages;
-import org.hik.api.events.QueryParametersSync;
-import org.hik.api.events.SyncResponse;
+import org.hik.api.events.*;
 import org.hik.context.ClientContext;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.services.utils.HttpTransport;
