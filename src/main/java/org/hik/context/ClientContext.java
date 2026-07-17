@@ -1,10 +1,8 @@
 package org.hik.context;
 
-import org.hik.api.ClientCredentials;
-
-/// Utility record used to store context data for internal modules.
+/// ClientContext stores global context data for internal services.
 ///
-/// @param credentials       The user credentials.
+/// @param token       The user token.
 /// @param discoveryResponse The discovery response data.
-public record ClientContext(ClientCredentials credentials, DiscoveryResponse discoveryResponse) {
+public record ClientContext(String token, DiscoveryResponse discoveryResponse) {
 }
