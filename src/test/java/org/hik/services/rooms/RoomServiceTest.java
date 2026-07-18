@@ -1,38 +1,33 @@
 package org.hik.services.rooms;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
 import org.hik.api.rooms.*;
 import org.hik.context.DiscoveryResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@WireMockTest
 class RoomServiceTest {
 
     private static final String ROOM_ID = "!ekkTuJPNWnbuCJHvYB:kde.org";
     private static MatrixClient client;
 
-    @RegisterExtension
-    static final WireMockExtension wireMockServer = WireMockExtension.newInstance()
-            .options(WireMockConfiguration.wireMockConfig()
-                    .dynamicPort())
-            .build();
 
     private static final String AUTH_TOKEN = "1234";
     private static DiscoveryResponse DISCOVERY_RESPONSE;
 
     @BeforeAll
-    static void setUpDiscovery() {
+    static void setUpDiscovery(WireMockRuntimeInfo wireMockRuntimeInfo) {
         DISCOVERY_RESPONSE = new DiscoveryResponse(
-                new DiscoveryResponse.HomeserverInfo(wireMockServer.baseUrl()),
+                new DiscoveryResponse.HomeserverInfo(wireMockRuntimeInfo.getHttpBaseUrl()),
                 null, null
         );
     }
@@ -49,7 +44,7 @@ class RoomServiceTest {
     @Test
     void sendCreateRequest_WithACorrectPayload_thenReturnARoomId() {
         String expectedRoomId = "!sefiuhWgwghwWgh:example.com";
-        wireMockServer.stubFor(post("/_matrix/client/v3/createRoom")
+        stubFor(post("/_matrix/client/v3/createRoom")
                 .withRequestBody(equalToJson("""
                         {
                           "creation_content": { "m.federate": true },
@@ -78,7 +73,7 @@ class RoomServiceTest {
         String alias = "#general:example.com";
         String encodedAlias = alias.replace("#", "%23");  // patch the uri
 
-        wireMockServer.stubFor(put("/_matrix/client/v3/directory/room/" + encodedAlias)
+        stubFor(put("/_matrix/client/v3/directory/room/" + encodedAlias)
                 .withRequestBody(equalToJson("""
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID), true, true))
@@ -86,7 +81,7 @@ class RoomServiceTest {
 
         client.room().setAlias(alias, ROOM_ID);
 
-        wireMockServer.verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
+        verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
     }
 
     @Test
@@ -94,7 +89,7 @@ class RoomServiceTest {
         String alias = "#general:example.com";
         String expectedPath = "%23general:example.com";
 
-        wireMockServer.stubFor(get("/_matrix/client/v3/directory/room/" + expectedPath)
+        stubFor(get("/_matrix/client/v3/directory/room/" + expectedPath)
                 .willReturn(okJson("""
                         {
                           "room_id": "%s",
@@ -114,17 +109,17 @@ class RoomServiceTest {
         String alias = "#general:example.com";
         String encodedAlias = alias.replace("#", "%23");  // patch the uri
 
-        wireMockServer.stubFor(delete("/_matrix/client/v3/directory/room/" + encodedAlias)
+        stubFor(delete("/_matrix/client/v3/directory/room/" + encodedAlias)
                 .willReturn(okJson("{}")));
 
         client.room().deleteAlias(alias);
 
-        wireMockServer.verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
+        verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
     }
 
     @Test
     void sendGetAliasesRequest_WithCorrectPayload_thenReturnAliases() {
-        wireMockServer.stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/aliases")
+        stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/aliases")
                 .willReturn(okJson("""
                         {
                           "aliases": ["#general:example.com", "#main:example.com"]
@@ -144,7 +139,7 @@ class RoomServiceTest {
 
     @Test
     void sendGetJoinedRoomsRequest_thenReturnJoinedRooms() {
-        wireMockServer.stubFor(get("/_matrix/client/v3/joined_rooms")
+        stubFor(get("/_matrix/client/v3/joined_rooms")
                 .willReturn(okJson("""
                         {
                           "joined_rooms": ["%s"]
@@ -160,7 +155,7 @@ class RoomServiceTest {
 
     @Test
     void sendInviteRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/invite")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/invite")
                 .withRequestBody(equalToJson("""
                         {
                           "reason": "Welcome!",
@@ -171,13 +166,13 @@ class RoomServiceTest {
 
         client.room().inviteUser(ROOM_ID, new RoomMembershipRequest("Welcome!", "@alice:example.com"));
 
-        wireMockServer.verify(postRequestedFor(
+        verify(postRequestedFor(
                 urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/invite")));
     }
 
     @Test
     void sendJoinByRoomIdOrAliasRequest_WithCorrectPayload_thenReturnRoomId() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/join/" + ROOM_ID)
+        stubFor(post("/_matrix/client/v3/join/" + ROOM_ID)
                 .willReturn(okJson("""
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID))));
@@ -190,7 +185,7 @@ class RoomServiceTest {
 
     @Test
     void sendJoinByRoomIdRequest_WithCorrectPayload_thenReturnRoomId() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/join")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/join")
                 .willReturn(okJson("""
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID))));
@@ -203,7 +198,7 @@ class RoomServiceTest {
 
     @Test
     void sendKnockRequest_WithViaParams_thenReturnRoomId() {
-        wireMockServer.stubFor(post(urlPathEqualTo("/_matrix/client/v3/knock/" + ROOM_ID))
+        stubFor(post(urlPathEqualTo("/_matrix/client/v3/knock/" + ROOM_ID))
                 .withQueryParam("via", equalTo("server1.org"))
                 .withRequestBody(matchingJsonPath("$.reason", equalTo("I want to join")))
                 .willReturn(okJson("""
@@ -218,29 +213,29 @@ class RoomServiceTest {
 
     @Test
     void sendForgetRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")
                 .willReturn(okJson("{}")));
 
         client.room().forget(ROOM_ID);
 
-        wireMockServer.verify(postRequestedFor(
+        verify(postRequestedFor(
                 urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")));
     }
 
     @Test
     void sendLeaveRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")
                 .willReturn(okJson("{}")));
 
         client.room().leave(ROOM_ID);
 
-        wireMockServer.verify(postRequestedFor(
+        verify(postRequestedFor(
                 urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")));
     }
 
     @Test
     void sendKickRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/kick")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/kick")
                 .withRequestBody(equalToJson("""
                         {
                           "reason": "Test reason",
@@ -251,13 +246,13 @@ class RoomServiceTest {
 
         client.room().kick(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
 
-        wireMockServer.verify(postRequestedFor(
+        verify(postRequestedFor(
                 urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/kick")));
     }
 
     @Test
     void sendBanRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/ban")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/ban")
                 .withRequestBody(equalToJson("""
                         {
                           "reason": "Test reason",
@@ -268,13 +263,13 @@ class RoomServiceTest {
 
         client.room().ban(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
 
-        wireMockServer.verify(postRequestedFor(
+        verify(postRequestedFor(
                 urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/ban")));
     }
 
     @Test
     void sendUnbanRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/unban")
+        stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/unban")
                 .withRequestBody(equalToJson("""
                         {
                           "reason": "Test reason",
@@ -285,7 +280,7 @@ class RoomServiceTest {
 
         client.room().unban(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
 
-        wireMockServer.verify(postRequestedFor(
+        verify(postRequestedFor(
                 urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/unban")));
     }
 
@@ -295,7 +290,7 @@ class RoomServiceTest {
 
     @Test
     void sendGetRoomDirVisTypeRequest_WithCorrectPayload_thenReturnVisibility() {
-        wireMockServer.stubFor(get("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
+        stubFor(get("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
                 .willReturn(okJson("""
                         { "visibility": "public" }
                         """)));
@@ -308,18 +303,18 @@ class RoomServiceTest {
 
     @Test
     void sendSetRoomDirVisTypeRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        wireMockServer.stubFor(put("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
+        stubFor(put("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
                 .willReturn(okJson("{}")));
 
         client.room().setRoomDirectoryVisibilityType(ROOM_ID, VisibilityRoomType.PRIVATE);
 
-        wireMockServer.verify(putRequestedFor(
+        verify(putRequestedFor(
                 urlEqualTo("/_matrix/client/v3/directory/list/room/" + ROOM_ID)));
     }
 
     @Test
     void sendGetPublicRoomDirRequest_WithQueryParams_thenReturnDirectory() {
-        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/publicRooms"))
+        stubFor(get(urlPathEqualTo("/_matrix/client/v3/publicRooms"))
                 .withQueryParam("server", equalTo("example.com"))
                 .withQueryParam("limit", equalTo("1"))
                 .willReturn(okJson("""
@@ -353,7 +348,7 @@ class RoomServiceTest {
 
     @Test
     void sendGetPublicRoomDirPostRequest_WithBody_thenReturnDirectory() {
-        wireMockServer.stubFor(post("/_matrix/client/v3/publicRooms")
+        stubFor(post("/_matrix/client/v3/publicRooms")
                 .willReturn(okJson("""
                         {
                           "chunk": [
@@ -380,7 +375,7 @@ class RoomServiceTest {
     @Test
     void sendGetRoomSummaryRequest_WithViaParam_thenReturnSummary() {
         String roomIdOrAlias = "!abc123:example.com";
-        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v1/room_summary/" + roomIdOrAlias))
+        stubFor(get(urlPathEqualTo("/_matrix/client/v1/room_summary/" + roomIdOrAlias))
                 .withQueryParam("via", equalTo("example.com"))
                 .willReturn(okJson("""
                         {

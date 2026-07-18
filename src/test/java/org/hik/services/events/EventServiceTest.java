@@ -1,7 +1,7 @@
 package org.hik.services.events;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
 import org.hik.api.events.*;
 import org.hik.context.DiscoveryResponse;
@@ -9,7 +9,6 @@ import org.hik.exceptions.MatrixIOException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
@@ -21,22 +20,18 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@WireMockTest
 class EventServiceTest {
 
-    @RegisterExtension
-    static final WireMockExtension wireMockServer = WireMockExtension.newInstance()
-            .options(WireMockConfiguration.wireMockConfig()
-                    .dynamicPort())
-            .build();
 
     private static final String AUTH_TOKEN = "1234";
     private static DiscoveryResponse DISCOVERY_RESPONSE;
     private static MatrixClient client;
 
     @BeforeAll
-    static void setUpDiscovery() {
+    static void setUpDiscovery(WireMockRuntimeInfo wireMockRuntimeInfo) {
         DISCOVERY_RESPONSE = new DiscoveryResponse(
-                new DiscoveryResponse.HomeserverInfo(wireMockServer.baseUrl()),
+                new DiscoveryResponse.HomeserverInfo(wireMockRuntimeInfo.getHttpBaseUrl()),
                 null, null
         );
     }
@@ -68,7 +63,7 @@ class EventServiceTest {
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
 
-        wireMockServer.stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + roomId + "/send/" + roomMessageType + "/[^/]+"))
+        stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + roomId + "/send/" + roomMessageType + "/[^/]+"))
                 .withRequestBody(equalToJson("""
                         {
                             "body": "Hello World",
@@ -90,16 +85,16 @@ class EventServiceTest {
         Result result = getResult(tempDir);
 
         // Mock the MXC Request (v1 create endpoint)
-        wireMockServer.stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
+        stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
                 .willReturn(okJson("{\"content_uri\": \"" + result.mockMxcUri() + "\"}")));
 
         // Mock the File Upload (v3 upload endpoint with filename query param)
-        wireMockServer.stubFor(put(urlEqualTo("/_matrix/media/v3/upload/" + result.serverName() + "/" + result.mediaId() + "?filename=file.txt"))
+        stubFor(put(urlEqualTo("/_matrix/media/v3/upload/" + result.serverName() + "/" + result.mediaId() + "?filename=file.txt"))
                 .withRequestBody(containing("Test"))
                 .willReturn(ok()));
 
         // Mock the Message Publication (v3 client send timeline endpoint)
-        wireMockServer.stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + result.roomId() + "/send/" + result.roomMessageType() + "/[^/]+"))
+        stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + result.roomId() + "/send/" + result.roomMessageType() + "/[^/]+"))
                 .withRequestBody(containing(String.valueOf(result.mockMxcUri)))
                 .withRequestBody(containing("file.txt"))
                 .willReturn(okJson("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
@@ -119,7 +114,7 @@ class EventServiceTest {
     void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir) throws IOException {
         Result result = getResult(tempDir);
 
-        wireMockServer.stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
+        stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -139,7 +134,7 @@ class EventServiceTest {
         ChronologicalDirectionType direction = ChronologicalDirectionType.CHRONOLOGICAL_ORDER; // Adjust to your enum
         // name if needed
 
-        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + roomId + "/messages"))
+        stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + roomId + "/messages"))
                 .withQueryParam("dir", equalTo("f"))
                 .withQueryParam("from", equalTo("some_start_token"))
                 .withQueryParam("limit", equalTo("20"))
@@ -182,7 +177,7 @@ class EventServiceTest {
         String leftRoomId = "!leftRoomId:matrix.org";
         String expectedChunkEventId = "$abcdefg12345:matrix.org";
         // Author's note: Yes it is this long.... and it's not even all the records.
-        wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/sync"))
+        stubFor(get(urlPathEqualTo("/_matrix/client/v3/sync"))
                 .willReturn(okJson("""
                         {
                           "next_batch": "some_next_batch_token",
