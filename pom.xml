@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>6.1.0</version>
+            <version>6.1.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -51,10 +51,11 @@
             <version>3.27.7</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>uk.co.jemos.podam</groupId>
-            <artifactId>podam</artifactId>
-            <version>8.0.2.RELEASE</version>
+            <groupId>org.instancio</groupId>
+            <artifactId>instancio-junit</artifactId>
+            <version>6.0.0-RC4</version>
             <scope>test</scope>
         </dependency>
 
