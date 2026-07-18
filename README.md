@@ -14,11 +14,14 @@ desktop client, the library handles all matters of serialization, validation and
 
 ```java
 
-MatrixClient client = MatrixClient.create("https://matrix.example.org", userId, accessToken);
 
+MatrixAuth auth = new MatrixAuth(URI.create("https://kde.org")); // Set the URI of your Matrix server.
+DiscoveryResponse response = auth.fetchWellKnown(); // Fetch well known for future operations
 
-// Now you can do any operation!, as an example:
-ResolvedAlias roomId = client.room().resolveAlias("#general:example.org");
+Tokens token = auth.login(CLIENT_NAME, PORT, DEVICE_ID); // Set configuration parameters
+// After doing the login with the server in your browser, you will be returned the tokens...
+MatrixClient client = MatrixClient.create(response, token.authToken()); // Use any service you want!
+        
 ```
 
 ## Feature support
