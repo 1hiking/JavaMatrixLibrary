@@ -3,14 +3,12 @@
 
 # A Matrix Client Library for Java
 
-A client-side Java library for the [Matrix](https://matrix.org) protocol. Use it to build bots,
-user-facing clients, scripts, or any application that needs to talk to a Matrix homeserver.
+A client-side Java library for the [Matrix](https://matrix.org) protocol.
 
-## Project goals
+## Purpose
 
-- This library aims to maintain a low amount of external dependencies.
-- Leverage modern Java language features to improve developer experience.
-- The library returns immutable, serialized data and callers decide how to store, cache, or process it.
+This library aims to allow authors to build any kind of Matrix program such as a bot or a
+desktop client, the library handles all matters of serialization, validation and authentication.
 
 ## Quick start
 
@@ -25,12 +23,13 @@ ResolvedAlias roomId = client.room().resolveAlias("#general:example.org");
 
 ## Feature support
 
-| Service   | Capabilities                                   | Status      |
-|-----------|------------------------------------------------|-------------|
-| Rooms     | Banning, kicking, room summary, room search    | ✅ Supported |
-| Events    | Sending messages, reading room events, `/sync` | 🟡 Partial  |
-| User Data | Profile search, profile modification           | ✅ Supported |
-| Filtering | Creating and retrieving filters                | 🟡 Partial  |
+| Service   | Capabilities                                   | Status    |
+|-----------|------------------------------------------------|-----------|
+| Rooms     | Banning, kicking, room summary, room search    | Supported |
+| Events    | Sending messages, reading room events, `/sync` | Partial   |
+| User Data | Profile search, profile modification           | Supported |
+| Filtering | Creating and retrieving filters                | Supported |
+| Auth      | OpenIDConnect handshake                        | Supported |
 
 ## Installation
 
@@ -57,4 +56,4 @@ To run the test suite:
 
 ## License
 
-None for now
+See [LICENSE](/LICENSE)
