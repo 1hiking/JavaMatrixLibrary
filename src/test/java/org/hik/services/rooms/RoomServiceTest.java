@@ -1,26 +1,45 @@
 package org.hik.services.rooms;
 
-import org.hik.api.MatrixAPIClientTest;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.hik.api.MatrixClient;
 import org.hik.api.rooms.*;
+import org.hik.context.DiscoveryResponse;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class RoomServiceTest extends MatrixAPIClientTest {
+class RoomServiceTest {
 
-    private static final String USER = "test";
-    private static final String AUTH_TOKEN = "1234";
     private static final String ROOM_ID = "!ekkTuJPNWnbuCJHvYB:kde.org";
+    private static MatrixClient client;
+
+    @RegisterExtension
+    static final WireMockExtension wireMockServer = WireMockExtension.newInstance()
+            .options(WireMockConfiguration.wireMockConfig()
+                    .dynamicPort())
+            .build();
+
+    private static final String AUTH_TOKEN = "1234";
+    private static DiscoveryResponse DISCOVERY_RESPONSE;
+
+    @BeforeAll
+    static void setUpDiscovery() {
+        DISCOVERY_RESPONSE = new DiscoveryResponse(
+                new DiscoveryResponse.HomeserverInfo(wireMockServer.baseUrl()),
+                null, null
+        );
+    }
 
     @BeforeEach
-    void setUp() {
-        wireMockServer.stubFor(get(urlEqualTo("/.well-known/matrix/client"))
-                .willReturn(okJson("{\"m.homeserver\": {\"base_url\": \"" + wireMockServer.baseUrl() + "\"}}")));
+    void createClient() {
+        client = MatrixClient.create(DISCOVERY_RESPONSE, AUTH_TOKEN);
     }
 
     // -------------------------------------------------------------------------
@@ -45,7 +64,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         { "room_id": "%s" }
                         """.formatted(expectedRoomId))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().create(true, "name", "alias", "topic", CreationRoomType.PUBLIC_CHAT, true);
 
         assertEquals(expectedRoomId, response);
@@ -66,7 +84,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """.formatted(ROOM_ID), true, true))
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().setAlias(alias, ROOM_ID);
 
         wireMockServer.verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
@@ -85,7 +102,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """.formatted(ROOM_ID))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().resolveAlias(alias);
 
         assertNotNull(response);
@@ -101,7 +117,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
         wireMockServer.stubFor(delete("/_matrix/client/v3/directory/room/" + encodedAlias)
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().deleteAlias(alias);
 
         wireMockServer.verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
@@ -116,7 +131,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """)));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().getAliasesOfARoom(ROOM_ID);
 
         assertNotNull(response);
@@ -137,7 +151,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """.formatted(ROOM_ID))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().getJoinedRooms();
 
         assertNotNull(response);
@@ -156,7 +169,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """, true, true))
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().inviteUser(ROOM_ID, new RoomMembershipRequest("Welcome!", "@alice:example.com"));
 
         wireMockServer.verify(postRequestedFor(
@@ -170,7 +182,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().joinByRoomIdOrAliasIfAllowed(ROOM_ID, new JoinRoomRequest(null, null), null);
 
         assertNotNull(response);
@@ -184,7 +195,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().joinByRoomIdIfAllowed(ROOM_ID, new JoinRoomRequest(null, null), null);
 
         assertNotNull(response);
@@ -200,7 +210,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().knockOn(ROOM_ID, "I want to join", List.of("server1.org"));
 
         assertNotNull(response);
@@ -212,7 +221,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/forget")
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().forget(ROOM_ID);
 
         wireMockServer.verify(postRequestedFor(
@@ -224,7 +232,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
         wireMockServer.stubFor(post("/_matrix/client/v3/rooms/" + ROOM_ID + "/leave")
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().leave(ROOM_ID);
 
         wireMockServer.verify(postRequestedFor(
@@ -242,7 +249,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """, true, true))
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().kick(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
 
         wireMockServer.verify(postRequestedFor(
@@ -260,7 +266,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """, true, true))
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().ban(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
 
         wireMockServer.verify(postRequestedFor(
@@ -278,7 +283,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         """, true, true))
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().unban(ROOM_ID, new RoomMembershipRequest("Test reason", "user"));
 
         wireMockServer.verify(postRequestedFor(
@@ -296,7 +300,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         { "visibility": "public" }
                         """)));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().getRoomDirectoryVisibilityType(ROOM_ID);
 
         assertNotNull(response);
@@ -308,7 +311,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
         wireMockServer.stubFor(put("/_matrix/client/v3/directory/list/room/" + ROOM_ID)
                 .willReturn(okJson("{}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         client.room().setRoomDirectoryVisibilityType(ROOM_ID, VisibilityRoomType.PRIVATE);
 
         wireMockServer.verify(putRequestedFor(
@@ -340,7 +342,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """)));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().getPublishedRoomDirectory(1, "example.com", null);
 
         assertNotNull(response);
@@ -369,7 +370,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """)));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var response = client.room().getPublishedRoomDirectory(new PublicRoomRequest(null, null, 10, null, null));
 
         assertNotNull(response);
@@ -399,7 +399,6 @@ class RoomServiceTest extends MatrixAPIClientTest {
                         }
                         """)));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         // fix: pass List<String> not URI
         var response = client.room().getRoomSummary(roomIdOrAlias, List.of("example.com"));
 

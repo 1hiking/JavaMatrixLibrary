@@ -2,10 +2,11 @@ package org.hik.services.events;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import org.hik.api.MatrixAPIClientTest;
 import org.hik.api.MatrixClient;
 import org.hik.api.events.*;
+import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -20,25 +21,43 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class EventServiceTest extends MatrixAPIClientTest {
-
-    private static final String USER = "test";
-    private static final String AUTH_TOKEN = "1234";
-
+class EventServiceTest {
 
     @RegisterExtension
     static final WireMockExtension wireMockServer = WireMockExtension.newInstance()
             .options(WireMockConfiguration.wireMockConfig()
-                    .dynamicPort()
-                    .usingFilesUnderClasspath("wiremock"))
+                    .dynamicPort())
             .build();
 
+    private static final String AUTH_TOKEN = "1234";
+    private static DiscoveryResponse DISCOVERY_RESPONSE;
+    private static MatrixClient client;
+
+    @BeforeAll
+    static void setUpDiscovery() {
+        DISCOVERY_RESPONSE = new DiscoveryResponse(
+                new DiscoveryResponse.HomeserverInfo(wireMockServer.baseUrl()),
+                null, null
+        );
+    }
+
     @BeforeEach
-    void setUp() {
-        wireMockServer.stubFor(get(urlEqualTo("/.well-known/matrix/client"))
-                .willReturn(okJson("{\"m.homeserver\": {\"base_url\": \"" + wireMockServer.baseUrl() + "\"}}")));
+    void createClient() {
+        client = MatrixClient.create(DISCOVERY_RESPONSE, AUTH_TOKEN);
+    }
 
+    private static Result getResult(Path tempDir) throws IOException {
+        String roomId = "1234";
+        String roomMessageType = "m.room.message";
+        String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
+        String serverName = "matrix.org";
+        String mediaId = "fakeMediaId123";
+        URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
+
+        Path tempFile = tempDir.resolve("file.txt");
+        Files.writeString(tempFile, "Test");
+        return new Result(roomId, roomMessageType, expectedEventId, serverName, mediaId, mockMxcUri, tempFile);
     }
 
 
@@ -58,7 +77,6 @@ class EventServiceTest extends MatrixAPIClientTest {
                         """, true, true))
                 .willReturn(okJson("{\"event_id\": \"" + expectedEventId + "\"}")));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         MatrixRoomMessageEvent textEvent = new MatrixText("Hello World", null, null);
         var actualEventId = client.events().publishRoomMessage(roomId, textEvent);
@@ -66,7 +84,6 @@ class EventServiceTest extends MatrixAPIClientTest {
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
     }
-
 
     @Test
     void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException {
@@ -88,7 +105,6 @@ class EventServiceTest extends MatrixAPIClientTest {
                 .willReturn(okJson("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
         var mxc = client.events().uploadResource(result.tempFile);
 
         MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null,
@@ -97,24 +113,6 @@ class EventServiceTest extends MatrixAPIClientTest {
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
-    }
-
-    private static Result getResult(Path tempDir) throws IOException {
-        String roomId = "1234";
-        String roomMessageType = "m.room.message";
-        String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
-
-        String serverName = "matrix.org";
-        String mediaId = "fakeMediaId123";
-        URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
-
-        Path tempFile = tempDir.resolve("file.txt");
-        Files.writeString(tempFile, "Test");
-        return new Result(roomId, roomMessageType, expectedEventId, serverName, mediaId, mockMxcUri, tempFile);
-    }
-
-    private record Result(String roomId, String roomMessageType, String expectedEventId, String serverName,
-                          String mediaId, URI mockMxcUri, Path tempFile) {
     }
 
     @Test
@@ -126,8 +124,6 @@ class EventServiceTest extends MatrixAPIClientTest {
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ malformed json : [")));
-
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
 
         assertThrows(MatrixIOException.class, () -> client.events().uploadResource(result.tempFile));
@@ -163,8 +159,6 @@ class EventServiceTest extends MatrixAPIClientTest {
                         }
                         """.formatted(expectedChunkEventId))));
 
-
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         Messages actualResponse = client.events().getListOfMessages(roomId, direction, mockParams);
 
@@ -317,8 +311,6 @@ class EventServiceTest extends MatrixAPIClientTest {
                         }
                         """.formatted(joinedRoomId, expectedChunkEventId, invitedRoomId, knockedRoomId, leftRoomId))));
 
-        var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-
 
         SyncResponse actualResponse = client.events().sync(new QueryParametersSync(null, true, null, null, null, null));
 
@@ -356,6 +348,10 @@ class EventServiceTest extends MatrixAPIClientTest {
         assertEquals(List.of("@alice:matrix.org"), actualResponse.deviceLists().changed(), "Device list changed " +
                 "should match");
         assertFalse(actualResponse.toDevice().events().isEmpty(), "To-device events should be present");
+    }
+
+    private record Result(String roomId, String roomMessageType, String expectedEventId, String serverName,
+                          String mediaId, URI mockMxcUri, Path tempFile) {
     }
 
 }

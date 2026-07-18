@@ -1,27 +1,43 @@
 package org.hik.services.userdata;
 
-import org.hik.api.MatrixAPIClientTest;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.hik.api.MatrixClient;
 import org.hik.api.userdata.UserProfile;
+import org.hik.context.DiscoveryResponse;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class UserDataServiceTest extends MatrixAPIClientTest {
+class UserDataServiceTest {
 
-    private static final String USER = "test";
+    private static MatrixClient client;
+
+
+    @RegisterExtension
+    static final WireMockExtension wireMockServer = WireMockExtension.newInstance()
+            .options(WireMockConfiguration.wireMockConfig()
+                    .dynamicPort())
+            .build();
+
     private static final String AUTH_TOKEN = "1234";
+    private static DiscoveryResponse DISCOVERY_RESPONSE;
 
-    private MatrixClient client;
+    @BeforeAll
+    static void setUpDiscovery() {
+        DISCOVERY_RESPONSE = new DiscoveryResponse(
+                new DiscoveryResponse.HomeserverInfo(wireMockServer.baseUrl()),
+                null, null
+        );
+    }
 
     @BeforeEach
-    void setUp() {
-        wireMockServer.stubFor(get(urlEqualTo("/.well-known/matrix/client"))
-                .willReturn(okJson("{\"m.homeserver\": {\"base_url\": \"" + wireMockServer.baseUrl() + "\"}}")));
-
-        client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+    void createClient() {
+        client = MatrixClient.create(DISCOVERY_RESPONSE, AUTH_TOKEN);
     }
 
     @Test
