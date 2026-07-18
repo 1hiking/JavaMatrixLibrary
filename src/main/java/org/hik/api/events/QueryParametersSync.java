@@ -14,8 +14,7 @@ package org.hik.api.events;
 /// @param timeout       The maximum time to wait, in milliseconds, before returning this request. Default is 0
 /// @param useStateAfter Controls whether to receive state changes between the **previous sync and the start of the
 /// timeline**, or **between the previous sync and the end of the timeline**.
-/// @see
-/// <a href="https://spec.matrix.org/v1.18/client-server-api/#filtering">Filter spec details for more information about filtering</a>
+/// @see <a href="https://spec.matrix.org/v1.18/client-server-api/#filtering">Filter spec details for more information about filtering</a>
 public record QueryParametersSync(String filter,
                                   boolean fullState,
                                   String setPresence,
