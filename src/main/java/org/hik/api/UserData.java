@@ -9,8 +9,7 @@ import org.hik.api.userdata.UsersFound;
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
 /// during network I/O.
 ///
-/// @see
-/// <a href="https://spec.matrix.org/v1.18/client-server-api/#user-data">Matrix Client-Server API Specification for User Data</a>
+/// @see <a href="https://spec.matrix.org/v1.18/client-server-api/#user-data">Matrix Client-Server API Specification for User Data</a>
 public interface UserData {
 
 

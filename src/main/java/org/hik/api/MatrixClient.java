@@ -19,6 +19,15 @@ public class MatrixClient {
         this.userDataService = new UserDataService(context);
     }
 
+    /// Default factory, which will make the initial payloads to request necessary data for further requests
+    ///
+    /// @param discoveryResponse [DiscoveryResponse] of a server.
+    /// @param authToken         a valid non-expired auth token.
+    /// @return an authenticated client.
+    public static MatrixClient create(DiscoveryResponse discoveryResponse, String authToken) {
+        return new MatrixClient(discoveryResponse, authToken);
+    }
+
     /// Exposes the underlying [Event] for operations.
     ///
     /// @return the underlying [Event] instance.
@@ -38,15 +47,6 @@ public class MatrixClient {
     /// @return the underlying [UserData] instance.
     public UserData userData() {
         return this.userDataService;
-    }
-
-    /// Default factory, which will make the initial payloads to request necessary data for further requests
-    ///
-    /// @param discoveryResponse [DiscoveryResponse] of a server.
-    /// @param authToken         a valid non-expired auth token.
-    /// @return an authenticated client.
-    public static MatrixClient create(DiscoveryResponse discoveryResponse, String authToken) {
-        return new MatrixClient(discoveryResponse, authToken);
     }
 
 

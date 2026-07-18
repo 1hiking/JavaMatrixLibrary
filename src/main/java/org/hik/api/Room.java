@@ -13,8 +13,7 @@ import java.util.List;
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
 /// during network I/O.
 ///
-/// @see
-/// <a href="https://spec.matrix.org/latest/client-server-api/#rooms">Matrix Client-Server API Specification for Rooms</a>
+/// @see <a href="https://spec.matrix.org/latest/client-server-api/#rooms">Matrix Client-Server API Specification for Rooms</a>
 /// @see <a href="https://spec.matrix.org/v1.18/appendices/#room-aliases">Information about the room alias format</a>
 public interface Room {
     /// Creates a room, this method will let the homeserver choose the default configuration for most tasks

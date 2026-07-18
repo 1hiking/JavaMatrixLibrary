@@ -12,12 +12,11 @@ import java.nio.file.Path;
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
 /// during network I/O.
 ///
-/// @see
-/// <a href="https://spec.matrix.org/latest/client-server-api/#events">Matrix Client-Server API Specification for Events</a>
+/// @see <a href="https://spec.matrix.org/latest/client-server-api/#events">Matrix Client-Server API Specification for Events</a>
 public interface Event {
     /// Creates a `m.room.message`event to a Matrix room.
     ///
-    /// @param roomId      the id of the room to post the event.
+    /// @param roomId                 the id of the room to post the event.
     /// @param matrixRoomMessageEvent a well constructed [MatrixRoomMessageEvent].
     /// @return a [String] representing a unique identifier of the event.
     /// @throws MatrixIOException      when the payload cannot be processed.
