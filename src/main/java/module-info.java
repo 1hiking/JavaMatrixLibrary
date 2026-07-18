@@ -20,6 +20,7 @@ module JavaMatrixClient {
     exports org.hik.api.events;
     exports org.hik.api.userdata;
     exports org.hik.api.auth;
+    exports org.hik.api.filtering;
 
     // Common exceptions
     exports org.hik.exceptions;

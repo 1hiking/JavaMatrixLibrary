@@ -3,6 +3,7 @@ package org.hik.api;
 import org.hik.context.ClientContext;
 import org.hik.context.DiscoveryResponse;
 import org.hik.services.events.EventService;
+import org.hik.services.filtering.FilterService;
 import org.hik.services.rooms.RoomService;
 import org.hik.services.userdata.UserDataService;
 
@@ -11,12 +12,14 @@ public class MatrixClient {
     private final Event event;
     private final Room roomService;
     private final UserData userDataService;
+    private final Filter filter;
 
     private MatrixClient(DiscoveryResponse discoveryResponse, String authToken) {
         var context = new ClientContext(authToken, discoveryResponse);
         this.event = new EventService(context);
         this.roomService = new RoomService(context);
         this.userDataService = new UserDataService(context);
+        this.filter = new FilterService(context);
     }
 
     /// Default factory, which will make the initial payloads to request necessary data for further requests
@@ -47,6 +50,10 @@ public class MatrixClient {
     /// @return the underlying [UserData] instance.
     public UserData userData() {
         return this.userDataService;
+    }
+
+    public Filter filter() {
+        return this.filter;
     }
 
 
