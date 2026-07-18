@@ -42,7 +42,8 @@ public class HttpTransport {
 
     public HttpTransport(int timeOut) {
         client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(timeOut)).build();
+                .connectTimeout(Duration.ofSeconds(timeOut))
+                .build();
     }
 
     private void validateResponse(int code, String body) {
