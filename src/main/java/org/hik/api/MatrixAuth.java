@@ -100,9 +100,9 @@ public class MatrixAuth implements Auth {
     /// @param clientName the client name
     /// @param port       the port connection
     /// @param deviceId   the device id
-    /// @return a [Tokens] pair holding the access and refresh tokens.
+    /// @return a [TokenMetadata] with all the necessary information about the tokens.
     /// @throws MatrixIOException when a network or parsing step fails.
-    public Tokens login(String clientName, int port, String deviceId) {
+    public TokenMetadata login(String clientName, int port, String deviceId) {
         // We get the auth metadata
         var metadata = this.getAuthMetadata();
 
@@ -198,9 +198,7 @@ public class MatrixAuth implements Auth {
 
         var tokenRes = httpTransport.postEventAuth(metadata.tokenEndpoint(), tokenRequestBody);
 
-        var access = Mapper.getStringFromSingleObject(tokenRes, "access_token");
-        var refresh = Mapper.getStringFromSingleObject(tokenRes, "refresh_token");
-        return new Tokens(access, refresh);
+        return Mapper.getObjectFromString(tokenRes, TokenMetadata.class);
     }
 
     /// Blocks until the loopback server's `/callback` handler completes the future,
