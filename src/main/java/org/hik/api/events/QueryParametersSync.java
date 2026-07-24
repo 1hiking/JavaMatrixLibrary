@@ -1,10 +1,12 @@
 package org.hik.api.events;
 
-/// This record represents the arguments required to format the URI used to query the get /sync endpoint.
+import java.net.URI;
+
+/// Represents the arguments required to format the [URI] used to query the `/sync` endpoint.
 ///
-/// @param filter        The ID of a filter created using the filter API or a filter JSON object encoded as a string.
+/// @param filter        The ID of a filter created using the filter API or a filter JSON object encoded as a [String].
 /// @param fullState     Controls whether to include the full state for all rooms the user is a member of. The
-/// default is false.
+/// default is `false`.
 /// @param setPresence   Controls whether this client is automatically marked as online by polling this API. If this
 /// parameter is omitted then this client is automatically marked as online when it uses this API. Otherwise, if the
 /// parameter is set to `offline` then the client is not marked as being online when it uses this API. When set to
@@ -14,7 +16,7 @@ package org.hik.api.events;
 /// @param timeout       The maximum time to wait, in milliseconds, before returning this request. Default is 0
 /// @param useStateAfter Controls whether to receive state changes between the **previous sync and the start of the
 /// timeline**, or **between the previous sync and the end of the timeline**.
-/// @see <a href="https://spec.matrix.org/v1.18/client-server-api/#filtering">Filter spec details for more information about filtering</a>
+/// @see <a href="https://spec.matrix.org/latest/client-server-api/#filtering">Filter spec details for more information about filtering</a>
 public record QueryParametersSync(String filter,
                                   boolean fullState,
                                   String setPresence,

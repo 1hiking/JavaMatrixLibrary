@@ -2,7 +2,7 @@ package org.hik.api.events;
 
 import java.util.Map;
 
-/// Record that implements the extension to [MatrixRoomMessageEvent].
+/// Holds information of an encrypted file as the extension to [RoomMessageEvent].
 ///
 /// @param url    the URL to the file.
 /// @param key    a [JSON Web Key][JWK]
@@ -10,7 +10,7 @@ import java.util.Map;
 /// @param iv     a map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64. Clients MUST
 /// support the SHA-256 hash, which uses the key sha256.
 /// @param v      version of the encrypted attachment’s protocol. Must be v2.
-/// @see <a href="https://spec.matrix.org/v1.18/client-server-api/#extensions-to-mroommessage-msgtypes">Specification details over this extension</a>
+/// @see <a href="https://spec.matrix.org/latest/client-server-api/#extensions-to-mroommessage-msgtypes">Specification details over this extension</a>
 public record EncryptedFile(String url,
                             JWK key,
                             String iv,
