@@ -13,6 +13,7 @@ module JavaMatrixClient {
 
     // Interfaces and facade
     exports org.hik.api;
+    exports org.hik.api.identifiers;
     exports org.hik.context;
 
     // Records and Interfaces

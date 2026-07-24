@@ -3,6 +3,11 @@ package org.hik.services.utils;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+/// Utility class to validate common identifiers such as common Ids inside service components
+/// @deprecated Usage of static validation of 'raw' Strings can lead to issues such as placing the wrong
+/// type of validation (validateX(y)) or forgetting it altogether, moving to factories brings the benefit of hardening the API layer
+///  and strengthening the test suite.
+@Deprecated(forRemoval = true)
 public final class Validator {
 
     private static final int MAX_BYTES = 255;
