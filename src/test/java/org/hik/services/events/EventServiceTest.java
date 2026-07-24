@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
 import org.hik.api.events.*;
+import org.hik.api.events.messages.File;
+import org.hik.api.events.messages.Text;
 import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,8 +75,8 @@ class EventServiceTest {
                 .willReturn(okJson("{\"event_id\": \"" + expectedEventId + "\"}")));
 
 
-        MatrixRoomMessageEvent textEvent = new MatrixText("Hello World", null, null);
-        var actualEventId = client.events().publishRoomMessage(roomId, textEvent);
+        RoomMessageEvent textEvent = new Text("Hello World", null, null);
+        var actualEventId = client.events().sendMessageEvent(roomId, textEvent);
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
@@ -102,9 +104,9 @@ class EventServiceTest {
 
         var mxc = client.events().uploadResource(result.tempFile);
 
-        MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null,
+        File file = new File("Test caption", null, result.tempFile.toString(), null, null, null,
                 URI.create(mxc));
-        var actualEventId = client.events().publishRoomMessage(result.roomId(), file);
+        var actualEventId = client.events().sendMessageEvent(result.roomId(), file);
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
@@ -125,13 +127,13 @@ class EventServiceTest {
     }
 
     @Test
-    void getListOfMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
+    void getMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
         String roomId = "!exampleRoomId:matrix.org";
         String expectedChunkEventId = "$abcdefg12345:matrix.org";
 
 
         QueryParametersMessages mockParams = new QueryParametersMessages("some_start_token", 20, "some_end_token");
-        ChronologicalDirectionType direction = ChronologicalDirectionType.CHRONOLOGICAL_ORDER; // Adjust to your enum
+        ChronologicalDirection direction = ChronologicalDirection.CHRONOLOGICAL_ORDER; // Adjust to your enum
         // name if needed
 
         stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + roomId + "/messages"))
@@ -155,7 +157,7 @@ class EventServiceTest {
                         """.formatted(expectedChunkEventId))));
 
 
-        Messages actualResponse = client.events().getListOfMessages(roomId, direction, mockParams);
+        Messages actualResponse = client.events().getMessages(roomId, direction, mockParams);
 
 
         assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");
@@ -307,7 +309,7 @@ class EventServiceTest {
                         """.formatted(joinedRoomId, expectedChunkEventId, invitedRoomId, knockedRoomId, leftRoomId))));
 
 
-        SyncResponse actualResponse = client.events().sync(new QueryParametersSync(null, true, null, null, null, null));
+        Sync actualResponse = client.events().sync(new QueryParametersSync(null, true, null, null, null, null));
 
         assertNotNull(actualResponse, "The returned SyncResponse payload shouldn't be null");
         assertEquals("some_next_batch_token", actualResponse.nextBatch(), "The next_batch token should match");

@@ -1,6 +1,6 @@
-package org.hik.api.events;
+package org.hik.api.events.messages;
 
-/// This record used by m.room.message type events to store metadata information
+/// Holds information used by `m.room.message` events to represent metadata information
 ///
 /// @param h        the intended display height of the image in pixels. This may differ from the intrinsic dimensions
 ///  of the image file.

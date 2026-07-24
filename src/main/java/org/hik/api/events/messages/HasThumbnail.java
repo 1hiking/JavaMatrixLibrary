@@ -1,15 +1,17 @@
-package org.hik.api.events;
+package org.hik.api.events.messages;
+
+import org.hik.api.events.EncryptedFile;
 
 /// Marks event content that includes thumbnail metadata such as E2E metadata
 /// their width, size and height and url
 /// `info` object.
 ///
-/// @see MatrixFile.FileInfo
-/// @see MatrixLocation.LocationInfo
-/// @see MatrixImage.ImageInfo
-/// @see MatrixVideo.VideoInfo
+/// @see File.FileInfo
+/// @see Location.LocationInfo
+/// @see Image.ImageInfo
+/// @see Video.VideoInfo
 public sealed interface HasThumbnail
-        permits MatrixFile.FileInfo, MatrixLocation.LocationInfo, MatrixImage.ImageInfo, MatrixVideo.VideoInfo {
+        permits File.FileInfo, Location.LocationInfo, Image.ImageInfo, Video.VideoInfo {
     /// @return not implemented yet.
     EncryptedFile thumbnailFile();
 

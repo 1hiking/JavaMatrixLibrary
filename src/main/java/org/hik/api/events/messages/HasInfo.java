@@ -1,15 +1,15 @@
-package org.hik.api.events;
+package org.hik.api.events.messages;
 
 /// Marks event content that includes file metadata such as a MIME type
 /// and size in bytes, as described by the Matrix specification's
 /// `info` object.
 ///
-/// @see MatrixAudio.AudioInfo
-/// @see MatrixImage.ImageInfo
-/// @see MatrixFile.FileInfo
-/// @see MatrixVideo.VideoInfo
-public sealed interface HasInfo permits MatrixAudio.AudioInfo, MatrixFile.FileInfo, MatrixImage.ImageInfo,
-        MatrixVideo.VideoInfo {
+/// @see Audio.AudioInfo
+/// @see Image.ImageInfo
+/// @see File.FileInfo
+/// @see Video.VideoInfo
+public sealed interface HasInfo permits Audio.AudioInfo, File.FileInfo, Image.ImageInfo,
+        Video.VideoInfo {
     /// @return the mimetype of the corresponding input resource
     String mimetype();
 
