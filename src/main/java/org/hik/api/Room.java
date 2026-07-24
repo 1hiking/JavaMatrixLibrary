@@ -100,7 +100,7 @@ public interface Room {
 
     /// Sends a request to leave the room, upon success, you will forget all messages from this room.
     /// If all users on a room forget it, the room is eligible for deletion.
-    /// You must [forget](#forget(String)) the room first before calling this method.
+    /// You must [Room#forget(String)] the room first before calling this method.
     ///
     /// @param roomId the target room ID.
     /// @throws MatrixIOException      when the payload cannot be processed.
@@ -165,11 +165,11 @@ public interface Room {
     /// @param limit  limit of records to show
     /// @param server what server to fetch from, if not supplied it will fetch the local server. Case-sensitive.
     /// @param since  a pagination token from a previous request, allowing you to get the next or previous
-    /// batch of rooms. The direction of pagination is specified by which token is supplied (not like
-    ///  [ChronologicalDirectionType]).
+    /// batch of rooms. The direction of pagination is specified by which token is supplied.
     /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published rooms on the server.
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
+    /// @see #getPublishedRoomDirectory(PublicRoomRequest) getPublishedRoomDirectory(PublicRoomRequest) for a filterable response.
     PublicRoomDirectory getPublishedRoomDirectory(Integer limit, String server, String since);
 
     /// Lists a server’s published room directory.
