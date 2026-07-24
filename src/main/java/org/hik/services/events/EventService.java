@@ -32,7 +32,7 @@ public class EventService implements Event {
 
     @Override
     public String publishRoomMessage(String roomId, MatrixRoomMessageEvent matrixRoomMessageEvent) {
-        roomId = Validator.roomId(roomId);
+        Validator.roomId(roomId);
         String jsonPayload;
         try {
             jsonPayload = objectMapper.writeValueAsString(matrixRoomMessageEvent);
