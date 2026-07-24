@@ -93,7 +93,18 @@ public class Mapper {
         try {
             return INSTANCE.readValue(responseBody, type);
         } catch (JacksonException e) {
-            throw new MatrixIOException("Failed to parse Matrix response JSON", e);
+            throw new MatrixSerializationException("Failed to parse Matrix response JSON", e);
+        }
+    }
+
+    public static <T> T getObjectFromString(String responseBody, TypeReference<T> type) {
+        if (responseBody == null || type == null) {
+            throw new IllegalArgumentException("responseBody and type must not be null");
+        }
+        try {
+            return INSTANCE.readValue(responseBody, type);
+        } catch (JacksonException e) {
+            throw new MatrixSerializationException("Failed to parse Matrix response JSON", e);
         }
     }
 }
