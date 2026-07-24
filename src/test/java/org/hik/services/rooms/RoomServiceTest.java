@@ -129,8 +129,8 @@ class RoomServiceTest {
         var response = client.room().getAliasesOfARoom(ROOM_ID);
 
         assertNotNull(response);
-        assertFalse(response.aliases().isEmpty());
-        assertEquals(2, response.aliases().size());
+        assertFalse(response.isEmpty());
+        assertEquals(2, response.size());
     }
 
     // -------------------------------------------------------------------------

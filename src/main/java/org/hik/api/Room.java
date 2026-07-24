@@ -1,6 +1,5 @@
 package org.hik.api;
 
-import org.hik.api.events.ChronologicalDirectionType;
 import org.hik.api.rooms.*;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
@@ -54,9 +53,9 @@ public interface Room {
     ///
     /// Spec Note: Don't use this endpoint to display data as it is not curated, use data from `m.room.canonical_alias`.
     ///
-    /// @param roomAlias the room ID to find local aliases of.
-    /// @return a list of aliases contained in a [RoomAliases] record.
-    RoomAliases getAliasesOfARoom(String roomAlias);
+    /// @param roomId the room ID to find local aliases of.
+    /// @return a [List] of room aliases.
+    List<String> getAliasesOfARoom(String roomId);
 
     /// Requests the server to retrieve a list of the user's current rooms (in simple terms whoever calls this method).
     ///
