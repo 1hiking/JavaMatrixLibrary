@@ -1,4 +1,4 @@
-package org.hik.api.filtering;
+package org.hik.api.filters;
 
 import java.util.List;
 

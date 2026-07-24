@@ -3,7 +3,7 @@ package org.hik.services.filtering;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
-import org.hik.api.filtering.FilterDefinition;
+import org.hik.api.filters.FilterDefinition;
 import org.hik.context.DiscoveryResponse;
 import org.hik.services.utils.Mapper;
 import org.instancio.junit.Given;

@@ -1,7 +1,7 @@
 package org.hik.services.filtering;
 
 import org.hik.api.Filter;
-import org.hik.api.filtering.FilterDefinition;
+import org.hik.api.filters.FilterDefinition;
 import org.hik.context.ClientContext;
 import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
