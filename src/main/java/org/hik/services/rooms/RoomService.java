@@ -35,6 +35,9 @@ public class RoomService implements Room {
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
+    /// Service constructor to operate
+    ///
+    /// @param context the [ClientContext] of the facade
     public RoomService(ClientContext context) {
         this.context = context;
     }

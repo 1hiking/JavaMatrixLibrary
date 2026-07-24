@@ -23,6 +23,9 @@ public class UserDataService implements UserData {
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
+    /// Service constructor to operate
+    ///
+    /// @param context the [ClientContext] of the facade
     public UserDataService(ClientContext context) {
         this.context = context;
     }
