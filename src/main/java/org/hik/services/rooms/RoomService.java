@@ -8,9 +8,11 @@ import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
 import org.hik.services.utils.Validator;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,14 +112,20 @@ public class RoomService implements Room {
     }
 
     @Override
-    public RoomAliases getAliasesOfARoom(String roomId) {
+    public List<String> getAliasesOfARoom(String roomId) {
         Validator.roomId(roomId);
 
         String response =
                 httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/aliases"),
                         context.token());
-        return Mapper.getObjectFromString(response, RoomAliases.class);
 
+        // Can be improved
+        var aliases = objectMapper.readTree(response).get("aliases");
+        List<String> aliasesList = new ArrayList<>();
+        for (JsonNode alias : aliases) {
+            aliasesList.add(alias.stringValue());
+        }
+        return aliasesList;
     }
 
     @Override
