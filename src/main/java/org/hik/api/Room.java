@@ -9,14 +9,13 @@ import org.hik.exceptions.MatrixNetworkException;
 
 import java.util.List;
 
-/// Core interface for executing Matrix protocol operations against rooms themselves.
+/// Core interface for executing protocol operations against Rooms.
 ///
 /// All operations in this interface are blocking. Implementations must ensure
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
 /// during network I/O.
 ///
-/// @see <a href="https://spec.matrix.org/latest/client-server-api/#rooms">Matrix Client-Server API Specification for Rooms</a>
-/// @see <a href="https://spec.matrix.org/v1.18/appendices/#room-aliases">Information about the room alias format</a>
+/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#rooms">Matrix Client-Server API Specification for Rooms</a>
 public interface Room {
     /// Creates a room, this method will let the homeserver choose the default configuration for most tasks
     /// and the following parameters will overwrite them if set to a non-null value.

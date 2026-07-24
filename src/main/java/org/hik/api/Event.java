@@ -6,13 +6,13 @@ import org.hik.exceptions.MatrixNetworkException;
 
 import java.nio.file.Path;
 
-/// Core interface for executing Matrix protocol operations against room event streams.
+/// Core interface for executing protocol operations against Room events.
 ///
 /// All operations in this interface are blocking. Implementations must ensure
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
 /// during network I/O.
 ///
-/// @see <a href="https://spec.matrix.org/latest/client-server-api/#events">Matrix Client-Server API Specification for Events</a>
+/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#events">Matrix Client-Server API Specification for Events</a>
 public interface Event {
     /// Creates a `m.room.message`event to a Matrix room.
     ///

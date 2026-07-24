@@ -4,7 +4,7 @@ import org.hik.api.identifiers.UserID;
 import org.hik.api.userdata.UserProfile;
 import org.hik.api.userdata.UsersFound;
 
-/// Core interface for executing Matrix protocol operations against user data.
+/// Core interface for executing protocol operations against User data.
 ///
 /// All operations in this interface are blocking. Implementations must ensure
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
