@@ -29,11 +29,11 @@ public class UserDataService implements UserData {
 
     @Override
     public UsersFound searchUsersByTerm(Integer limit, String searchTerm) {
-        String searchTermToUse = Validator.notNull(searchTerm, "Search term");
+        Validator.notNull(searchTerm, "Search term");
         int limitToUse = Objects.requireNonNullElse(limit, 10);
         String rawTextPayload = """
                 {"limit": "%d","search_term":"%s"}
-                """.formatted(limitToUse, searchTermToUse);
+                """.formatted(limitToUse, searchTerm);
 
         String responseBody =
                 httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_DIR),
@@ -43,7 +43,7 @@ public class UserDataService implements UserData {
 
     @Override
     public UserProfile getUserProfile(String userId) {
-        userId = Validator.userId(userId);
+        Validator.userId(userId);
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId),
                 context.token());
@@ -54,8 +54,8 @@ public class UserDataService implements UserData {
 
     @Override
     public String getUserProfileByProperty(String userId, String keyName) {
-        userId = Validator.roomId(userId);
-        keyName = Validator.notNull(keyName, "The key name");
+        Validator.userId(userId);
+        Validator.notNull(keyName, "The key name");
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
                 context.token());
@@ -65,9 +65,9 @@ public class UserDataService implements UserData {
 
     @Override
     public void setUserProfileProperty(String userId, String keyName, String valueName) {
-        userId = Validator.roomId(userId);
-        keyName = Validator.notNull(keyName, "The key name");
-        valueName = Validator.notNull(valueName, "The value name");
+        Validator.userId(userId);
+        Validator.notNull(keyName, "The key name");
+        Validator.notNull(valueName, "The value name");
         var serializedJson = Mapper.createObjectFromMap(Map.ofEntries(Map.entry(keyName, valueName)));
 
         httpTransport.putEvent(
@@ -78,8 +78,8 @@ public class UserDataService implements UserData {
 
     @Override
     public void deleteUserProfileProperty(String userId, String keyName) {
-        userId = Validator.roomId(userId);
-        keyName = Validator.notNull(keyName, "The key name");
+        Validator.userId(userId);
+        Validator.notNull(keyName, "The key name");
 
         httpTransport.deleteEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
