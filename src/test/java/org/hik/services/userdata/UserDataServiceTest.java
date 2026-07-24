@@ -3,6 +3,7 @@ package org.hik.services.userdata;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
+import org.hik.api.identifiers.UserID;
 import org.hik.api.userdata.UserProfile;
 import org.hik.context.DiscoveryResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,7 +20,7 @@ class UserDataServiceTest {
 
 
     private static final String AUTH_TOKEN = "1234";
-    private static final String USER_ID = "@user:example.com";
+    private static final UserID USER_ID = UserID.parse("@user:example.com");
     private static DiscoveryResponse DISCOVERY_RESPONSE;
 
     @BeforeAll

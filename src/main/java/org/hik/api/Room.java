@@ -1,5 +1,8 @@
 package org.hik.api;
 
+import org.hik.api.identifiers.RoomAlias;
+import org.hik.api.identifiers.RoomID;
+import org.hik.api.identifiers.Validator;
 import org.hik.api.rooms.*;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
@@ -34,28 +37,28 @@ public interface Room {
     ///
     /// @param roomAlias the room alias.
     /// @return a [ResolvedAlias] containing the room ids for the requested alias and which servers are aware of it.
-    ResolvedAlias resolveAlias(String roomAlias);
+    ResolvedAlias resolveAlias(RoomAlias roomAlias);
 
     /// Sets a room alias to a room.
     ///
-    /// @param roomAlias the room alias.
-    /// @param roomId    the room to receive the alias.
-    void setAlias(String roomAlias, String roomId);
+    /// @param roomAlias a [RoomAlias].
+    /// @param roomId    the [RoomID] to receive the alias.
+    void setAlias(RoomAlias roomAlias, RoomID roomId);
 
     /// Requests the server to remove a mapping of a room alias to a room id.
     /// On success, servers might modify `m.room.canonical_alias`
     ///
-    /// @param roomAlias the room alias to remove.
-    void deleteAlias(String roomAlias);
+    /// @param roomAlias the [RoomAlias] to remove.
+    void deleteAlias(RoomAlias roomAlias);
 
     /// Requests a list of aliases maintained by the local server for the given room, requires to be part of the room
     /// unless it is configured to be world readable.
     ///
     /// Spec Note: Don't use this endpoint to display data as it is not curated, use data from `m.room.canonical_alias`.
     ///
-    /// @param roomId the room ID to find local aliases of.
-    /// @return a [List] of room aliases.
-    List<String> getAliasesOfARoom(String roomId);
+    /// @param roomId the [RoomID] to find local aliases of.
+    /// @return a [List] of Room aliases.
+    List<String> getAliasesOfARoom(RoomID roomId);
 
     /// Requests the server to retrieve a list of the user's current rooms (in simple terms whoever calls this method).
     ///
@@ -65,105 +68,105 @@ public interface Room {
     /// Send an invitation to a user to participate in a room, this endpoint requires the caller to be a member of said
     /// room to invite other users.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @param event  a [RoomMembershipRequest] with the appropriate information.
     /// @see <a href="https://spec.matrix.org/v1.18/client-server-api/#third-party-invites">third-party invites spec</a>
     ///  for another type of invitation.
-    void inviteUser(String roomId, RoomMembershipRequest event);
+    void inviteUser(RoomID roomId, RoomMembershipRequest event);
 
     /// If allowed, it starts participation in a room.
     ///
-    /// @param roomIdOrAlias the target room, either the ID or Alias.
+    /// @param roomIdOrAlias a [RoomID] or [RoomAlias] to be targeted.
     /// @param request       a [JoinRoomRequest] where additional information can be passed.
     /// @param via           the servers to attempt to join the room through. One of the servers must be
     /// participating in the room.
     /// @return the room ID
-    String joinByRoomIdOrAliasIfAllowed(String roomIdOrAlias, JoinRoomRequest request, List<String> via);
+    String joinByRoomIdOrAliasIfAllowed(Validator roomIdOrAlias, JoinRoomRequest request, List<String> via);
 
     /// If allowed, it starts participation in a room.
     ///
-    /// @param roomId  the target room ID.
+    /// @param roomId  the target [RoomID].
     /// @param request a [JoinRoomRequest] where additional information can be passed.
     /// @param via     the servers to attempt to join the room through. One of the servers must be
     /// participating in the room.
     /// @return the room ID
-    String joinByRoomIdIfAllowed(String roomId, JoinRoomRequest request, List<String> via);
+    String joinByRoomIdIfAllowed(RoomID roomId, JoinRoomRequest request, List<String> via);
 
     /// Knock on a room to ask for permission to join. Acceptance of this request happens out of band.
     ///
-    /// @param roomIdOrAlias the target room, either the ID or Alias.
+    /// @param roomIdOrAlias a [RoomID] or [RoomAlias] to be targeted.
     /// @param reason        an optional reason to include in the event.
     /// @param via           the servers to attempt to join the room through. One of the servers must be
     /// participating in the room.
     /// @return the room ID of the knocked room.
-    String knockOn(String roomIdOrAlias, String reason, List<String> via);
+    String knockOn(Validator roomIdOrAlias, String reason, List<String> via);
 
     /// Sends a request to leave the room, upon success, you will forget all messages from this room.
     /// If all users on a room forget it, the room is eligible for deletion.
-    /// You must [Room#forget(String)] the room first before calling this method.
+    /// You must [Room#forget(RoomID)] the room first before calling this method.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @throws MatrixIOException      when the payload cannot be processed.
     /// @throws MatrixNetworkException when the response status is not successful.
-    void forget(String roomId);
+    void forget(RoomID roomId);
 
     /// Sends a request to leave the room, upon success, you will no longer receive new messages from this room.
     /// If the user was invited to the room, but had not joined, this call serves to reject the invite.
     /// Some servers MAY additionally `forget` the room when leaving.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @throws MatrixIOException      when the payload cannot be processed
     /// @throws MatrixNetworkException when the response status is not successful
-    void leave(String roomId);
+    void leave(RoomID roomId);
 
     /// Sends a request to kick someone from a room. Caller must have a configured power level to perform this
     /// operation.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @param event  the body to supply the request.
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
-    void kick(String roomId, RoomMembershipRequest event);
+    void kick(RoomID roomId, RoomMembershipRequest event);
 
     /// Sends a request to ban someone from a room. Caller must have a configured power level to perform this operation.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @param event  the body to supply the request.
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
-    void ban(String roomId, RoomMembershipRequest event);
+    void ban(RoomID roomId, RoomMembershipRequest event);
 
     /// Sends a request to unban someone from a room. Caller must have a configured power level to perform this
     /// operation.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @param event  the body to supply the request.
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
-    void unban(String roomId, RoomMembershipRequest event);
+    void unban(RoomID roomId, RoomMembershipRequest event);
 
     /// Gets the visibility of a given room in the server’s published room directory.
     /// Authentication is not required to run this request.
     /// NOTE: This does NOT guarantee join rules are public.
     ///
-    /// @param roomId the target room ID.
+    /// @param roomId the target [RoomID].
     /// @return a [String] with the room visibility.
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
-    String getRoomDirectoryVisibilityType(String roomId);
+    String getRoomDirectoryVisibilityType(RoomID roomId);
 
     /// Sets the visibility of a given room in the server’s published room directory.
     ///
-    /// @param roomId   the target room ID.
+    /// @param roomId   the target [RoomID].
     /// @param roomType a [VisibilityRoomType] with the room visibility type
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
-    void setRoomDirectoryVisibilityType(String roomId, VisibilityRoomType roomType);
+    void setRoomDirectoryVisibilityType(RoomID roomId, VisibilityRoomType roomType);
 
     /// Lists a server’s published room directory.
     ///
-    /// @param limit  limit of records to show
-    /// @param server what server to fetch from, if not supplied it will fetch the local server. Case-sensitive.
+    /// @param limit  of records to show
+    /// @param server to fetch from, if not supplied it will fetch the local server. Case-sensitive.
     /// @param since  a pagination token from a previous request, allowing you to get the next or previous
     /// batch of rooms. The direction of pagination is specified by which token is supplied.
     /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published rooms on the server.
@@ -180,10 +183,10 @@ public interface Room {
 
     /// Retrieves a summary for a room. The response data might yield outdated, partial or even no data.
     ///
-    /// @param roomIdOrAlias the room id or alias of the room to target
+    /// @param roomIdOrAlias a [RoomID] or [RoomAlias] of the room to target
     /// @param via           the servers to attempt to request the summary from when the local server cannot generate it
     /// @return a [RoomSummary] containing all the information about the room.
     /// @throws MatrixIOException    when the payload cannot be processed.
     /// @throws NullPointerException when the roomId is null.
-    RoomSummary getRoomSummary(String roomIdOrAlias, List<String> via);
+    RoomSummary getRoomSummary(Validator roomIdOrAlias, List<String> via);
 }
