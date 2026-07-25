@@ -2,7 +2,7 @@ package org.hik.api;
 
 import com.sun.net.httpserver.HttpServer;
 import org.hik.api.auth.AuthMetadata;
-import org.hik.api.auth.Tokens;
+import org.hik.api.auth.TokenMetadata;
 import org.hik.api.auth.WhoAmI;
 import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
