@@ -1,11 +1,14 @@
-package org.hik.api.events;
+package org.hik.api.events.messages;
+
+import org.hik.api.events.EncryptedFile;
+import org.hik.api.events.RoomMessageEvent;
 
 import java.net.URI;
 
 
-/// This type of message represents a file resource. If the type of file is known, it's better to use their dedicated event,
+/// Message that represents a file resource. If the type of file is known, it's better to use their dedicated event,
 /// such as
-/// for [videos][MatrixVideo], [images][MatrixImage], or [audio][MatrixAudio].
+/// for [videos][Video], [images][Image], or [audio][Audio].
 ///
 /// @param body          the filename of the original upload if `filename` is unset
 ///                      or identical to it; otherwise, a caption for the file.
@@ -19,14 +22,14 @@ import java.net.URI;
 ///                      Required if `format` is specified.
 /// @param info          metadata for the audio clip referred to by `url`.
 /// @param url           required if the file is unencrypted.
-public record MatrixFile(String body,
-                         EncryptedFile file,
-                         String filename,
-                         String format,
-                         String formattedBody,
-                         FileInfo info,
-                         URI url)
-        implements MatrixRoomMessageEvent {
+public record File(String body,
+                   EncryptedFile file,
+                   String filename,
+                   String format,
+                   String formattedBody,
+                   FileInfo info,
+                   URI url)
+        implements RoomMessageEvent {
 
     @Override
     public String msgtype() {
@@ -34,7 +37,7 @@ public record MatrixFile(String body,
     }
 
 
-    /// Additional file information referred in the [MatrixFile] `url` field.
+    /// Additional file information referred in the [File] `url` field.
     ///
     /// @param mimetype      the mimetype of the file.
     /// @param size          the size of the file in bytes.

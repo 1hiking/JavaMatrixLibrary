@@ -20,12 +20,12 @@ import java.util.Map;
 /// @param presence    presence updates for users the client is tracking.
 /// @param rooms       updates for rooms the client is invited to, joined in, knocking on, or has left.
 /// @param toDevice    to-device messages sent directly to this client.
-public record SyncResponse(AccountData accountData,
-                           DeviceLists deviceLists,
-                           String nextBatch,
-                           Presence presence,
-                           Rooms rooms,
-                           ToDevice toDevice) {
+public record Sync(AccountData accountData,
+                   DeviceLists deviceLists,
+                   String nextBatch,
+                   Presence presence,
+                   Rooms rooms,
+                   ToDevice toDevice) {
 
     /// A batch of account-data events.
     ///
@@ -89,7 +89,7 @@ public record SyncResponse(AccountData accountData,
         public record JoinedRoom(AccountData accountData,
                                  Ephemeral ephemeral,
                                  State state,
-                                 State stateAfter,
+                                 @JsonProperty(required = true) State stateAfter,
                                  RoomSummary summary,
                                  Timeline timeline,
                                  UnreadNotificationCounts unreadNotifications,
@@ -158,8 +158,8 @@ public record SyncResponse(AccountData accountData,
     ///
     /// @param content the event content, shape depends on `type`.
     /// @param type    the event type, e.g. `m.typing`.
-    public record Event(Object content,
-                        String type) {
+    public record Event(@JsonProperty(required = true) Object content,
+                        @JsonProperty(required = true) String type) {
     }
 
     /// A client-facing event as it appears in room timelines and state, excluding the room ID
@@ -202,10 +202,10 @@ public record SyncResponse(AccountData accountData,
     /// @param sender   the user ID of the event's sender.
     /// @param stateKey the state key for this event.
     /// @param type     the event type, e.g. `m.room.member`.
-    public record StrippedStateEvent(Object content,
-                                     String sender,
-                                     String stateKey,
-                                     String type) {
+    public record StrippedStateEvent(@JsonProperty(required = true) Object content,
+                                     @JsonProperty(required = true) String sender,
+                                     @JsonProperty(required = true) String stateKey,
+                                     @JsonProperty(required = true) String type) {
     }
 
     /// A batch of room state events.

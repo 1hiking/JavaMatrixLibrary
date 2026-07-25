@@ -1,4 +1,7 @@
-package org.hik.api.events;
+package org.hik.api.events.messages;
+
+import org.hik.api.events.EncryptedFile;
+import org.hik.api.events.RoomMessageEvent;
 
 /// This type of message represents a real-world location.
 ///
@@ -6,10 +9,10 @@ package org.hik.api.events;
 ///               or identical to it; otherwise, a caption for the image.
 /// @param info   metadata for the audio clip referred to by `url`.
 /// @param geoUri A geo URI (RFC5870) representing this location.
-public record MatrixLocation(String body,
-                             String geoUri,
-                             LocationInfo info
-) implements MatrixRoomMessageEvent {
+public record Location(String body,
+                       String geoUri,
+                       LocationInfo info
+) implements RoomMessageEvent {
 
 
     @Override

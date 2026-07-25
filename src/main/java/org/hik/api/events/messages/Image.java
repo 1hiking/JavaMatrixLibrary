@@ -1,4 +1,7 @@
-package org.hik.api.events;
+package org.hik.api.events.messages;
+
+import org.hik.api.events.EncryptedFile;
+import org.hik.api.events.RoomMessageEvent;
 
 import java.net.URI;
 
@@ -17,15 +20,15 @@ import java.net.URI;
 ///                      Required if `format` is specified.
 /// @param info          metadata for the audio clip referred to by `url`.
 /// @param url           required if the file is unencrypted.
-public record MatrixImage(String body,
-                          EncryptedFile file,
-                          String filename,
-                          String format,
-                          String formattedBody,
-                          ImageInfo info,
-                          URI url
+public record Image(String body,
+                    EncryptedFile file,
+                    String filename,
+                    String format,
+                    String formattedBody,
+                    ImageInfo info,
+                    URI url
 
-) implements MatrixRoomMessageEvent {
+) implements RoomMessageEvent {
 
     @Override
     public String msgtype() {
@@ -33,7 +36,7 @@ public record MatrixImage(String body,
     }
 
 
-    /// Additional file information referred in the [MatrixFile] `url` field.
+    /// Additional file information referred in the [File] `url` field.
     ///
     /// @param h             the intended display height of the image in pixels. This may differ from the intrinsic
     /// dimensions of the image file.
