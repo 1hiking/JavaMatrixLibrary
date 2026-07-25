@@ -1,32 +1,34 @@
 /// Base Client Module
-module JavaMatrixClient {
+module io.github.hikingc.matrixsdk {
 
-    // Required for all our networking code
+
+    // Required for sending payloads
     requires java.net.http;
+
+    // Required to create a callback server for OAuth
+    requires jdk.httpserver;
+    requires java.desktop;
 
     // Required for JSON manipulation
     requires tools.jackson.core;
     requires tools.jackson.databind;
-    requires java.desktop;
-    requires jdk.httpserver;
+
+    // Logging
     requires org.slf4j;
 
-    // Interfaces and facade
-    exports org.hik.api;
-    exports org.hik.api.identifiers;
-    exports org.hik.context;
+    // Exposed interfaces, facade and user classes
+    exports io.github.hikingc.matrixsdk.api;
+    exports io.github.hikingc.matrixsdk.api.identifiers;
+    exports io.github.hikingc.matrixsdk.context;
 
     // Records and Interfaces
-    exports org.hik.api.rooms;
-    exports org.hik.api.events;
-    exports org.hik.api.events.messages;
-    exports org.hik.api.events.states;
-    exports org.hik.api.userdata;
-    exports org.hik.api.auth;
-    exports org.hik.api.filters;
-
+    exports io.github.hikingc.matrixsdk.api.rooms;
+    exports io.github.hikingc.matrixsdk.api.events;
+    exports io.github.hikingc.matrixsdk.api.events.messages;
+    exports io.github.hikingc.matrixsdk.api.events.states;
+    exports io.github.hikingc.matrixsdk.api.userdata;
+    exports io.github.hikingc.matrixsdk.api.auth;
+    exports io.github.hikingc.matrixsdk.api.filters;
     // Common exceptions
-    exports org.hik.exceptions;
-
-
+    exports io.github.hikingc.matrixsdk.exceptions;
 }
