@@ -3,7 +3,8 @@ package org.hik.services.filtering;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
-import org.hik.api.filtering.FilterDefinition;
+import org.hik.api.filters.FilterDefinition;
+import org.hik.api.identifiers.UserID;
 import org.hik.context.DiscoveryResponse;
 import org.hik.services.utils.Mapper;
 import org.instancio.junit.Given;
@@ -24,7 +25,7 @@ class FilterServiceTest {
     private static MatrixClient client;
     private static final ObjectMapper mapper = Mapper.getInstance();
     private static final String AUTH_TOKEN = "1234";
-    private static final String USER_ID = "@matrix:example.org";
+    private static final UserID USER_ID = UserID.parse("@matrix:example.org");
     private static DiscoveryResponse DISCOVERY_RESPONSE;
 
 

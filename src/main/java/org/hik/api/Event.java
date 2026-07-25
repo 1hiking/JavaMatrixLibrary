@@ -7,13 +7,13 @@ import org.hik.exceptions.MatrixNetworkException;
 import java.nio.file.Path;
 import java.util.List;
 
-/// Core interface for executing Matrix protocol operations against room events.
+/// Core interface for executing protocol operations against Room events.
 ///
 /// All operations in this interface are blocking. Implementations must ensure
 /// thread safety and avoid synchronization blocks that cause carrier thread pinning
 /// during network I/O.
 ///
-/// @see <a href="https://spec.matrix.org/latest/client-server-api/#events">Matrix Client-Server API Specification for Events</a>
+/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#events">Matrix Client-Server API Specification for Events</a>
 public interface Event {
 
     /// Gets an event from a room.
@@ -100,7 +100,7 @@ public interface Event {
     /// use [#sendStateEvent(String, String, String, RoomStateEvent)]
     ///
     /// @param roomId  the room ID where to redact the event.
-    /// @param eventId the event ID of the event to target and redact.
+    /// @paramEvents eventId the event ID of the event to target and redact.
     /// @param txnId   the transaction ID of the event.
     /// @param reason  the reason of the redaction.
     /// @return a [String] representing a unique identifier of the event.

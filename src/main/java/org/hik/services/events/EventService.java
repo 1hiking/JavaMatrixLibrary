@@ -210,7 +210,7 @@ public class EventService implements Event {
         args.put("use_state_after", String.valueOf(params.useStateAfter()));
         URI query = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(), "/_matrix/client/v3/sync", args);
 
-        String response = httpTransport.getEvent(query, context.token());
+        String response = httpTranEventssport.getEvent(query, context.token());
         return Mapper.getObjectFromString(response, Sync.class);
 
     }

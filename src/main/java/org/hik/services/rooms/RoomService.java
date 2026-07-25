@@ -1,19 +1,23 @@
 package org.hik.services.rooms;
 
 import org.hik.api.Room;
+import org.hik.api.identifiers.RoomAlias;
+import org.hik.api.identifiers.RoomID;
+import org.hik.api.identifiers.UserID;
+import org.hik.api.identifiers.Validator;
 import org.hik.api.rooms.*;
 import org.hik.context.ClientContext;
+import org.hik.exceptions.MatrixException;
 import org.hik.exceptions.MatrixIOException;
+import org.hik.exceptions.MatrixSerializationException;
 import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
-import org.hik.services.utils.Validator;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /// Main service implementation class of the Room interface, providing all the required endpoints and records to
 /// perform activities such as kicking, banning, listing of, and creation of rooms.
@@ -31,6 +35,9 @@ public class RoomService implements Room {
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
+    /// Service constructor to operate
+    ///
+    /// @param context the [ClientContext] of the facade
     public RoomService(ClientContext context) {
         this.context = context;
     }
@@ -73,9 +80,7 @@ public class RoomService implements Room {
     }
 
     @Override
-    public void setAlias(String roomAlias, String roomId) {
-        roomAlias = Validator.roomAlias(roomAlias);
-        roomId = Validator.roomId(roomId);
+    public void setAlias(RoomAlias roomAlias, RoomID roomId) {
         URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
                 DIRECTORY_ENDPOINT_ROOM + roomAlias, null);
 
@@ -88,10 +93,9 @@ public class RoomService implements Room {
     }
 
     @Override
-    public ResolvedAlias resolveAlias(String roomAlias) {
-        var payloadRoom = Validator.roomAlias(roomAlias);
+    public ResolvedAlias resolveAlias(RoomAlias roomAlias) {
         URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
-                DIRECTORY_ENDPOINT_ROOM + payloadRoom, null);
+                DIRECTORY_ENDPOINT_ROOM + roomAlias, null);
 
         var responseBody =
                 httpTransport.getEvent(uri,
@@ -101,23 +105,31 @@ public class RoomService implements Room {
     }
 
     @Override
-    public void deleteAlias(String roomAlias) {
-        var payloadRoomId = Validator.roomAlias(roomAlias);
+    public void deleteAlias(RoomAlias roomAlias) {
         URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
-                DIRECTORY_ENDPOINT_ROOM + payloadRoomId, null);
+                DIRECTORY_ENDPOINT_ROOM + roomAlias, null);
         httpTransport.deleteEvent(uri, context.token());
 
     }
 
     @Override
-    public RoomAliases getAliasesOfARoom(String roomAlias) {
-        var payloadRoomId = Validator.roomAlias(roomAlias);
+    public List<String> getAliasesOfARoom(RoomID roomId) {
 
         String response =
-                httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId + "/aliases"),
+                httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/aliases"),
                         context.token());
-        return Mapper.getObjectFromString(response, RoomAliases.class);
 
+        JsonNode aliases;
+        List<String> aliasesList = new ArrayList<>();
+        try {
+            aliases = objectMapper.readTree(response).get("aliases");
+            for (JsonNode alias : aliases) {
+                aliasesList.add(alias.stringValue());
+            }
+        } catch (JacksonException e) {
+            throw new MatrixSerializationException("Failed to deserialize response JSON", e);
+        }
+        return aliasesList;
     }
 
     @Override
@@ -131,11 +143,10 @@ public class RoomService implements Room {
     }
 
     @Override
-    public void inviteUser(String roomId, RoomMembershipRequest event) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public void inviteUser(RoomID roomId, RoomMembershipRequest event) {
         try {
             var serializedInputData = objectMapper.writeValueAsString(event);
-            httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId + "/invite"),
+            httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/invite"),
                     serializedInputData, this.context.token());
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
@@ -143,12 +154,15 @@ public class RoomService implements Room {
     }
 
     @Override
-    public String joinByRoomIdOrAliasIfAllowed(String roomIdOrAlias, JoinRoomRequest request, List<String> via) {
-        var payloadRoomId = Validator.roomIdOrAlias(roomIdOrAlias);
+    public String joinByRoomIdOrAliasIfAllowed(Validator roomIdOrAlias, JoinRoomRequest request, List<String> via) {
+        if (Objects.requireNonNull(roomIdOrAlias) instanceof UserID) {
+            throw new MatrixException("Wrong format type");
+        }
+
         Map<String, Object> params = new HashMap<>();
         params.put("via", via);
         URI uri = this.httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
-                "/_matrix/client/v3/join/" + payloadRoomId,
+                "/_matrix/client/v3/join/" + roomIdOrAlias,
                 params);
         try {
             var serializedInputData = objectMapper.writeValueAsString(request);
@@ -163,12 +177,11 @@ public class RoomService implements Room {
     }
 
     @Override
-    public String joinByRoomIdIfAllowed(String roomId, JoinRoomRequest request, List<String> via) {
+    public String joinByRoomIdIfAllowed(RoomID roomId, JoinRoomRequest request, List<String> via) {
         Map<String, Object> params = new HashMap<>();
         params.put("via", via);
-        var payloadRoomId = Validator.roomId(roomId);
         URI uri = this.httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
-                ROOM_ENDPOINT + payloadRoomId + "/join", params);
+                ROOM_ENDPOINT + roomId + "/join", params);
         try {
             var serializedInputData = objectMapper.writeValueAsString(request);
             var responseBody =
@@ -182,12 +195,13 @@ public class RoomService implements Room {
     }
 
     @Override
-    public String knockOn(String roomIdOrAlias, String reason, List<String> via) {
-        var payloadRoomID = Validator.roomIdOrAlias(roomIdOrAlias);
-
+    public String knockOn(Validator roomIdOrAlias, String reason, List<String> via) {
+        if (Objects.requireNonNull(roomIdOrAlias) instanceof UserID) {
+            throw new MatrixException("Wrong format type");
+        }
 
         URI uri = this.httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
-                "/_matrix/client/v3/knock/" + payloadRoomID, Map.ofEntries(Map.entry("via", via)));
+                "/_matrix/client/v3/knock/" + roomIdOrAlias, Map.ofEntries(Map.entry("via", via)));
         Map<String, Object> map = new HashMap<>();
         map.put("reason", reason);
 
@@ -202,32 +216,29 @@ public class RoomService implements Room {
 
 
     @Override
-    public void forget(String roomId) {
-        var payloadRoomID = Validator.roomId(roomId);
+    public void forget(RoomID roomId) {
         httpTransport.postEvent(
-                URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomID +
+                URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId +
                         "/forget"),
                 null, this.context.token());
 
     }
 
     @Override
-    public void leave(String roomId) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public void leave(RoomID roomId) {
         httpTransport.postEvent(
-                URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
+                URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId +
                         "/leave"),
                 null, this.context.token());
 
     }
 
     @Override
-    public void kick(String roomId, RoomMembershipRequest event) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public void kick(RoomID roomId, RoomMembershipRequest event) {
         try {
             var serializedInputData = objectMapper.writeValueAsString(event);
             httpTransport.postEvent(
-                    URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
+                    URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId +
                             "/kick"),
                     serializedInputData, this.context.token());
         } catch (JacksonException e) {
@@ -236,12 +247,11 @@ public class RoomService implements Room {
     }
 
     @Override
-    public void ban(String roomId, RoomMembershipRequest event) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public void ban(RoomID roomId, RoomMembershipRequest event) {
         try {
             var serializedInputData = objectMapper.writeValueAsString(event);
             httpTransport.postEvent(
-                    URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
+                    URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId +
                             "/ban"),
                     serializedInputData, this.context.token());
         } catch (JacksonException e) {
@@ -250,12 +260,11 @@ public class RoomService implements Room {
     }
 
     @Override
-    public void unban(String roomId, RoomMembershipRequest event) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public void unban(RoomID roomId, RoomMembershipRequest event) {
         try {
             var responseBody = objectMapper.writeValueAsString(event);
             httpTransport.postEvent(
-                    URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + payloadRoomId +
+                    URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId +
                             "/unban"),
                     responseBody, this.context.token());
         } catch (JacksonException e) {
@@ -265,11 +274,10 @@ public class RoomService implements Room {
     }
 
     @Override
-    public String getRoomDirectoryVisibilityType(String roomId) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public String getRoomDirectoryVisibilityType(RoomID roomId) {
         try {
             var responseBody = httpTransport.getEvent(
-                    URI.create(context.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT + payloadRoomId),
+                    URI.create(context.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT + roomId),
                     null);
             return Mapper.getStringFromSingleObject(responseBody, "visibility");
         } catch (JacksonException e) {
@@ -278,13 +286,12 @@ public class RoomService implements Room {
     }
 
     @Override
-    public void setRoomDirectoryVisibilityType(String roomId, VisibilityRoomType roomType) {
-        var payloadRoomId = Validator.roomId(roomId);
+    public void setRoomDirectoryVisibilityType(RoomID roomId, VisibilityRoomType roomType) {
         Map<String, Object> map = new HashMap<>();
         map.put("visibility", roomType.getValue());
 
         httpTransport.putEvent(
-                URI.create(context.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT + payloadRoomId),
+                URI.create(context.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT + roomId),
                 Mapper.createObjectFromMap(map), this.context.token());
     }
 
@@ -316,12 +323,17 @@ public class RoomService implements Room {
     }
 
     @Override
-    public RoomSummary getRoomSummary(String roomIdOrAlias, List<String> via) {
-        String idToUse = Validator.roomIdOrAlias(roomIdOrAlias);
+    public RoomSummary getRoomSummary(Validator roomIdOrAlias, List<String> via) {
+        if (Objects.requireNonNull(roomIdOrAlias) instanceof UserID) {
+            throw new MatrixException("Wrong format type");
+        }
+
+        Map<String, Object> args = new HashMap<>();
+        args.put("via", via);
 
         URI uri = this.httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
-                "/_matrix/client/v1/room_summary/" + idToUse,
-                Map.ofEntries(Map.entry("via", via)));
+                "/_matrix/client/v1/room_summary/" + roomIdOrAlias,
+                args);
         var responseBody = httpTransport.getEvent(uri, context.token());
 
         return Mapper.getObjectFromString(responseBody, RoomSummary.class);

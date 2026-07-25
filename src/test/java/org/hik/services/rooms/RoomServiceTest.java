@@ -3,6 +3,9 @@ package org.hik.services.rooms;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
+import org.hik.api.identifiers.RoomAlias;
+import org.hik.api.identifiers.RoomID;
+import org.hik.api.identifiers.Validator;
 import org.hik.api.rooms.*;
 import org.hik.context.DiscoveryResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @WireMockTest
 class RoomServiceTest {
 
-    private static final String ROOM_ID = "!ekkTuJPNWnbuCJHvYB:kde.org";
+    private static final RoomID ROOM_ID = RoomID.parse("!ekkTuJPNWnbuCJHvYB:kde.org");
     private static MatrixClient client;
 
 
@@ -70,10 +73,9 @@ class RoomServiceTest {
 
     @Test
     void sendSetAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        String alias = "#general:example.com";
-        String encodedAlias = alias.replace("#", "%23");  // patch the uri
+        RoomAlias alias = RoomAlias.parse("#general:example.com");
 
-        stubFor(put("/_matrix/client/v3/directory/room/" + encodedAlias)
+        stubFor(put("/_matrix/client/v3/directory/room/%23general:example.com")
                 .withRequestBody(equalToJson("""
                         { "room_id": "%s" }
                         """.formatted(ROOM_ID), true, true))
@@ -81,12 +83,12 @@ class RoomServiceTest {
 
         client.room().setAlias(alias, ROOM_ID);
 
-        verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
+        verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/%23general:example.com")));
     }
 
     @Test
     void sendResolveAliasRequest_WithCorrectPayload_thenReturnResolvedAlias() {
-        String alias = "#general:example.com";
+        RoomAlias alias = RoomAlias.parse("#general:example.com");
         String expectedPath = "%23general:example.com";
 
         stubFor(get("/_matrix/client/v3/directory/room/" + expectedPath)
@@ -100,21 +102,20 @@ class RoomServiceTest {
         var response = client.room().resolveAlias(alias);
 
         assertNotNull(response);
-        assertEquals(ROOM_ID, response.roomId());
+        assertEquals(ROOM_ID.toString(), response.roomId());
         assertFalse(response.servers().isEmpty());
     }
 
     @Test
     void sendDeleteAliasRequest_WithCorrectPayload_thenHitCorrectEndpoint() {
-        String alias = "#general:example.com";
-        String encodedAlias = alias.replace("#", "%23");  // patch the uri
+        RoomAlias alias = RoomAlias.parse("#general:example.com");
 
-        stubFor(delete("/_matrix/client/v3/directory/room/" + encodedAlias)
+        stubFor(delete("/_matrix/client/v3/directory/room/%23general:example.com")
                 .willReturn(okJson("{}")));
 
         client.room().deleteAlias(alias);
 
-        verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/" + encodedAlias)));
+        verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/directory/room/%23general:example.com")));
     }
 
     @Test
@@ -129,8 +130,8 @@ class RoomServiceTest {
         var response = client.room().getAliasesOfARoom(ROOM_ID);
 
         assertNotNull(response);
-        assertFalse(response.aliases().isEmpty());
-        assertEquals(2, response.aliases().size());
+        assertFalse(response.isEmpty());
+        assertEquals(2, response.size());
     }
 
     // -------------------------------------------------------------------------
@@ -150,7 +151,7 @@ class RoomServiceTest {
 
         assertNotNull(response);
         assertFalse(response.joinedRooms().isEmpty());
-        assertEquals(ROOM_ID, response.joinedRooms().getFirst());
+        assertEquals(ROOM_ID.toString(), response.joinedRooms().getFirst());
     }
 
     @Test
@@ -180,7 +181,7 @@ class RoomServiceTest {
         var response = client.room().joinByRoomIdOrAliasIfAllowed(ROOM_ID, new JoinRoomRequest(null, null), null);
 
         assertNotNull(response);
-        assertEquals(ROOM_ID, response);
+        assertEquals(ROOM_ID.toString(), response);
     }
 
     @Test
@@ -193,7 +194,7 @@ class RoomServiceTest {
         var response = client.room().joinByRoomIdIfAllowed(ROOM_ID, new JoinRoomRequest(null, null), null);
 
         assertNotNull(response);
-        assertEquals(ROOM_ID, response);
+        assertEquals(ROOM_ID.toString(), response);
     }
 
     @Test
@@ -208,7 +209,7 @@ class RoomServiceTest {
         var response = client.room().knockOn(ROOM_ID, "I want to join", List.of("server1.org"));
 
         assertNotNull(response);
-        assertEquals(ROOM_ID, response);
+        assertEquals(ROOM_ID.toString(), response);
     }
 
     @Test
@@ -374,7 +375,7 @@ class RoomServiceTest {
 
     @Test
     void sendGetRoomSummaryRequest_WithViaParam_thenReturnSummary() {
-        String roomIdOrAlias = "!abc123:example.com";
+        Validator roomIdOrAlias = RoomID.parse("!abc123:example.com");
         stubFor(get(urlPathEqualTo("/_matrix/client/v1/room_summary/" + roomIdOrAlias))
                 .withQueryParam("via", equalTo("example.com"))
                 .willReturn(okJson("""

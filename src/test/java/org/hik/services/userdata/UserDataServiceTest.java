@@ -3,6 +3,7 @@ package org.hik.services.userdata;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.hik.api.MatrixClient;
+import org.hik.api.identifiers.UserID;
 import org.hik.api.userdata.UserProfile;
 import org.hik.context.DiscoveryResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,6 +20,7 @@ class UserDataServiceTest {
 
 
     private static final String AUTH_TOKEN = "1234";
+    private static final UserID USER_ID = UserID.parse("@user:example.com");
     private static DiscoveryResponse DISCOVERY_RESPONSE;
 
     @BeforeAll
@@ -54,7 +56,7 @@ class UserDataServiceTest {
 
     @Test
     void getUserProfile() {
-        stubFor(get(urlEqualTo("/_matrix/client/v3/profile/userid"))
+        stubFor(get(urlEqualTo("/_matrix/client/v3/profile/" + USER_ID))
                 .willReturn(okJson("""
                         {
                           "displayname": "Test User",
@@ -62,7 +64,7 @@ class UserDataServiceTest {
                         }
                         """)));
 
-        UserProfile profile = client.userData().getUserProfile("userid");
+        UserProfile profile = client.userData().getUserProfile(USER_ID);
 
         assertThat(profile).isNotNull();
         assertThat(profile.displayName()).isEqualTo("Test User");
@@ -70,32 +72,32 @@ class UserDataServiceTest {
 
     @Test
     void getUserProfileByProperty() {
-        stubFor(get(urlEqualTo("/_matrix/client/v3/profile/userid/keyname"))
+        stubFor(get(urlEqualTo("/_matrix/client/v3/profile/" + USER_ID + "/keyname"))
                 .willReturn(okJson("{\"keyname\": \"valuename\"}")));
 
-        String value = client.userData().getUserProfileByProperty("userid", "keyname");
+        String value = client.userData().getUserProfileByProperty(USER_ID, "keyname");
 
         assertThat(value).isEqualTo("valuename");
     }
 
     @Test
     void setUserProfileProperty() {
-        stubFor(put(urlEqualTo("/_matrix/client/v3/profile/userid/keyname"))
+        stubFor(put(urlEqualTo("/_matrix/client/v3/profile/" + USER_ID + "/keyname"))
                 .willReturn(aResponse().withStatus(200)));
 
-        client.userData().setUserProfileProperty("userid", "keyname", "valuename");
+        client.userData().setUserProfileProperty(USER_ID, "keyname", "valuename");
 
-        verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/profile/userid/keyname"))
+        verify(putRequestedFor(urlEqualTo("/_matrix/client/v3/profile/" + USER_ID + "/keyname"))
                 .withRequestBody(equalToJson("{\"keyname\": \"valuename\"}")));
     }
 
     @Test
     void deleteUserProfileProperty() {
-        stubFor(delete(urlEqualTo("/_matrix/client/v3/profile/userid/keyname"))
+        stubFor(delete(urlEqualTo("/_matrix/client/v3/profile/" + USER_ID + "/keyname"))
                 .willReturn(aResponse().withStatus(200)));
 
-        client.userData().deleteUserProfileProperty("userid", "keyname");
+        client.userData().deleteUserProfileProperty(USER_ID, "keyname");
 
-        verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/profile/userid/keyname")));
+        verify(deleteRequestedFor(urlEqualTo("/_matrix/client/v3/profile/" + USER_ID + "/keyname")));
     }
 }

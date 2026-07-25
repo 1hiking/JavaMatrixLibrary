@@ -44,7 +44,7 @@ class EventServiceTest {
     }
 
     private static Result getResult(Path tempDir) throws IOException {
-        String roomId = "1234";
+        String roomId = "!room:example.com";
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
@@ -60,7 +60,7 @@ class EventServiceTest {
 
     @Test
     void sendPublishRoomMessage_WithACorrectPayload_thenReturnAString() {
-        String roomId = "1234";
+        String roomId = "!room:example.com";
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 

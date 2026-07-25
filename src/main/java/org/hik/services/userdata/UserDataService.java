@@ -1,12 +1,12 @@
 package org.hik.services.userdata;
 
 import org.hik.api.UserData;
+import org.hik.api.identifiers.UserID;
 import org.hik.api.userdata.UserProfile;
 import org.hik.api.userdata.UsersFound;
 import org.hik.context.ClientContext;
 import org.hik.services.utils.HttpTransport;
 import org.hik.services.utils.Mapper;
-import org.hik.services.utils.Validator;
 
 import java.net.URI;
 import java.util.Map;
@@ -17,23 +17,26 @@ import java.util.Objects;
 /// query and search of users.
 public class UserDataService implements UserData {
 
-    ///
+    /// Common endpoint for directory operations.
     public static final String USER_DIR = "/_matrix/client/v3/user_directory/search";
     private static final String PROFILE_DIR = "/_matrix/client/v3/profile/";
     private final HttpTransport httpTransport = new HttpTransport(10);
     private final ClientContext context;
 
+    /// Service constructor to operate
+    ///
+    /// @param context the [ClientContext] of the facade
     public UserDataService(ClientContext context) {
         this.context = context;
     }
 
     @Override
     public UsersFound searchUsersByTerm(Integer limit, String searchTerm) {
-        String searchTermToUse = Validator.notNull(searchTerm, "Search term");
+        Objects.requireNonNull(searchTerm, "The search term must no be null");
         int limitToUse = Objects.requireNonNullElse(limit, 10);
         String rawTextPayload = """
                 {"limit": "%d","search_term":"%s"}
-                """.formatted(limitToUse, searchTermToUse);
+                """.formatted(limitToUse, searchTerm);
 
         String responseBody =
                 httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + USER_DIR),
@@ -42,8 +45,7 @@ public class UserDataService implements UserData {
     }
 
     @Override
-    public UserProfile getUserProfile(String userId) {
-        userId = Validator.userId(userId);
+    public UserProfile getUserProfile(UserID userId) {
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId),
                 context.token());
@@ -53,9 +55,8 @@ public class UserDataService implements UserData {
     }
 
     @Override
-    public String getUserProfileByProperty(String userId, String keyName) {
-        userId = Validator.roomId(userId);
-        keyName = Validator.notNull(keyName, "The key name");
+    public String getUserProfileByProperty(UserID userId, String keyName) {
+        Objects.requireNonNull(keyName, "The key name must no be null");
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
                 context.token());
@@ -64,10 +65,9 @@ public class UserDataService implements UserData {
     }
 
     @Override
-    public void setUserProfileProperty(String userId, String keyName, String valueName) {
-        userId = Validator.roomId(userId);
-        keyName = Validator.notNull(keyName, "The key name");
-        valueName = Validator.notNull(valueName, "The value name");
+    public void setUserProfileProperty(UserID userId, String keyName, String valueName) {
+        Objects.requireNonNull(keyName, "The key name must no be null");
+        Objects.requireNonNull(valueName, "The value name must no be null");
         var serializedJson = Mapper.createObjectFromMap(Map.ofEntries(Map.entry(keyName, valueName)));
 
         httpTransport.putEvent(
@@ -77,9 +77,8 @@ public class UserDataService implements UserData {
     }
 
     @Override
-    public void deleteUserProfileProperty(String userId, String keyName) {
-        userId = Validator.roomId(userId);
-        keyName = Validator.notNull(keyName, "The key name");
+    public void deleteUserProfileProperty(UserID userId, String keyName) {
+        Objects.requireNonNull(keyName, "The key name must no be null");
 
         httpTransport.deleteEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
