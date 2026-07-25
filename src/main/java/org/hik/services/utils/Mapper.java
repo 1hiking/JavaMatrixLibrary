@@ -1,7 +1,9 @@
 package org.hik.services.utils;
 
 import org.hik.exceptions.MatrixIOException;
-import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -92,8 +94,10 @@ public class Mapper {
         }
         try {
             return INSTANCE.readValue(responseBody, type);
-        } catch (JacksonException e) {
-            throw new MatrixSerializationException("Failed to parse Matrix response JSON", e);
+        } catch (DatabindException e) {
+            throw new MatrixIOException("Server didn't return required fields specified by the protocol", e);
+        } catch (StreamReadException e) {
+            throw new MatrixIOException("Server responded with invalid response", e);
         }
     }
 
@@ -103,8 +107,10 @@ public class Mapper {
         }
         try {
             return INSTANCE.readValue(responseBody, type);
-        } catch (JacksonException e) {
-            throw new MatrixSerializationException("Failed to parse Matrix response JSON", e);
+        } catch (DatabindException e) {
+            throw new MatrixIOException("Server didn't return required fields specified by the protocol", e);
+        } catch (StreamReadException e) {
+            throw new MatrixIOException("Server responded with invalid response", e);
         }
     }
 }
