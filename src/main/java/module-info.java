@@ -19,6 +19,8 @@ module JavaMatrixClient {
     // Records and Interfaces
     exports org.hik.api.rooms;
     exports org.hik.api.events;
+    exports org.hik.api.events.messages;
+    exports org.hik.api.events.states;
     exports org.hik.api.userdata;
     exports org.hik.api.auth;
     exports org.hik.api.filters;
