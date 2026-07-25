@@ -3,25 +3,26 @@ package org.hik.api.identifiers;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+/// Common interface for all identifiers in the Matrix specification, it provides static methods for validation
+///
+/// @see <a href="https://spec.matrix.org/v1.19/appendices/#identifier-grammar">Matrix definitions and Grammar of Identifiers</a>
 public interface Validator {
+    /// The maximum value of bytes as defined in the specification.
     int MAX_BYTES = 255;
 
-    static <T> void notNull(T value, String name) {
-        Objects.requireNonNull(value, name + " must not be null");
-    }
 
     /// Shared validation for Matrix identifiers of the form `<sigil><opaqueId>:<server_name>`
     /// (room ids, user ids, room aliases).
     ///
     /// Validates the sigil, presence of a separating colon, overall byte length, Unicode well-formedness,
     /// and that a server name actually follows the colon. Optionally restricts the opaqueId to alphanumeric characters.
-    /// @param value
-    /// @param sigil
-    /// @param name
-    /// @param restrictLocalpartToAlphanumeric
-    /// @return
-    static String validateSigilId(String value, char sigil, String name,
-                                  boolean restrictLocalpartToAlphanumeric) {
+    ///
+    /// @param value                           the raw [String] to be evaluated.
+    /// @param sigil                           the prefix of the ID.
+    /// @param name                            it's name
+    /// @param restrictLocalpartToAlphanumeric whether it should be evaluated against only alphanumeric characters
+    static void validateSigilId(String value, char sigil, String name,
+                                boolean restrictLocalpartToAlphanumeric) {
         Objects.requireNonNull(value, name + " must not be null");
 
         if (value.isEmpty()) {
@@ -38,7 +39,7 @@ public interface Validator {
             throw new IllegalArgumentException(name + " exceeds " + MAX_BYTES + " bytes");
         }
 
-        validateCodePoints(value, name);
+        Validator.validateCodePoints(value, name);
 
         String localPart = value.substring(1, firstColon);
         String serverName = value.substring(firstColon + 1);
@@ -50,11 +51,13 @@ public interface Validator {
             throw new IllegalArgumentException(name + " opaqueId should only contain alphanumeric characters");
         }
 
-        return value;
     }
 
-    /// @param value
-    /// @param name
+    /// The matrix specification defines as compliant any codepoint that
+    /// contains valid non-surrogate Unicode code points, including control characters, except `:` and `NUL (U+0000)`
+    ///
+    /// @param value the raw [String] that is being validated.
+    /// @param name  the type of the ID being evaluated.
     static void validateCodePoints(String value, String name) {
         value.codePoints().forEach(cp -> {
             if (!Character.isValidCodePoint(cp)) {
@@ -64,6 +67,10 @@ public interface Validator {
             if (cp >= 0xD800 && cp <= 0xDFFF) {
                 throw new IllegalArgumentException(
                         "%s contains a lone surrogate code point: U+%04X".formatted(name, cp));
+            }
+            if (Character.isWhitespace(cp)) {
+                throw new IllegalArgumentException(
+                        "%s contains whitespace: U+%04X".formatted(name, cp));
             }
         });
     }

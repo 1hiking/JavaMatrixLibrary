@@ -2,6 +2,18 @@ package org.hik.api.identifiers;
 
 import java.util.Objects;
 
+/// This class allows for the representation and validation of a Room Alias in Matrix.
+///
+/// Their form is as  follows: `#room_alias:domain`.
+///
+/// The `localpart` of a [RoomAlias] **MAY** contain valid non-surrogate Unicode code points, except `:` and `NUL` (`U+0000`).
+/// The localpart **SHOULD** only consist of alphanumeric characters (`A-Z, a-z, 0-9`) when generating them..
+///
+/// The `domain` of a [RoomAlias] is the server name of the homeserver which created the alias.
+///
+/// The length of a [RoomAlias], including the `#` sigil and the domain, **MUST NOT** exceed 255 bytes.
+///
+/// @see <a href="https://spec.matrix.org/v1.19/appendices/#room-aliases">Room Aliases as defined in the specification</a>
 public final class RoomAlias implements Validator {
     private final String opaqueId;
     private final String domain;
@@ -11,6 +23,12 @@ public final class RoomAlias implements Validator {
         this.domain = domain;
     }
 
+    /// Builds and validates a [RoomAlias]
+    ///
+    /// @param rawAliasId the [String] to validate.
+    /// @return a [RoomAlias].
+    /// @throws IllegalArgumentException if the [String] has broken a rule from the spec.
+    /// @throws NullPointerException     if the [String] is null.
     public static RoomAlias parse(String rawAliasId) {
         Objects.requireNonNull(rawAliasId, "Alias ID" + " must not be null");
 
@@ -28,13 +46,6 @@ public final class RoomAlias implements Validator {
         return "#" + opaqueId + ":" + domain;
     }
 
-    public String opaqueId() {
-        return opaqueId;
-    }
-
-    public String domain() {
-        return domain;
-    }
 
     @Override
     public boolean equals(Object obj) {

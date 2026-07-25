@@ -6,6 +6,7 @@ import org.hik.api.MatrixClient;
 import org.hik.api.events.*;
 import org.hik.api.events.messages.File;
 import org.hik.api.events.messages.Text;
+import org.hik.api.identifiers.RoomID;
 import org.hik.context.DiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +45,7 @@ class EventServiceTest {
     }
 
     private static Result getResult(Path tempDir) throws IOException {
-        String roomId = "!room:example.com";
+        RoomID roomId = RoomID.parse("!room:example.com");
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
@@ -60,7 +61,7 @@ class EventServiceTest {
 
     @Test
     void sendPublishRoomMessage_WithACorrectPayload_thenReturnAString() {
-        String roomId = "!room:example.com";
+        RoomID roomId = RoomID.parse("!room:example.com");
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
@@ -128,7 +129,7 @@ class EventServiceTest {
 
     @Test
     void getMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
-        String roomId = "!exampleRoomId:matrix.org";
+        RoomID roomId = RoomID.parse("!exampleRoomId:matrix.org");
         String expectedChunkEventId = "$abcdefg12345:matrix.org";
 
 
@@ -347,7 +348,7 @@ class EventServiceTest {
         assertFalse(actualResponse.toDevice().events().isEmpty(), "To-device events should be present");
     }
 
-    private record Result(String roomId, String roomMessageType, String expectedEventId, String serverName,
+    private record Result(RoomID roomId, String roomMessageType, String expectedEventId, String serverName,
                           String mediaId, URI mockMxcUri, Path tempFile) {
     }
 
