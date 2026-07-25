@@ -12,13 +12,18 @@ import org.hik.api.identifiers.UserID;
 /// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#filtering>Matrix Client-Server API Specification for Filters</a>
 public interface Filter {
 
-    /// @param userId
-    /// @param filter
-    /// @return
+    /// Uploads a new filter definition to the homeserver.
+    /// Returns a filter ID that may be used in future requests to restrict which events are returned to the client.
+    ///
+    /// @param userId the [UserID] of whoever is uploading the server.
+    /// @param filter the definition of the filter.
+    /// @return an ID of the filter definition, usable in supported endpoints.
     String publishFilter(UserID userId, FilterDefinition filter);
 
-    /// @param userId
-    /// @param filterId
-    /// @return
+    /// Retrieve a [FilterDefinition] from the homeserver.
+    ///
+    /// @param userId the [UserID] to download a filter for.
+    /// @param filterId the filter ID to download.
+    /// @return a [FilterDefinition] with all uploaded data.
     FilterDefinition getFilter(UserID userId, String filterId);
 }
