@@ -6,7 +6,7 @@ module io.github.hikingc.matrixsdk {
     requires java.net.http;
 
     // Required to create a callback server for OAuth
-    requires jdk.httpserver;
+    requires io.fusionauth.http;
     requires java.desktop;
 
     // Required for JSON manipulation
@@ -29,6 +29,7 @@ module io.github.hikingc.matrixsdk {
     exports io.github.hikingc.matrixsdk.api.userdata;
     exports io.github.hikingc.matrixsdk.api.auth;
     exports io.github.hikingc.matrixsdk.api.filters;
-    // Common exceptions
+
+    // Exceptions
     exports io.github.hikingc.matrixsdk.exceptions;
 }

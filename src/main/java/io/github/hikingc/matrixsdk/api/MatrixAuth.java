@@ -1,6 +1,8 @@
 package io.github.hikingc.matrixsdk.api;
 
-import com.sun.net.httpserver.HttpServer;
+import io.fusionauth.http.server.HTTPHandler;
+import io.fusionauth.http.server.HTTPListenerConfiguration;
+import io.fusionauth.http.server.HTTPServer;
 import io.github.hikingc.matrixsdk.api.auth.AuthMetadata;
 import io.github.hikingc.matrixsdk.api.auth.TokenMetadata;
 import io.github.hikingc.matrixsdk.api.auth.WhoAmI;
@@ -15,7 +17,7 @@ import tools.jackson.core.JacksonException;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -116,13 +118,17 @@ public class MatrixAuth implements Auth {
         map.put("grant_types", List.of("authorization_code", "refresh_token"));
         map.put("token_endpoint_auth_method", "none");
         map.put("application_type", "native");
-        map.put("client_uri", "https://github.com/1hiking/JavaMatrixLibrary");
+        map.put("client_uri", "https://github.com/hikingc/JavaMatrixLibrary");
         var mappedInput = Mapper.createObjectFromMap(map);
 
         // Send the payload using the aforementioned record obtained and get the client_id
         var responseBody = httpTransport.postEvent(metadata.registrationEndpoint(), mappedInput, null);
-        var clientId = Mapper.getStringFromSingleObject(responseBody, "client_id");
+        logger.info("Registration response: {}", responseBody);
 
+        var clientId = Mapper.getStringFromSingleObject(responseBody, "client_id");
+        if (clientId == null || clientId.isBlank()) {
+            throw new MatrixIOException("Dynamic client registration failed or returned no client_id. Response: " + responseBody);
+        }
 
         // We generate values
         String codeVerifier = generateCodeVerifier();
@@ -133,7 +139,7 @@ public class MatrixAuth implements Auth {
         Map<String, Object> mapAuth = new HashMap<>();
         mapAuth.put("client_id", clientId);
         mapAuth.put("response_type", "code");
-        mapAuth.put("response_mode", "query");
+        mapAuth.put("response_mode", "query"); // Could be fragment
         mapAuth.put("scope", scope);
         mapAuth.put("state", state);
         mapAuth.put("code_challenge", codeChallenge);
@@ -145,19 +151,14 @@ public class MatrixAuth implements Auth {
 
         CompletableFuture<String> authorizationCode = new CompletableFuture<>();
 
-        HttpServer server;
-        try {
-            server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        server.createContext("/callback", exchange -> {
-            String query = exchange.getRequestURI().getQuery();
+        // The http handler
+        HTTPHandler handler = (req, res) -> {
+            String query = req.getQueryString();
             String returnedState = extractQueryParam(query, "state");
             String code = extractQueryParam(query, "code");
             String error = extractQueryParam(query, "error");
 
+            // We validate that the state and code are received
             String responseBodyCallback;
             if (error != null) {
                 responseBodyCallback = "Authorization failed: " + error;
@@ -166,29 +167,35 @@ public class MatrixAuth implements Auth {
                 responseBodyCallback = "State mismatch; possible CSRF, aborting.";
                 authorizationCode.completeExceptionally(new IOException(responseBodyCallback));
             } else {
+                // If all went well
                 authorizationCode.complete(code);
                 responseBodyCallback = "Login complete. You can close this tab and return to the app.";
-
             }
 
+            // After that we set the status as 200 and continue down the happy path
             byte[] bytes = responseBodyCallback.getBytes(StandardCharsets.UTF_8);
-            exchange.sendResponseHeaders(200, bytes.length);
-            try (OutputStream os = exchange.getResponseBody()) {
+            res.setStatus(200);
+            res.setContentLength(bytes.length);
+            try (OutputStream os = res.getOutputStream()) {
                 os.write(bytes);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        });
-        server.start();
-
+        };
         String code;
-        try {
+        try (HTTPServer server = new HTTPServer()
+                .withHandler(handler)
+                .withListener(new HTTPListenerConfiguration(InetAddress.ofLiteral("127.0.0.1"), port))) {
+            server.start();
+
             logger.info("URI AUTH: {}", uriAuth);
             openBrowser(uriAuth);
-            code = awaitAuthorizationCode(authorizationCode);
-        } catch (IOException e) {
+            code = authorizationCode.get(5, TimeUnit.MINUTES); // timeout added per earlier note
+        } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
-        } finally {
-            server.stop(1);
         }
+
 
         String tokenRequestBody = "grant_type=authorization_code"
                 + "&code=" + URLEncoder.encode(code, StandardCharsets.UTF_8)
@@ -201,22 +208,6 @@ public class MatrixAuth implements Auth {
         return Mapper.getObjectFromString(tokenRes, TokenMetadata.class);
     }
 
-    /// Blocks until the loopback server's `/callback` handler completes the future,
-    /// converting interruption and callback failure into the SDK's own exception hierarchy.
-    private String awaitAuthorizationCode(CompletableFuture<String> authorizationCode) {
-        try {
-            return authorizationCode.get(5, TimeUnit.MINUTES); // time out if the user does not proceed, for example if the user closes the website.
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new MatrixIOException(
-                    "Login was interrupted while waiting for the authorization callback", e);
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            throw new MatrixIOException("Authorization callback failed", cause);
-        } catch (TimeoutException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private String generateCodeVerifier() {
         byte[] randomBytes = new byte[32];
