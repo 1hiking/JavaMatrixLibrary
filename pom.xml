@@ -7,22 +7,36 @@
     <groupId>io.github.hikingc</groupId>
     <artifactId>java-matrix-sdk</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>This library permits communication with Matrix compliant servers.</description>
+    <url>https://github.com/hikingc/JavaMatrixLibrary</url>
+
     <licenses>
         <license>
             <name>Apache-2.0</name>
             <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>J. C.</name>
+            <email>73438877+1hiking@users.noreply.github.com</email>
+            <organizationUrl>https://github.com/hikingc</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/hikingc/JavaMatrixClient.git</connection>
+        <developerConnection>scm:git:ssh://github.com/hikingc/JavaMatrixClient.git</developerConnection>
+        <url>https://github.com/hikingc/JavaMatrixClient/tree/main</url>
+    </scm>
+
     <properties>
         <maven.compiler.release>23</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <scm>
-        <connection>scm:git:git://github.com/1hiking/JavaMatrixClient.git</connection>
-        <developerConnection>scm:git:ssh://github.com/1hiking/JavaMatrixClient.git</developerConnection>
-        <url>https://github.com/1hiking/JavaMatrixClient/tree/main</url>
-    </scm>
 
     <dependencies>
         <dependency>
@@ -74,15 +88,28 @@
 
     </dependencies>
 
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Generates <artifactId>-<version>-javadoc.jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.6.3</version>
-                <configuration>
-                    <release>${maven.compiler.release}</release>
-                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
