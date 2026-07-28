@@ -56,6 +56,10 @@ To run the test suite:
 ```bash
 ./mvnw test
 ```
+> [!NOTE]
+> When using IntelliJ, JUnit might throw `IllegalAccessError`, 
+> fix this by either checking "Do not use --module-path option" or configuring Maven as the
+> test runner.
 
 ## Dependencies
 
