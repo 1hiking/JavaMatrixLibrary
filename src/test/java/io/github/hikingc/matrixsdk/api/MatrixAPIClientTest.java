@@ -1,9 +1,8 @@
-package io.github.hikingc.api;
+package io.github.hikingc.matrixsdk.api;
 
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import io.github.hikingc.matrixsdk.api.MatrixClient;
 import io.github.hikingc.matrixsdk.context.DiscoveryResponse;
 import org.instancio.junit.Given;
 import org.instancio.junit.InstancioExtension;

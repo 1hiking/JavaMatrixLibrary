@@ -1,4 +1,4 @@
-package io.github.hikingc.services.events;
+package io.github.hikingc.matrixsdk.services.events;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;

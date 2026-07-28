@@ -1,6 +1,5 @@
-package io.github.hikingc.api.identifiers;
+package io.github.hikingc.matrixsdk.api.identifiers;
 
-import io.github.hikingc.matrixsdk.api.identifiers.RoomAlias;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
@@ -14,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class RoomAliasTest {
 
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] \"{0}\"")
     @ValueSource(strings = {
             "#general:example.org",
             "#General:example.org",
@@ -31,10 +30,10 @@ class RoomAliasTest {
             "#general:127.0.0.1"
     })
     void withValidStrings_ReturnRoomAlias(String alias) {
-        assertDoesNotThrow(() -> RoomAlias.parse(alias));
+        assertDoesNotThrow(() -> RoomAlias.parse(alias), "Exception not expected for input: " + alias);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] \"{0}\"")
     @ValueSource(strings = {
             "general:example.org",     // missing leading sigil
             "!general:example.org",    // wrong sigil (id, not alias)
@@ -51,7 +50,7 @@ class RoomAliasTest {
             "#"
     })
     void withInvalidStrings_ThrowsException(String alias) {
-        assertThrows(IllegalArgumentException.class, () -> RoomAlias.parse(alias));
+        assertThrows(IllegalArgumentException.class, () -> RoomAlias.parse(alias), "Exception expected for input:" + alias);
     }
 
     @ParameterizedTest

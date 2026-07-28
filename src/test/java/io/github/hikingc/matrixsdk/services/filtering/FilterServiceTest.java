@@ -1,4 +1,4 @@
-package io.github.hikingc.services.filtering;
+package io.github.hikingc.matrixsdk.services.filtering;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;

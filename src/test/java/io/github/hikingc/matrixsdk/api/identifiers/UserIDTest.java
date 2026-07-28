@@ -1,6 +1,5 @@
-package io.github.hikingc.api.identifiers;
+package io.github.hikingc.matrixsdk.api.identifiers;
 
-import io.github.hikingc.matrixsdk.api.identifiers.UserID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
@@ -35,7 +34,7 @@ class UserIDTest {
             "@example:127.0.0.1:8448"
     })
     void withValidStrings_ReturnUserID(String userId) {
-        assertDoesNotThrow(() -> UserID.parse(userId));
+        assertDoesNotThrow(() -> UserID.parse(userId), "Exception not expected for input: " + userId);
     }
 
     @ParameterizedTest
@@ -58,7 +57,7 @@ class UserIDTest {
             "@"                           // sigil only
     })
     void withInvalidStrings_ThrowsException(String userId) {
-        assertThrows(IllegalArgumentException.class, () -> UserID.parse(userId));
+        assertThrows(IllegalArgumentException.class, () -> UserID.parse(userId), "Exception expected for input:" + userId);
     }
 
     @ParameterizedTest

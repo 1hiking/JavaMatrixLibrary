@@ -1,6 +1,5 @@
-package io.github.hikingc.api.identifiers;
+package io.github.hikingc.matrixsdk.api.identifiers;
 
-import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
@@ -28,7 +27,7 @@ class RoomIDTest {
             "!abc123:127.0.0.1"
     })
     void withValidStrings_ReturnRoomID(String roomId) {
-        assertDoesNotThrow(() -> RoomID.parse(roomId));
+        assertDoesNotThrow(() -> RoomID.parse(roomId), "Exception not expected for input: " + roomId);
     }
 
     @ParameterizedTest
@@ -48,7 +47,7 @@ class RoomIDTest {
             "!"
     })
     void withInvalidStrings_ThrowsException(String roomId) {
-        assertThrows(IllegalArgumentException.class, () -> RoomID.parse(roomId));
+        assertThrows(IllegalArgumentException.class, () -> RoomID.parse(roomId), "Exception expected for input:" + roomId);
     }
 
     @ParameterizedTest

@@ -1,4 +1,4 @@
-package io.github.hikingc.services.userdata;
+package io.github.hikingc.matrixsdk.services.userdata;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
