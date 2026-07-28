@@ -34,6 +34,10 @@ public final class UserID implements Validator {
 
         Validator.validateSigilId(rawUserId, '@', "User ID", false);
 
+        if (rawUserId.chars().anyMatch(Character::isUpperCase)) {
+            throw new IllegalArgumentException("User ID cannot have uppercase symbols: " + rawUserId);
+        }
+
         int colonIdx = rawUserId.indexOf(':');
         if (colonIdx == -1) {
             throw new IllegalArgumentException("User ID missing domain: " + rawUserId);

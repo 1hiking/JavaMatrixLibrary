@@ -33,7 +33,7 @@ public final class RoomID implements Validator {
     public static RoomID parse(String rawRoomId) {
         Objects.requireNonNull(rawRoomId, "Room ID" + " must not be null");
 
-        Validator.validateSigilId(rawRoomId, '!', "Room ID", true);
+        Validator.validateSigilId(rawRoomId, '!', "Room ID", false);
 
         int colonIdx = rawRoomId.indexOf(':');
         if (colonIdx == -1) {

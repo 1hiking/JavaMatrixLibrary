@@ -1,5 +1,7 @@
 package io.github.hikingc.matrixsdk.api.identifiers;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -25,27 +27,35 @@ public interface Validator {
                                 boolean restrictLocalpartToAlphanumeric) {
         Objects.requireNonNull(value, name + " must not be null");
 
+        if (value.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) {
+            throw new IllegalArgumentException(name + " exceeds " + MAX_BYTES + " bytes");
+        }
+
         if (value.isEmpty()) {
             throw new IllegalArgumentException(name + " must not be empty");
         }
+
         if (value.charAt(0) != sigil) {
             throw new IllegalArgumentException(name + " must start with '" + sigil + "'");
         }
+
         int firstColon = value.indexOf(':');
         if (firstColon < 0) {
             throw new IllegalArgumentException(name + " must contain ':' separating opaqueId from server name");
         }
-        if (value.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) {
-            throw new IllegalArgumentException(name + " exceeds " + MAX_BYTES + " bytes");
+
+        // Check if we have strings with nothing between the sigil and the :
+        if (value.indexOf(sigil) + 1 == firstColon) {
+            throw new IllegalArgumentException(name + " must not have an empty opaqueId");
         }
+
 
         Validator.validateCodePoints(value, name);
 
         String localPart = value.substring(1, firstColon);
         String serverName = value.substring(firstColon + 1);
-
-        if (serverName.isEmpty()) {
-            throw new IllegalArgumentException(name + " must contain a non-empty server name after ':'");
+        if (!validateDomain(serverName)) {
+            throw new IllegalArgumentException(name + " must contain a valid server name after ':'");
         }
         if (restrictLocalpartToAlphanumeric && !localPart.matches("[a-zA-Z0-9]+")) {
             throw new IllegalArgumentException(name + " opaqueId should only contain alphanumeric characters");
@@ -70,8 +80,44 @@ public interface Validator {
             }
             if (Character.isWhitespace(cp)) {
                 throw new IllegalArgumentException(
-                        "%s contains whitespace: U+%04X".formatted(name, cp));
+                        "%s contains whitespace.".formatted(name));
             }
         });
     }
+
+    /// Dirty check to ensure the servername is valid
+    ///
+    /// @param serverName an IPv4, IPv6, or valid hostname (with or without a port).
+    /// @return whether if it's a valid domain based on [URI] rules
+    static boolean validateDomain(String serverName) {
+        if (serverName == null || serverName.isBlank()) {
+            return false;
+        }
+
+        try {
+            URI uri = new URI("scheme://" + serverName);
+
+            String host = uri.getHost();
+            int port = uri.getPort();
+
+            if (host == null) {
+                return false;
+            }
+
+            // No extra paths, queries or fragments
+            if (uri.getPath() != null && !uri.getPath().isEmpty()) return false;
+            if (uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null) return false;
+
+            // Ensure port it's in valid range 1-65535
+            if (serverName.contains(":") && !host.startsWith("[")) {
+                // Handle non-IPv6 port check
+                return port == -1 || (port >= 1 && port <= 65535);
+            }
+
+            return true;
+        } catch (URISyntaxException _) {
+            return false;
+        }
+    }
+
 }
