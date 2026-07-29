@@ -8,6 +8,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
@@ -56,6 +57,24 @@ public class Mapper {
             throw new MatrixIOException("Expected '%s' to be a string, was %s".formatted(key, tree.getNodeType()));
         }
         return tree.get(key).stringValue();
+    }
+
+    /// Attempts to extract a key value from a deserialized JSON Object as a [ArrayNode].
+    /// Useful for dealing with iteration of [Object]s.
+    ///
+    /// @param json a JSON [String].
+    /// @param key  the key of the JSON Object.
+    /// @return the corresponding value.
+    public static ArrayNode getArrayFromAJsonKey(String json, String key) {
+        JsonNode tree = INSTANCE.readTree(json);
+        JsonNode value = tree.get(key);
+        if (value == null || value.isMissingNode()) {
+            throw new MatrixIOException("Missing '%s' in server response".formatted(key));
+        }
+        if (!value.isArray()) {
+            throw new MatrixIOException("Expected '%s' to be an Array, was %s".formatted(key, value.getNodeType()));
+        }
+        return value.asArray();
     }
 
     /// Produces a JSON [String] from a map of key values, used for input bodies that don't have a configured record class.
