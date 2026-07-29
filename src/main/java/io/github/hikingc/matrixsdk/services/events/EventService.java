@@ -66,8 +66,6 @@ public class EventService implements Event {
 
     @Override
     public List<ClientEvent> getStateEvents(RoomID roomId) {
-
-
         String response = httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/state"),
                 context.token());
 
