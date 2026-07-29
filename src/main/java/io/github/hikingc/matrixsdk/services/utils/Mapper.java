@@ -108,8 +108,8 @@ public class Mapper {
     ///
     /// @param responseBody the raw JSON string returned by the Matrix API
     /// @param type         the target class to deserialize into
-    /// @param <T>          the class type to deserialize into
-    /// @return the deserialized object
+    /// @param <T>          the [Class] type to deserialize into
+    /// @return the deserialized [Object]
     /// @throws MatrixIOException if the JSON cannot be parsed into the target type
     public static <T> T getObjectFromString(String responseBody, Class<T> type) {
         if (responseBody == null || type == null) {
@@ -124,6 +124,13 @@ public class Mapper {
         }
     }
 
+    /// Deserializes a JSON response body into an instance of a class based on a [TypeReference].
+    ///
+    /// @param responseBody the raw JSON string returned by the Matrix API
+    /// @param type         a [TypeReference]
+    /// @param <T>          the [Class] type to deserialize into
+    /// @return the deserialized [Object]
+    /// @throws MatrixIOException if the JSON cannot be parsed into the target type
     public static <T> T getObjectFromString(String responseBody, TypeReference<T> type) {
         if (responseBody == null || type == null) {
             throw new IllegalArgumentException("responseBody and type must not be null");
