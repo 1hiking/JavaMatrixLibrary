@@ -36,7 +36,7 @@ public class FilterService implements Filter {
                 serializedInputData,
                 context.token());
 
-        return Mapper.getStringFromSingleObject(responseBody, "filter_id");
+        return Mapper.getStringValueOfAJsonKey(responseBody, "filter_id");
     }
 
     @Override

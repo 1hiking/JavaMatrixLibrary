@@ -61,7 +61,7 @@ public class UserDataService implements UserData {
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),
                 context.token());
 
-        return Mapper.getStringFromSingleObject(responseBody, keyName);
+        return Mapper.getStringValueOfAJsonKey(responseBody, keyName);
     }
 
     @Override

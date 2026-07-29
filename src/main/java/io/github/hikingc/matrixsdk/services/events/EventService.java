@@ -31,7 +31,7 @@ public class EventService implements Event {
 
     @Override
     public ClientEvent getEvent(RoomID roomId, String eventId) {
-        Objects.requireNonNull(eventId, "The event ID" + " must not be null");
+        Objects.requireNonNull(eventId, "The event ID must not be null");
         String response = httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/event/" + eventId), context.token());
 
         return Mapper.getObjectFromString(response, ClientEvent.class);
@@ -55,10 +55,9 @@ public class EventService implements Event {
 
         String response = httpTransport.getEvent(uri, context.token());
         // We can skip the chunk parent
-        var chunk = Mapper.getStringFromSingleObject(response, "chunk");
-        JsonNode list = objectMapper.readTree(chunk);
+        var chunk = Mapper.getArrayFromAJsonKey(response, "chunk");
         List<ClientEvent> clients = new ArrayList<>();
-        for (JsonNode client : list) {
+        for (JsonNode client : chunk) {
             clients.add(Mapper.getObjectFromString(client.toString(), ClientEvent.class));
         }
         return clients;
@@ -135,7 +134,7 @@ public class EventService implements Event {
 
         URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(), ROOM_ENDPOINT + roomId + "/state/" + eventType + "/" + stateKey, null);
         String response = httpTransport.putEvent(uri, jsonPayload, context.token());
-        return Mapper.getStringFromSingleObject(response, "event_id");
+        return Mapper.getStringValueOfAJsonKey(response, "event_id");
     }
 
     @Override
@@ -150,7 +149,7 @@ public class EventService implements Event {
 
         URI uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(), ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID(), null);
         String response = httpTransport.putEvent(uri, jsonPayload, context.token());
-        return Mapper.getStringFromSingleObject(response, "event_id");
+        return Mapper.getStringValueOfAJsonKey(response, "event_id");
 
     }
 
@@ -165,7 +164,7 @@ public class EventService implements Event {
         String response = httpTransport.putEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/redact/" + eventId + "/" + txnId),
                 json, context.token());
-        return Mapper.getStringFromSingleObject(response, "event_id");
+        return Mapper.getStringValueOfAJsonKey(response, "event_id");
     }
 
 
@@ -175,7 +174,7 @@ public class EventService implements Event {
     private String createAndReserveMXC() throws JacksonException {
         String queryResponse = httpTransport.postEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" + "/media/v1/create"), null, this.context.token());
 
-        return Mapper.getStringFromSingleObject(queryResponse, "content_uri");
+        return Mapper.getStringValueOfAJsonKey(queryResponse, "content_uri");
     }
 
     @Override

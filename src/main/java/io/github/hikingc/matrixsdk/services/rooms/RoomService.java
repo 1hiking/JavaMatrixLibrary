@@ -71,7 +71,7 @@ public class RoomService implements Room {
                                     "/_matrix/client/v3/createRoom"),
                             jsonPayload, context.token());
 
-            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
+            return Mapper.getStringValueOfAJsonKey(responseBody, ROOM_ID);
 
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
@@ -169,7 +169,7 @@ public class RoomService implements Room {
                     httpTransport.postEvent(uri,
                             serializedInputData,
                             context.token());
-            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
+            return Mapper.getStringValueOfAJsonKey(responseBody, ROOM_ID);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -187,7 +187,7 @@ public class RoomService implements Room {
                     httpTransport.postEvent(uri,
                             serializedInputData,
                             context.token());
-            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
+            return Mapper.getStringValueOfAJsonKey(responseBody, ROOM_ID);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -207,7 +207,7 @@ public class RoomService implements Room {
         String responseBody = httpTransport.postEvent(uri, Mapper.createObjectFromMap(map),
                 context.token());
         try {
-            return Mapper.getStringFromSingleObject(responseBody, ROOM_ID);
+            return Mapper.getStringValueOfAJsonKey(responseBody, ROOM_ID);
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }
@@ -278,7 +278,7 @@ public class RoomService implements Room {
             var responseBody = httpTransport.getEvent(
                     URI.create(context.discoveryResponse().homeserver().baseUrl() + DIRECTORY_ENDPOINT + roomId),
                     null);
-            return Mapper.getStringFromSingleObject(responseBody, "visibility");
+            return Mapper.getStringValueOfAJsonKey(responseBody, "visibility");
         } catch (JacksonException e) {
             throw new MatrixIOException("Failed to parse Matrix response JSON ", e);
         }

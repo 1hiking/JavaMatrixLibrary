@@ -41,15 +41,19 @@ public class Mapper {
                 .build();
     }
 
-    /// Extracts a single key value from a deserialized JSON Object. Useful for dealing with simple response types.
+    /// Attempts to extract a key value from a deserialized JSON Object as a [String].
+    /// Useful for dealing with simple [String] responses.
     ///
     /// @param json a JSON [String].
     /// @param key  the key of the JSON Object.
     /// @return the corresponding value.
-    public static String getStringFromSingleObject(String json, String key) {
+    public static String getStringValueOfAJsonKey(String json, String key) {
         JsonNode tree = INSTANCE.readTree(json);
-        if (tree.isMissingNode()) {
-            throw new MatrixIOException("Missing '%s' in server response ".formatted(key));
+        if (tree == null || tree.isMissingNode()) {
+            throw new MatrixIOException("Missing '%s' in server response".formatted(key));
+        }
+        if (!tree.isString()) {
+            throw new MatrixIOException("Expected '%s' to be a string, was %s".formatted(key, tree.getNodeType()));
         }
         return tree.get(key).stringValue();
     }
