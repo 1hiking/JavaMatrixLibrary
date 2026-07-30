@@ -53,9 +53,7 @@ public class Mapper {
         if (tree == null || tree.isMissingNode()) {
             throw new MatrixIOException("Missing '%s' in server response".formatted(key));
         }
-        if (!tree.isString()) {
-            throw new MatrixIOException("Expected '%s' to be a string, was %s".formatted(key, tree.getNodeType()));
-        }
+
         return tree.get(key).stringValue();
     }
 
