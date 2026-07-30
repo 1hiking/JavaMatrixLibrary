@@ -57,13 +57,15 @@ public class Mapper {
         return tree.get(key).stringValue();
     }
 
-    /// Attempts to extract a key value from a deserialized JSON Object as a [ArrayNode].
+    /// Attempts to extract a key value from a deserialized JSON Object to a [List].
     /// Useful for dealing with iteration of [Object]s.
     ///
-    /// @param json a JSON [String].
-    /// @param key  the key of the JSON Object.
-    /// @return the corresponding value.
-    public static ArrayNode getArrayFromAJsonKey(String json, String key) {
+    /// @param json        a JSON [String].
+    /// @param key         the key of the JSON Object.
+    /// @param elementType the [Class] to deserialize each element into.
+    /// @param <T>         the type to deserialize each element into
+    /// @return the deserialized [List] of values for the given key
+    public static <T> List<T> getListFromAJsonKey(String json, String key, Class<T> elementType) {
         JsonNode tree = INSTANCE.readTree(json);
         JsonNode value = tree.get(key);
         if (value == null || value.isMissingNode()) {
@@ -72,7 +74,8 @@ public class Mapper {
         if (!value.isArray()) {
             throw new MatrixIOException("Expected '%s' to be an Array, was %s".formatted(key, value.getNodeType()));
         }
-        return value.asArray();
+        JavaType listType = INSTANCE.getTypeFactory().constructCollectionType(List.class, elementType);
+        return INSTANCE.convertValue(value, listType);
     }
 
     /// Produces a JSON [String] from a map of key values, used for input bodies that don't have a configured record class.
