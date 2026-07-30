@@ -9,7 +9,6 @@ import io.github.hikingc.matrixsdk.services.utils.HttpTransport;
 import io.github.hikingc.matrixsdk.services.utils.Mapper;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -54,14 +53,9 @@ public class EventService implements Event {
                 ROOM_ENDPOINT + roomId + "/members", args);
 
         String response = httpTransport.getEvent(uri, context.token());
-        // We can skip the chunk parent
-        var chunk = Mapper.getArrayFromAJsonKey(response, "chunk");
-        List<ClientEvent> clients = new ArrayList<>();
-        for (JsonNode client : chunk) {
-            clients.add(Mapper.getObjectFromString(client.toString(), ClientEvent.class));
-        }
-        return clients;
-
+        // We can skip the chunk parent, we don't use ObjectFromString because it is NOT a raw Array as detailed
+        // on the spec.
+        return Mapper.getListFromAJsonKey(response, "chunk", ClientEvent.class);
     }
 
     @Override
