@@ -89,7 +89,7 @@ public record Sync(AccountData accountData,
         public record JoinedRoom(AccountData accountData,
                                  Ephemeral ephemeral,
                                  State state,
-                                 @JsonProperty(required = true) State stateAfter,
+                                 State stateAfter, // This is required only if the use_state_after is set
                                  RoomSummary summary,
                                  Timeline timeline,
                                  UnreadNotificationCounts unreadNotifications,
