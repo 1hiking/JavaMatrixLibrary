@@ -116,7 +116,7 @@ public class EventService implements Event {
     @Override
     public RoomInfo getInitialSync(RoomID roomId) {
 
-        String response = httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + roomId + "/initialSync"), context.token());
+        String response = httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/initialSync"), context.token());
         return Mapper.getObjectFromString(response, RoomInfo.class);
     }
 
