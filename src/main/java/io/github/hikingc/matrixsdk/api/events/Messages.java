@@ -3,7 +3,7 @@ package io.github.hikingc.matrixsdk.api.events;
 
 import java.util.List;
 
-/// Represents a list of messages and state events from a room.
+/// Holds a list of messages and state events from a room.
 ///
 /// @param start a token corresponding to the start of chunk. This will be the same as the value given in `from`.
 /// @param end   a token corresponding to the end of chunk. This token can be passed back to this endpoint to request

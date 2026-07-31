@@ -2,6 +2,7 @@ package io.github.hikingc.matrixsdk.api.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.hikingc.matrixsdk.api.Room;
+import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.api.rooms.PublicRoomRequest;
 
 import java.util.List;
@@ -37,9 +38,9 @@ public record RoomInfo(List<Event> accountData,
     /// @param chunk if the user is a member of the room this will be a [List] of the most recent messages for this room, otherwise
     /// if the user has left the room then the messages that preceded them before leaving. This array will consist of at most `limit` elements.
     /// @param end   a token which correlates to the end of `chunk`.
-    /// Can be used in [io.github.hikingc.matrixsdk.api.Event#getMessages(String, ChronologicalDirection, QueryParametersMessages)] to retrieve later events.
+    /// Can be used in [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection, QueryParametersMessages)] to retrieve later events.
     /// @param start a token which correlates to the start of `chunk`.
-    /// Can be used in [io.github.hikingc.matrixsdk.api.Event#getMessages(String, ChronologicalDirection, QueryParametersMessages)] to retrieve earlier events.
+    /// Can be used in [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection, QueryParametersMessages)] to retrieve earlier events.
     public record PaginationChunk(@JsonProperty(required = true) List<ClientEvent> chunk,
                                   @JsonProperty(required = true) String end,
                                   String start) {
