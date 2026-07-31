@@ -26,6 +26,6 @@ public interface RoomStateEvent<T> {
 
     String type();
 
-    List<Map<String, Object>> unsigned(); //TODO WRONG
+    UnsignedData unsigned();
 
 }

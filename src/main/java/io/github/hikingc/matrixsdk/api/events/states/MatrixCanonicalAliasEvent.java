@@ -1,9 +1,7 @@
 package io.github.hikingc.matrixsdk.api.events.states;
 
 import io.github.hikingc.matrixsdk.api.events.RoomStateEvent;
-
-import java.util.List;
-import java.util.Map;
+import io.github.hikingc.matrixsdk.api.events.UnsignedData;
 
 
 public record MatrixCanonicalAliasEvent(
@@ -12,7 +10,7 @@ public record MatrixCanonicalAliasEvent(
         Long originServerTs,
         String roomId,
         String sender,
-        List<Map<String, Object>> unsigned
+        UnsignedData unsigned
 ) implements RoomStateEvent<MatrixCanonicalAliasContent> {
 
     @Override
