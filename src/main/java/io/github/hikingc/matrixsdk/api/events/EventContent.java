@@ -22,7 +22,7 @@ public record EventContent(URI avatarUrl,
                            String displayName, // can be null
                            Boolean isDirect,
                            String joinAuthorizedViaUsersServer,
-                           @JsonProperty(required = true) String membership,
+                           String membership, // Some payloads aren't guaranteed to send this...?
                            String reason,
                            ThirdPartyInvite thirdPartyInvite) {
 

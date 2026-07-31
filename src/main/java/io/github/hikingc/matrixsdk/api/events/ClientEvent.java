@@ -6,6 +6,7 @@ import java.util.Map;
 
 
 /// Represents the format used for event retrieval.
+/// This record holds `content` in a [Map] and does **NOT** make any assumptions over what deserialized type it might be.
 ///
 /// @param content        the body of this event, as created by the user which sent it.
 /// @param eventId        the globally unique identifier for this event.
@@ -29,5 +30,5 @@ public record ClientEvent(@JsonProperty(required = true) Map<String, Object> con
                           String stateKey,
                           @JsonProperty(required = true) String type,
                           UnsignedData unsigned
-) {
+) implements RoomStateEvent<Map<String, Object>> {
 }

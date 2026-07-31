@@ -251,7 +251,8 @@ class EventServiceTest {
     void getStateEventsOverride_WithACorrectPaYload_thenReturnAListOfClientEvent() {
         final String EVENT_TYPE = "EVENT_TYPE";
         final String STATE_KEY = "STATE_KEY";
-        stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/state/" + EVENT_TYPE + "/" + STATE_KEY)
+        stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/state/" + EVENT_TYPE + "/" + STATE_KEY))
+                .withQueryParam("format", equalTo("event"))
                 .willReturn(okJson("""
                         {
                           "type": "m.room.name",
@@ -272,8 +273,11 @@ class EventServiceTest {
                           }
                         }
                         """)));
-        var response = client.events().getStateEvents(ROOM_ID, EVENT_TYPE, STATE_KEY, Format.CONTENT);
+        var response = client.events().getStateEvent(ROOM_ID, EVENT_TYPE, STATE_KEY);
         assertThat(response).isNotNull();
+        assertThat(response.eventId()).isEqualTo("$143273582443PhrSn:example.org");
+        assertThat(response.sender()).isEqualTo("@alice:example.org");
+        assertThat(response.unsigned().age()).isEqualTo(1234);
     }
 
     @Test

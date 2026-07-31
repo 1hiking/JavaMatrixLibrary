@@ -51,9 +51,8 @@ public interface Event {
     /// @param roomId    the room ID to fetch data from.
     /// @param eventType the type of state to look up.
     /// @param stateKey  the room to look up the state in.
-    /// @param format    the key of the state to look up. Defaults to an empty string. When an empty string, the trailing slash on this endpoint is optional.
-    /// @return the content of the state event, or the entire client-formatted event if `format` as [Format#EVENT] was used.
-    List<ClientEvent> getStateEvents(RoomID roomId, String eventType, String stateKey, Format format);
+    /// @return the content of the event, including all additional metadata fields.
+    ClientEvent getStateEvent(RoomID roomId, String eventType, String stateKey);
 
     /// Returns a list of message and state events for a room. It uses pagination query parameters to paginate
     /// history in the room.

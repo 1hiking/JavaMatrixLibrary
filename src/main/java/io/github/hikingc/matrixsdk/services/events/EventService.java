@@ -68,16 +68,15 @@ public class EventService implements Event {
     }
 
     @Override
-    public List<ClientEvent> getStateEvents(RoomID roomId, String eventType, String stateKey, Format format) {
+    public ClientEvent getStateEvent(RoomID roomId, String eventType, String stateKey) {
 
         Map<String, Object> args = new HashMap<>();
-        args.put("format", format.getValue());
+        args.put("format", Format.EVENT.getValue()); //Hardcode this for now
         var uri = httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
                 ROOM_ENDPOINT + roomId + "/state/" + eventType + "/" + stateKey, args);
         String response = httpTransport.getEvent(uri, context.token());
 
-        return Mapper.getObjectFromString(response, new TypeReference<>() {
-        });
+        return Mapper.getObjectFromString(response, ClientEvent.class);
     }
 
     @Override
