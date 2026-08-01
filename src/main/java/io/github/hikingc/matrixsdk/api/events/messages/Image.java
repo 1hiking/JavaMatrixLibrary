@@ -1,7 +1,6 @@
 package io.github.hikingc.matrixsdk.api.events.messages;
 
 import io.github.hikingc.matrixsdk.api.events.EncryptedFile;
-import io.github.hikingc.matrixsdk.api.events.RoomMessageEvent;
 
 import java.net.URI;
 

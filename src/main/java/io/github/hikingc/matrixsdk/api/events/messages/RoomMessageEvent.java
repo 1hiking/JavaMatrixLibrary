@@ -1,8 +1,7 @@
-package io.github.hikingc.matrixsdk.api.events;
+package io.github.hikingc.matrixsdk.api.events.messages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.hikingc.matrixsdk.api.events.messages.*;
 
 /// Interface that enforces fields required by all `m.room.message` events.
 @JsonInclude(JsonInclude.Include.NON_ABSENT)

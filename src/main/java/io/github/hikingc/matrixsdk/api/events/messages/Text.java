@@ -1,7 +1,5 @@
 package io.github.hikingc.matrixsdk.api.events.messages;
 
-import io.github.hikingc.matrixsdk.api.events.RoomMessageEvent;
-
 /// The most basic message type, used to represent plain or formatted text.
 ///
 /// @param body          the plain-text body of the message
