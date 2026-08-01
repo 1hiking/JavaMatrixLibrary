@@ -34,7 +34,6 @@ public class Mapper {
     private static ObjectMapper buildMapper() {
         return JsonMapper.builder()
                 .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-                .findAndAddModules()
                 .build();
     }
 
