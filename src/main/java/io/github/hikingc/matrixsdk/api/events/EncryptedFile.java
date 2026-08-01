@@ -1,5 +1,7 @@
 package io.github.hikingc.matrixsdk.api.events;
 
+import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
+
 import java.util.Map;
 
 /// Holds information of an encrypted file as the extension to [RoomMessageEvent].

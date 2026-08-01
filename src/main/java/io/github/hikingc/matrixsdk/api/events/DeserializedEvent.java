@@ -1,0 +1,42 @@
+package io.github.hikingc.matrixsdk.api.events;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+
+/// Interface that enforces fields required by both State and Message events when the event is retrieved from the server.
+///
+/// @param <T> the event `m.` type
+/// @see <a href="https://spec.matrix.org/latest/client-server-api/#room-event-format">The room event format as defined in the specification.</a>
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
+public sealed interface DeserializedEvent<T> permits ClientEvent, SingletonStateEvent {
+
+    /// @return the body of this event, as created by the user which sent it.
+    T content();
+
+    /// @return the globally unique identifier for this event.
+    String eventId();
+
+
+    /// @return timestamp (in milliseconds since the Unix epoch) on originating homeserver when this event
+    /// was sent.
+    Long originServerTs();
+
+    /// @return the ID of the room associated with this event.
+    String roomId();
+
+    /// @return contains the fully-qualified ID of the user who sent this event.
+    String sender();
+
+    /// @return present if, and only if, this event is a state event. The key making this piece of state
+    /// unique in the room. Note that it is often an empty string.
+    /// State keys starting with an @ are reserved for referencing user IDs, such as room members. Except a few events,
+    /// state events set with a given user’s ID as the state key MUST only be set by that user.
+    String stateKey();
+
+    /// @return the type of the event.
+    String type();
+
+    /// @return optional extra information about the event.
+    UnsignedData unsigned();
+
+}

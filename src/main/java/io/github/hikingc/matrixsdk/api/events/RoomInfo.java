@@ -2,6 +2,7 @@ package io.github.hikingc.matrixsdk.api.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.hikingc.matrixsdk.api.Room;
+import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.api.rooms.PublicRoomRequest;
 
@@ -24,7 +25,7 @@ public record RoomInfo(List<Event> accountData,
                        List<ClientEvent> state,
                        String visibility) {
 
-    /// Holds a Matrix event, which can then be serialized as one of either [RoomStateEvent] or [RoomMessageEvent] for example.
+    /// Holds a Matrix event, which can then be serialized as one of either [DeserializedEvent] or [RoomMessageEvent] for example.
     ///
     /// @param content the fields of an event.
     /// @param type    the type of the event, for example, `m.tag`

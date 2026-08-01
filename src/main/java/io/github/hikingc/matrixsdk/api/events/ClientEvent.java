@@ -30,5 +30,5 @@ public record ClientEvent(@JsonProperty(required = true) Map<String, Object> con
                           String stateKey,
                           @JsonProperty(required = true) String type,
                           UnsignedData unsigned
-) implements RoomStateEvent<Map<String, Object>> {
+) implements DeserializedEvent<Map<String, Object>> {
 }

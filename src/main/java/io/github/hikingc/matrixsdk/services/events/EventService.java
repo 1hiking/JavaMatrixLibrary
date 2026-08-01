@@ -2,6 +2,7 @@ package io.github.hikingc.matrixsdk.services.events;
 
 import io.github.hikingc.matrixsdk.api.Event;
 import io.github.hikingc.matrixsdk.api.events.*;
+import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.context.ClientContext;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
@@ -114,7 +115,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public String sendStateEvent(RoomID roomId, String eventType, String stateKey, RoomStateEvent<?> matrixRoomMessageEvent) {
+    public String sendStateEvent(RoomID roomId, String eventType, String stateKey, DeserializedEvent<?> matrixRoomMessageEvent) {
 
         String jsonPayload;
         try {

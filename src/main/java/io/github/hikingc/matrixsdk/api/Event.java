@@ -1,6 +1,7 @@
 package io.github.hikingc.matrixsdk.api;
 
 import io.github.hikingc.matrixsdk.api.events.*;
+import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
 import io.github.hikingc.matrixsdk.exceptions.MatrixNetworkException;
@@ -97,7 +98,7 @@ public interface Event {
     /// **This cannot be undone.**
     ///
     /// If the server advertises support for sending a state event using `m.room.redact`,
-    /// use [#sendStateEvent(RoomID, String, String, RoomStateEvent)]
+    /// use [#sendStateEvent(RoomID, String, String, DeserializedEvent)]
     ///
     /// @param roomId  the room ID where to redact the event.
     /// @param eventId the event ID of the event to target and redact.

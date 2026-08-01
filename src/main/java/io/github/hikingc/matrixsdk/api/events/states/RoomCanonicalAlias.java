@@ -2,11 +2,11 @@ package io.github.hikingc.matrixsdk.api.events.states;
 
 import java.util.List;
 
-public record MatrixCanonicalAliasContent(
+public record RoomCanonicalAlias(
         String alias,
         List<String> altAliases
 ) {
-    public MatrixCanonicalAliasContent {
+    public RoomCanonicalAlias {
         altAliases = altAliases == null ? List.of() : List.copyOf(altAliases);
     }
 }
