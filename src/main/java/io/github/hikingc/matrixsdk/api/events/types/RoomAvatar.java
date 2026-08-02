@@ -1,7 +1,7 @@
 package io.github.hikingc.matrixsdk.api.events.types;
 
-import io.github.hikingc.matrixsdk.api.events.types.roommessages.HasInfo;
-import io.github.hikingc.matrixsdk.api.events.types.roommessages.ThumbnailInfo;
+import io.github.hikingc.matrixsdk.api.events.messages.HasInfo;
+import io.github.hikingc.matrixsdk.api.events.messages.ThumbnailInfo;
 
 import java.net.URI;
 

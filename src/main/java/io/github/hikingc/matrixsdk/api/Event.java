@@ -1,7 +1,7 @@
 package io.github.hikingc.matrixsdk.api;
 
 import io.github.hikingc.matrixsdk.api.events.*;
-import io.github.hikingc.matrixsdk.api.events.RoomMessageEvent;
+import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
 import io.github.hikingc.matrixsdk.api.events.types.RoomMemberEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
