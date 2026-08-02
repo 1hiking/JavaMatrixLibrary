@@ -4,8 +4,9 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.github.hikingc.matrixsdk.api.MatrixClient;
 import io.github.hikingc.matrixsdk.api.events.*;
-import io.github.hikingc.matrixsdk.api.events.messages.File;
-import io.github.hikingc.matrixsdk.api.events.messages.Text;
+import io.github.hikingc.matrixsdk.api.events.types.roommessages.File;
+import io.github.hikingc.matrixsdk.api.events.RoomMessageEvent;
+import io.github.hikingc.matrixsdk.api.events.types.roommessages.Text;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.context.DiscoveryResponse;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,7 +58,7 @@ class EventServiceTest {
         String mediaId = "fakeMediaId123";
         URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
 
-        Path tempFile = tempDir.resolve("file.txt");
+        Path tempFile = tempDir.resolve("fileContent.txt");
         Files.writeString(tempFile, "Test");
         return new Result(ROOM_ID, roomMessageType, expectedEventId, serverName, mediaId, mockMxcUri, tempFile);
     }
@@ -85,7 +87,7 @@ class EventServiceTest {
                         }
                         """)));
 
-        ClientEvent response = client.events().getEvent(ROOM_ID, eventId);
+        var response = client.events().getEvent(ROOM_ID, eventId);
         assertThat(response).isNotNull();
         assertThat(response.eventId()).isEqualTo(eventId);
     }
@@ -143,7 +145,7 @@ class EventServiceTest {
                         }
                         
                         """)));
-        List<ClientEvent> response = client.events().getMembers(ROOM_ID, TOKEN, Membership.JOIN, Membership.JOIN);
+        var response = client.events().getMembers(ROOM_ID, TOKEN, Membership.JOIN, Membership.JOIN);
         assertThat(response).isNotNull();
         assertThat(response).hasSize(1);
         assertThat(response.getFirst().eventId()).isEqualTo("$143273582443PhrSn:example.org");
@@ -388,7 +390,7 @@ class EventServiceTest {
                                     "mimetype": "application/msword",
                                     "size": 46144
                                   },
-                                  "msgtype": "m.file",
+                                  "msgtype": "m.fileContent",
                                   "url": "mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"
                                 },
                                 "event_id": "$143273582443PhrSn:example.org",
@@ -510,7 +512,7 @@ class EventServiceTest {
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
 
-        stubFor(put(urlEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/send/" + roomMessageType + "/[^/]+"))
+        stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + ROOM_ID + "/send/" + roomMessageType + "/[^/]+"))
                 .withRequestBody(equalToJson("""
                         {
                             "body": "Hello World",
@@ -569,8 +571,7 @@ class EventServiceTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ malformed json : [")));
 
-
-        assertThrows(MatrixIOException.class, () -> client.events().uploadResource(result.tempFile));
+        assertThatThrownBy(() ->client.events().uploadResource(result.tempFile)).isInstanceOf(MatrixIOException.class);
     }
 
     @Test

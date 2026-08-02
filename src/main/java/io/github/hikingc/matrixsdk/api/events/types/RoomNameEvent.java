@@ -1,4 +1,4 @@
-package io.github.hikingc.matrixsdk.api.events.states;
+package io.github.hikingc.matrixsdk.api.events.types;
 
 import io.github.hikingc.matrixsdk.api.events.SingletonStateEvent;
 import io.github.hikingc.matrixsdk.api.events.UnsignedData;

@@ -13,7 +13,7 @@ import java.util.List;
 ///  the filter then this may contain the membership events for the senders of events in the chunk.
 public record Messages(String start,
                        String end,
-                       List<ClientEvent> chunk,
-                       List<ClientEvent> state) {
+                       List<DeserializedEvent<?>> chunk,
+                       List<DeserializedEvent<?>> state) {
 
 }

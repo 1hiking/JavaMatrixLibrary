@@ -2,7 +2,8 @@ package io.github.hikingc.matrixsdk.services.events;
 
 import io.github.hikingc.matrixsdk.api.Event;
 import io.github.hikingc.matrixsdk.api.events.*;
-import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
+import io.github.hikingc.matrixsdk.api.events.RoomMessageEvent;
+import io.github.hikingc.matrixsdk.api.events.types.RoomMemberEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.context.ClientContext;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
@@ -30,11 +31,11 @@ public class EventService implements Event {
     }
 
     @Override
-    public ClientEvent getEvent(RoomID roomId, String eventId) {
+    public DeserializedEvent<?> getEvent(RoomID roomId, String eventId) {
         Objects.requireNonNull(eventId, "The event ID must not be null");
         String response = httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/event/" + eventId), context.token());
 
-        return Mapper.getObjectFromString(response, ClientEvent.class);
+        return Mapper.getObjectFromString(response, DeserializedEvent.class);
     }
 
     @Override
@@ -45,7 +46,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public List<ClientEvent> getMembers(RoomID roomId, String at, Membership membership, Membership notMembership) {
+    public List<RoomMemberEvent> getMembers(RoomID roomId, String at, Membership membership, Membership notMembership) {
         Map<String, Object> args = new HashMap<>();
         args.put("at", at);
         args.put("membership", membership.getValue());
@@ -56,11 +57,11 @@ public class EventService implements Event {
         String response = httpTransport.getEvent(uri, context.token());
         // We can skip the chunk parent, we don't use ObjectFromString because it is NOT a raw Array as detailed
         // on the spec.
-        return Mapper.getListFromAJsonKey(response, "chunk", ClientEvent.class);
+        return Mapper.getListFromAJsonKey(response, "chunk", RoomMemberEvent.class);
     }
 
     @Override
-    public List<ClientEvent> getStateEvents(RoomID roomId) {
+    public List<DeserializedEvent<?>> getStateEvents(RoomID roomId) {
         String response = httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + ROOM_ENDPOINT + roomId + "/state"),
                 context.token());
 
@@ -69,7 +70,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public ClientEvent getStateEvent(RoomID roomId, String eventType, String stateKey) {
+    public DeserializedEvent<?> getStateEvent(RoomID roomId, String eventType, String stateKey) {
 
         Map<String, Object> args = new HashMap<>();
         args.put("format", Format.EVENT.getValue()); //Hardcode this for now
@@ -77,7 +78,7 @@ public class EventService implements Event {
                 ROOM_ENDPOINT + roomId + "/state/" + eventType + "/" + stateKey, args);
         String response = httpTransport.getEvent(uri, context.token());
 
-        return Mapper.getObjectFromString(response, ClientEvent.class);
+        return Mapper.getObjectFromString(response, DeserializedEvent.class);
     }
 
     @Override

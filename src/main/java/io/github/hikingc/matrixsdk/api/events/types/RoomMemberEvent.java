@@ -1,16 +1,18 @@
-package io.github.hikingc.matrixsdk.api.events.states;
+package io.github.hikingc.matrixsdk.api.events.types;
 
 import io.github.hikingc.matrixsdk.api.events.SingletonStateEvent;
 import io.github.hikingc.matrixsdk.api.events.UnsignedData;
 
-public record RoomCreateEvent(RoomCreate content, String eventId,
+public record RoomMemberEvent(RoomMember content,
+                              String eventId,
                               Long originServerTs,
                               String roomId,
                               String sender,
-                              UnsignedData unsigned) implements SingletonStateEvent<RoomCreate> {
-    /// @return the type of the event.
+                              UnsignedData unsigned) implements SingletonStateEvent<RoomMember> {
+
     @Override
     public String type() {
-        return "m.room.create";
+        return "m.room.member";
     }
+
 }

@@ -1,14 +1,31 @@
 package io.github.hikingc.matrixsdk.api.events;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.github.hikingc.matrixsdk.api.events.types.*;
 
 /// Interface that enforces fields required by both State and Message events when the event is retrieved from the server.
 ///
 /// @param <T> the event `m.` type
 /// @see <a href="https://spec.matrix.org/latest/client-server-api/#room-event-format">The room event format as defined in the specification.</a>
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
-public sealed interface DeserializedEvent<T> permits ClientEvent, SingletonStateEvent {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = RoomCreateEvent.class, name = "m.room.create"),
+        @JsonSubTypes.Type(value = RoomMemberEvent.class, name = "m.room.member"),
+        @JsonSubTypes.Type(value = RoomPowerLevelsEvent.class, name = "m.room.power_levels"),
+        @JsonSubTypes.Type(value = RoomJoinRulesEvent.class, name = "m.room.join_rules"),
+        @JsonSubTypes.Type(value = RoomHistoryVisibilityEvent.class, name = "m.room.history_visibility"),
+        @JsonSubTypes.Type(value = RoomGuestAcessEvent.class, name = "m.room.guest_acess"),
+        @JsonSubTypes.Type(value = RoomNameEvent.class, name = "m.room.guest_access"),
+        @JsonSubTypes.Type(value = RoomNameEvent.class, name = "m.room.name"),
+        @JsonSubTypes.Type(value = RoomTopicEvent.class, name = "m.room.topic"),
+        @JsonSubTypes.Type(value = RoomAvatarEvent.class, name = "m.room.avatar"),
+        @JsonSubTypes.Type(value = RoomCanonicalAliasEvent.class, name = "m.room.canonical_alias"),
+        @JsonSubTypes.Type(value = RoomPinnedEventsEvent.class, name = "m.room.pinned_events"),
+})
+public sealed interface DeserializedEvent<T> permits SingletonStateEvent {
 
     /// @return the body of this event, as created by the user which sent it.
     T content();
@@ -40,3 +57,4 @@ public sealed interface DeserializedEvent<T> permits ClientEvent, SingletonState
     UnsignedData unsigned();
 
 }
+

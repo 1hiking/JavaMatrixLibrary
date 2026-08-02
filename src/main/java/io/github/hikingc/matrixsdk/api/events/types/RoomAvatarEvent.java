@@ -1,21 +1,20 @@
-package io.github.hikingc.matrixsdk.api.events.states;
+package io.github.hikingc.matrixsdk.api.events.types;
 
 import io.github.hikingc.matrixsdk.api.events.SingletonStateEvent;
 import io.github.hikingc.matrixsdk.api.events.UnsignedData;
 
-
-public record RoomJoinRulesEvent(
-        RoomJoinRules content,
+public record RoomAvatarEvent(
+        RoomAvatar content,
         String eventId,
         Long originServerTs,
         String roomId,
         String sender,
         UnsignedData unsigned
-) implements SingletonStateEvent<RoomJoinRules> {
+) implements SingletonStateEvent<RoomAvatar> {
 
 
     @Override
     public String type() {
-        return "m.room.join_rules";
+        return "m.room.avatar";
     }
 }

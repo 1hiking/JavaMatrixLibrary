@@ -1,21 +1,21 @@
-package io.github.hikingc.matrixsdk.api.events.states;
+package io.github.hikingc.matrixsdk.api.events.types;
 
 import io.github.hikingc.matrixsdk.api.events.SingletonStateEvent;
 import io.github.hikingc.matrixsdk.api.events.UnsignedData;
 
 
-public record RoomCanonicalAliasEvent(
-        RoomCanonicalAlias content,
+public record RoomJoinRulesEvent(
+        RoomJoinRules content,
         String eventId,
         Long originServerTs,
         String roomId,
         String sender,
         UnsignedData unsigned
-) implements SingletonStateEvent<RoomCanonicalAlias> {
+) implements SingletonStateEvent<RoomJoinRules> {
 
 
     @Override
     public String type() {
-        return "m.room.canonical_alias";
+        return "m.room.join_rules";
     }
 }

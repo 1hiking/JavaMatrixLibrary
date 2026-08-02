@@ -1,7 +1,8 @@
 package io.github.hikingc.matrixsdk.api;
 
 import io.github.hikingc.matrixsdk.api.events.*;
-import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
+import io.github.hikingc.matrixsdk.api.events.RoomMessageEvent;
+import io.github.hikingc.matrixsdk.api.events.types.RoomMemberEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
 import io.github.hikingc.matrixsdk.exceptions.MatrixNetworkException;
@@ -23,7 +24,7 @@ public interface Event {
     /// @param roomId  the room ID where the event is.
     /// @param eventId the event ID to retrieve.
     /// @return the full event.
-    ClientEvent getEvent(RoomID roomId, String eventId);
+    DeserializedEvent getEvent(RoomID roomId, String eventId);
 
     /// Returns currently-joined members
     ///
@@ -37,14 +38,14 @@ public interface Event {
     /// @param at            the point in time (pagination token) to return members for in the room. This token can be obtained from a `prev_batch` token returned for each room by the sync API.
     /// @param membership    the kind of membership to filter for. When specified alongside notMembership, the two parameters create an `or` condition
     /// @param notMembership the kind of membership to exclude from the results. Defaults to no filtering if unspecified.
-    /// @return a list of [ClientEvent]s with the membership information of room members.
-    List<ClientEvent> getMembers(RoomID roomId, String at, Membership membership, Membership notMembership);
+    /// @return a list of [DeserializedEvent]s with the membership information of room members.
+    List<RoomMemberEvent> getMembers(RoomID roomId, String at, Membership membership, Membership notMembership);
 
     /// Get the state events for the current state of a room.
     ///
     /// @param roomId the room ID to fetch data from.
     /// @return the current state of the room
-    List<ClientEvent> getStateEvents(RoomID roomId);
+    List<DeserializedEvent<?>> getStateEvents(RoomID roomId);
 
     /// Looks up the contents of a state event in a room. If the user is joined to the room then the state is taken from the current state of the room.
     /// If the user has left the room then the state is taken from the state of the room when they left.
@@ -53,7 +54,7 @@ public interface Event {
     /// @param eventType the type of state to look up.
     /// @param stateKey  the room to look up the state in.
     /// @return the content of the event, including all additional metadata fields.
-    ClientEvent getStateEvent(RoomID roomId, String eventType, String stateKey);
+    DeserializedEvent getStateEvent(RoomID roomId, String eventType, String stateKey);
 
     /// Returns a list of message and state events for a room. It uses pagination query parameters to paginate
     /// history in the room.
@@ -82,7 +83,9 @@ public interface Event {
     /// @return [RoomInfo] with current state of the room.
     RoomInfo getInitialSync(RoomID roomId);
 
-    String sendStateEvent(RoomID roomId, String eventType, String stateKey, RoomStateEvent<?> matrixRoomMessageEvent);
+    /// @deprecated Experimental API that will suffer changes. It is likely this method will be deprecated
+    @Deprecated(since = "2026-07-31")
+    String sendStateEvent(RoomID roomId, String eventType, String stateKey, DeserializedEvent<?> matrixRoomMessageEvent);
 
     /// Creates a `m.room.message` event to a Matrix room.
     ///

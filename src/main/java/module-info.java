@@ -24,8 +24,7 @@ module io.github.hikingc.matrixsdk {
     // Records and Interfaces
     exports io.github.hikingc.matrixsdk.api.rooms;
     exports io.github.hikingc.matrixsdk.api.events;
-    exports io.github.hikingc.matrixsdk.api.events.messages;
-    exports io.github.hikingc.matrixsdk.api.events.states;
+    exports io.github.hikingc.matrixsdk.api.events.types;
     exports io.github.hikingc.matrixsdk.api.userdata;
     exports io.github.hikingc.matrixsdk.api.auth;
     exports io.github.hikingc.matrixsdk.api.filters;

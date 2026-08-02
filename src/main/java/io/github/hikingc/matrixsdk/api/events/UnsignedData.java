@@ -15,7 +15,7 @@ package io.github.hikingc.matrixsdk.api.events;
 public record UnsignedData(Long age,
                            String membership,
                            EventContent prev_content,
-                           ClientEvent redactedBecause,
+                           DeserializedEvent<?> redactedBecause,
                            String replacesState,
                            String transactionId) {
 }

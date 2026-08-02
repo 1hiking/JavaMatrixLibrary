@@ -2,7 +2,6 @@ package io.github.hikingc.matrixsdk.api.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.hikingc.matrixsdk.api.Room;
-import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.api.rooms.PublicRoomRequest;
 
@@ -22,7 +21,7 @@ public record RoomInfo(List<Event> accountData,
                        String membership,
                        PaginationChunk messages,
                        @JsonProperty(required = true) String roomId,
-                       List<ClientEvent> state,
+                       List<DeserializedEvent<?>> state,
                        String visibility) {
 
     /// Holds a Matrix event, which can then be serialized as one of either [DeserializedEvent] or [RoomMessageEvent] for example.
@@ -42,7 +41,7 @@ public record RoomInfo(List<Event> accountData,
     /// Can be used in [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection, QueryParametersMessages)] to retrieve later events.
     /// @param start a token which correlates to the start of `chunk`.
     /// Can be used in [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection, QueryParametersMessages)] to retrieve earlier events.
-    public record PaginationChunk(@JsonProperty(required = true) List<ClientEvent> chunk,
+    public record PaginationChunk(@JsonProperty(required = true) List<DeserializedEvent<?>> chunk,
                                   @JsonProperty(required = true) String end,
                                   String start) {
 
