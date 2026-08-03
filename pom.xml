@@ -50,6 +50,11 @@
             <artifactId>java-http</artifactId>
             <version>1.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
 
         <dependency>
@@ -114,6 +119,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <tags>
+                        <tag>
+                            <name>apiNote</name>
+                            <placement>a</placement>
+                            <head>API Note:</head>
+                        </tag>
+                        <tag>
+                            <name>implSpec</name>
+                            <placement>a</placement>
+                            <head>Implementation Requirements:</head>
+                        </tag>
+                        <tag>
+                            <name>implNote</name>
+                            <placement>a</placement>
+                            <head>Implementation Note:</head>
+                        </tag>
+                    </tags>
+                </configuration>
                 <version>3.6.3</version>
                 <executions>
                     <execution>
@@ -130,12 +154,6 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.15</version>
 
-                <configuration>
-                    <includes>
-                        <include>org/hik/api/*</include>
-                        <include>org/hik/services/**</include>
-                    </includes>
-                </configuration>
 
                 <executions>
                     <execution>
