@@ -16,6 +16,9 @@ module io.github.hikingc.matrixsdk {
     // Logging
     requires org.slf4j;
 
+    // Jspecify
+    requires org.jspecify;
+
     // Exposed interfaces, facade and user classes
     exports io.github.hikingc.matrixsdk.api;
     exports io.github.hikingc.matrixsdk.api.identifiers;
