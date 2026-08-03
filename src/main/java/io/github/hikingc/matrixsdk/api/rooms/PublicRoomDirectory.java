@@ -1,6 +1,7 @@
 package io.github.hikingc.matrixsdk.api.rooms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 /// @param prevBatch              a pagination token that allows fetching previous results. If null, then this is the
 ///  first batch
 /// @param totalRoomCountEstimate if available, an estimate on the total number of published rooms
-public record PublicRoomDirectory(@JsonProperty List<PublishedRoomsChunk> chunk,
+public record PublicRoomDirectory(@NonNull @JsonProperty(required = true) List<PublishedRoomsChunk> chunk,
                                   String nextBatch,
                                   String prevBatch,
                                   Integer totalRoomCountEstimate) {

@@ -11,6 +11,8 @@ import io.github.hikingc.matrixsdk.exceptions.MatrixException;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
 import io.github.hikingc.matrixsdk.services.utils.HttpTransport;
 import io.github.hikingc.matrixsdk.services.utils.Mapper;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -20,6 +22,7 @@ import java.util.*;
 
 /// Main service implementation class of the Room interface, providing all the required endpoints and records to
 /// perform activities such as kicking, banning, listing of, and creation of rooms.
+@NullMarked
 public class RoomService implements Room {
 
     /// Common return field value by many responses.
@@ -296,11 +299,11 @@ public class RoomService implements Room {
 
 
     @Override
-    public PublicRoomDirectory getPublishedRoomDirectory(Integer limit, String server, String since) {
+    public PublicRoomDirectory getPublishedRoomDirectory(Integer limit, @Nullable String server, @Nullable String since) {
         Map<String, Object> params = new HashMap<>();
         params.put("limit", String.valueOf(limit));
-        if (server != null) params.put("server", server);
-        if (since != null) params.put("since", since);
+        params.put("server", server);
+        params.put("since", since);
 
         URI uri = this.httpTransport.generateEncodedURI(context.discoveryResponse().homeserver().baseUrl(),
                 "/_matrix/client/v3/publicRooms", params);
