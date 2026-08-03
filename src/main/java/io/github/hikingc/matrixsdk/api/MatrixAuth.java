@@ -10,6 +10,8 @@ import io.github.hikingc.matrixsdk.context.DiscoveryResponse;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
 import io.github.hikingc.matrixsdk.services.utils.HttpTransport;
 import io.github.hikingc.matrixsdk.services.utils.Mapper;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
@@ -32,6 +34,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
+/// This class handles endpoints to retrieve essential data to operate with Matrix servers, it provides a basic implementation of the OAuth 2.0 API,
+/// and additional methods to retrieve metainformation such as server [URI]s and who's tokens are being held.
+///
+/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#oauth-20-api">Matrix Client-Server API Specification for OAuth 2.0</a>
+/// @see <a href="https://datatracker.ietf.org/doc/html/rfc6749">OAuth 2.0 specification</a>
+@NullMarked
 public class MatrixAuth implements Auth {
 
     private final Logger logger = LoggerFactory.getLogger(MatrixAuth.class);
@@ -39,6 +47,9 @@ public class MatrixAuth implements Auth {
     private final Random random = new SecureRandom();
     private final URI baseUrl;
 
+    /// Constructor that instantiates the class.
+    ///
+    /// @param baseUrl the base [URI]
     public MatrixAuth(URI baseUrl) {
         this.baseUrl = baseUrl;
     }
@@ -54,6 +65,7 @@ public class MatrixAuth implements Auth {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
     }
 
+    @NullUnmarked
     private static String extractQueryParam(String query, String key) {
         if (query == null) {
             return null;
@@ -168,7 +180,8 @@ public class MatrixAuth implements Auth {
                 authorizationCode.completeExceptionally(new IOException(responseBodyCallback));
             } else {
                 // If all went well
-                authorizationCode.complete(code);
+                var codeCheck = Objects.requireNonNull(code, "Server didn't return with code. Aborting...");
+                authorizationCode.complete(codeCheck);
                 responseBodyCallback = "Login complete. You can close this tab and return to the app.";
             }
 
