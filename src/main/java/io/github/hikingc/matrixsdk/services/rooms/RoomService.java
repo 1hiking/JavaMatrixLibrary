@@ -132,13 +132,13 @@ public class RoomService implements Room {
     }
 
     @Override
-    public JoinedRooms getJoinedRooms() {
+    public List<String> getJoinedRooms() {
         String response =
                 httpTransport.getEvent(URI.create(context.discoveryResponse().homeserver().baseUrl() + "/_matrix" +
                                 "/client/v3/joined_rooms"),
                         context.token());
 
-        return Mapper.getObjectFromString(response, JoinedRooms.class);
+        return Mapper.getListFromAJsonKey(response, "joined_rooms", String.class);
     }
 
     @Override

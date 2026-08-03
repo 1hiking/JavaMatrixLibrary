@@ -150,8 +150,8 @@ class RoomServiceTest {
         var response = client.room().getJoinedRooms();
 
         assertNotNull(response);
-        assertFalse(response.joinedRooms().isEmpty());
-        assertEquals(ROOM_ID.toString(), response.joinedRooms().getFirst());
+        assertFalse(response.isEmpty());
+        assertEquals(ROOM_ID.toString(), response.getFirst());
     }
 
     @Test

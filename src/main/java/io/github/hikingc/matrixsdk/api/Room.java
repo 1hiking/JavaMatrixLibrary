@@ -61,8 +61,8 @@ public interface Room {
 
     /// Requests the server to retrieve a list of the user's current rooms (in simple terms whoever calls this method).
     ///
-    /// @return a list of the rooms in a [JoinedRooms] record.
-    JoinedRooms getJoinedRooms();
+    /// @return a [List] of the rooms.
+    List<String> getJoinedRooms();
 
     /// Send an invitation to a user to participate in a room, this endpoint requires the caller to be a member of said
     /// room to invite other users.
@@ -180,7 +180,7 @@ public interface Room {
     /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published rooms on the server.
     PublicRoomDirectory getPublishedRoomDirectory(PublicRoomRequest request);
 
-    /// Retrieves a summary for a room. The response data might yield outdated, partial or even no data.
+    /// Retrieves a summary for a room. The response data might yield outdated, partial or even with no data.
     ///
     /// @param roomIdOrAlias a [RoomID] or [RoomAlias] of the room to target
     /// @param via           the servers to attempt to request the summary from when the local server cannot generate it
