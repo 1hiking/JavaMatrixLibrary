@@ -6,8 +6,10 @@ import io.github.hikingc.matrixsdk.services.events.EventService;
 import io.github.hikingc.matrixsdk.services.filtering.FilterService;
 import io.github.hikingc.matrixsdk.services.rooms.RoomService;
 import io.github.hikingc.matrixsdk.services.userdata.UserDataService;
+import org.jspecify.annotations.NullMarked;
 
 /// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant server.
+@NullMarked
 public class MatrixClient {
     private final Event event;
     private final Room roomService;
@@ -31,7 +33,7 @@ public class MatrixClient {
         return new MatrixClient(discoveryResponse, authToken);
     }
 
-    /// Exposes the underlying [Event] for operations.
+    /// Exposes the underlying [Event] service for operations.
     ///
     /// @return the underlying [Event] instance.
     public Event events() {
@@ -45,13 +47,16 @@ public class MatrixClient {
         return this.roomService;
     }
 
-    /// Exposes the underlying [UserData] for operations.
+    /// Exposes the underlying [UserData] service for operations.
     ///
     /// @return the underlying [UserData] instance.
     public UserData userData() {
         return this.userDataService;
     }
 
+    /// Exposes the underlying [Filter] service for operations.
+    ///
+    /// @return the underlying [Filter] instance.
     public Filter filter() {
         return this.filter;
     }
