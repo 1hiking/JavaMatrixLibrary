@@ -1,6 +1,8 @@
 package io.github.hikingc.matrixsdk.services.utils;
 
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.*;
@@ -12,6 +14,7 @@ import java.util.Map;
 
 /// [Mapper] handles the global configuration of an [ObjectMapper] instance and also exposes additional
 /// methods to parse JSON [String] responses safely.
+@NullMarked
 public class Mapper {
 
     private static final ObjectMapper INSTANCE = buildMapper();
@@ -22,9 +25,8 @@ public class Mapper {
     /// Returns the shared [ObjectMapper] instance used for all
     /// usages in the library.
     ///
-    /// The instance is configured with snake\_case property naming to
-    /// match the Matrix spec's conventions, and auto-discovers
-    /// any `Jackson` modules present on the classpath.
+    /// The instance only modified configuration is [PropertyNamingStrategies#SNAKE_CASE] to
+    /// match the Matrix spec's conventions.
     ///
     /// @return the shared, pre-configured [ObjectMapper] instance
     public static ObjectMapper getInstance() {
@@ -77,7 +79,8 @@ public class Mapper {
     ///
     /// @param map the key-values for the JSON Object
     /// @return a serialized [String].
-    public static String createObjectFromMap(Map<String, Object> map) {
+    @Nullable
+    public static String createObjectFromMap(@Nullable Map<String, @Nullable Object> map) {
         if (map == null) {
             return null;
         }
@@ -107,7 +110,7 @@ public class Mapper {
     /// @param <T>          the [Class] type to deserialize into
     /// @return the deserialized [Object]
     /// @throws MatrixIOException if the JSON cannot be parsed into the target type
-    public static <T> T getObjectFromString(String responseBody, Class<T> type) {
+    public static <T> T getObjectFromString(@Nullable String responseBody, @Nullable Class<T> type) {
         if (responseBody == null || type == null) {
             throw new IllegalArgumentException("responseBody and type must not be null");
         }
@@ -127,7 +130,7 @@ public class Mapper {
     /// @param <T>          the [Class] type to deserialize into
     /// @return the deserialized [Object]
     /// @throws MatrixIOException if the JSON cannot be parsed into the target type
-    public static <T> T getObjectFromString(String responseBody, TypeReference<T> type) {
+    public static <T> T getObjectFromString(@Nullable String responseBody, @Nullable TypeReference<T> type) {
         if (responseBody == null || type == null) {
             throw new IllegalArgumentException("responseBody and type must not be null");
         }

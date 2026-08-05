@@ -3,13 +3,14 @@ package io.github.hikingc.matrixsdk.services.events;
 import io.github.hikingc.matrixsdk.api.Event;
 import io.github.hikingc.matrixsdk.api.events.*;
 import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
-import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
 import io.github.hikingc.matrixsdk.api.events.types.RoomMemberEvent;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.context.ClientContext;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
 import io.github.hikingc.matrixsdk.services.utils.HttpTransport;
 import io.github.hikingc.matrixsdk.services.utils.Mapper;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -18,6 +19,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.*;
 
+@NullMarked
 public class EventService implements Event {
 
     /// Common endpoint for many Room events.
@@ -148,7 +150,7 @@ public class EventService implements Event {
     }
 
     @Override
-    public String redactEvent(RoomID roomId, String eventId, String txnId, String reason) {
+    public String redactEvent(RoomID roomId, String eventId, String txnId, @Nullable String reason) {
         Objects.requireNonNull(eventId, "The event ID" + " must not be null");
         Objects.requireNonNull(txnId, "The transaction ID" + " must not be null");
         String json = null;

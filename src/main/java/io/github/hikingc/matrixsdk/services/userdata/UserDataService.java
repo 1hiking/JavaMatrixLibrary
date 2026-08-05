@@ -7,6 +7,8 @@ import io.github.hikingc.matrixsdk.api.userdata.UsersFound;
 import io.github.hikingc.matrixsdk.context.ClientContext;
 import io.github.hikingc.matrixsdk.services.utils.HttpTransport;
 import io.github.hikingc.matrixsdk.services.utils.Mapper;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.Objects;
 /// Main service implementation class of the UserData interface, providing all the required endpoints and records to
 /// perform activities such as the creation, modification, deletion and retrieval of profile data, and also for the
 /// query and search of users.
+@NullMarked
 public class UserDataService implements UserData {
 
     /// Common endpoint for directory operations.
@@ -31,9 +34,9 @@ public class UserDataService implements UserData {
     }
 
     @Override
-    public UsersFound searchUsersByTerm(Integer limit, String searchTerm) {
+    public UsersFound searchUsersByTerm(@Nullable Integer limit, String searchTerm) {
         Objects.requireNonNull(searchTerm, "The search term must no be null");
-        int limitToUse = Objects.requireNonNullElse(limit, 10);
+        int limitToUse = (limit != null) ? limit : 10;
         String rawTextPayload = """
                 {"limit": "%d","search_term":"%s"}
                 """.formatted(limitToUse, searchTerm);
@@ -55,7 +58,7 @@ public class UserDataService implements UserData {
     }
 
     @Override
-    public String getUserProfileByProperty(UserID userId, String keyName) {
+    public String getUserProfileByProperty(UserID userId, @Nullable String keyName) {
         Objects.requireNonNull(keyName, "The key name must no be null");
         String responseBody = httpTransport.getEvent(
                 URI.create(context.discoveryResponse().homeserver().baseUrl() + PROFILE_DIR + userId + "/" + keyName),

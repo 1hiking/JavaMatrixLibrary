@@ -3,6 +3,7 @@ package io.github.hikingc.matrixsdk.services.utils;
 import io.github.hikingc.matrixsdk.exceptions.ErrorResponse;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
 import io.github.hikingc.matrixsdk.exceptions.MatrixNetworkException;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.exc.StreamReadException;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.util.stream.Stream;
 /// [MatrixNetworkException], populated with the HTTP status code and any
 /// error message returned by the server, and [MatrixIOException] if the server
 /// JSON response wasn't even sent.
+@Nullable
 public class HttpTransport {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
@@ -40,6 +42,9 @@ public class HttpTransport {
     private static final String BEARER = "Bearer ";
     private final HttpClient client;
 
+    /// Constructor to initialize and build the HTTP Client.
+    ///
+    /// @param timeOut of the client
     public HttpTransport(int timeOut) {
         client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(timeOut))

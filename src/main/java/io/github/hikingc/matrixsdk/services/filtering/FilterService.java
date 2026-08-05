@@ -6,12 +6,14 @@ import io.github.hikingc.matrixsdk.api.identifiers.UserID;
 import io.github.hikingc.matrixsdk.context.ClientContext;
 import io.github.hikingc.matrixsdk.services.utils.HttpTransport;
 import io.github.hikingc.matrixsdk.services.utils.Mapper;
+import org.jspecify.annotations.NullMarked;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.util.Objects;
 
 /// Main service implementation class of the Filter interface, providing the ability to create and query filters.
+@NullMarked
 public class FilterService implements Filter {
     private static final String USER_FILTER_ENDPOINT = "/_matrix/client/v3/user/";
 
