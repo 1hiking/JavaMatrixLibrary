@@ -7,12 +7,13 @@ import io.github.hikingc.matrixsdk.api.auth.WhoAmI;
 ///
 /// @apiNote This is a Work-In-Progress interface
 ///
-/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#client-authentication">Matrix Client-Server API Specification for Authentication</a>
-/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#server-discovery">Matrix Client-Server API Specification for Server Discovery</a>
+/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#client-authentication">Matrix
+///   Client-Server API Specification for Authentication</a>
+/// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#server-discovery">Matrix
+///   Client-Server API Specification for Server Discovery</a>
 public interface Auth {
 
-    AuthMetadata getAuthMetadata();
+  AuthMetadata getAuthMetadata();
 
-    WhoAmI getCurrentAccountInformation();
-
+  WhoAmI getCurrentAccountInformation();
 }

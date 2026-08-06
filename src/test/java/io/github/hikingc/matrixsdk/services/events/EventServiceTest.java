@@ -1,20 +1,25 @@
 package io.github.hikingc.matrixsdk.services.events;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.github.hikingc.matrixsdk.api.MatrixClient;
 import io.github.hikingc.matrixsdk.api.events.*;
-import io.github.hikingc.matrixsdk.api.events.messages.File;
-import io.github.hikingc.matrixsdk.api.events.messages.RoomMessageEvent;
-import io.github.hikingc.matrixsdk.api.events.messages.Text;
+import io.github.hikingc.matrixsdk.api.events.RoomMessage;
+import io.github.hikingc.matrixsdk.api.events.content.roommessages.FileContent;
+import io.github.hikingc.matrixsdk.api.events.content.roommessages.TextContent;
+import io.github.hikingc.matrixsdk.api.events.queries.ChronologicalDirection;
+import io.github.hikingc.matrixsdk.api.events.queries.Membership;
+import io.github.hikingc.matrixsdk.api.events.queries.QueryParametersMessages;
+import io.github.hikingc.matrixsdk.api.events.queries.QueryParametersSync;
+import io.github.hikingc.matrixsdk.api.events.sync.Sync;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.context.DiscoveryResponse;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -22,52 +27,53 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @WireMockTest
 class EventServiceTest {
 
+  public static final RoomID ROOM_ID = RoomID.parse("!room:example.org");
+  private static final String AUTH_TOKEN = "1234";
+  private static DiscoveryResponse DISCOVERY_RESPONSE;
+  private static MatrixClient client;
 
-    public static final RoomID ROOM_ID = RoomID.parse("!room:example.org");
-    private static final String AUTH_TOKEN = "1234";
-    private static DiscoveryResponse DISCOVERY_RESPONSE;
-    private static MatrixClient client;
+  @BeforeAll
+  static void setUpDiscovery(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    DISCOVERY_RESPONSE =
+        new DiscoveryResponse(
+            new DiscoveryResponse.HomeserverInfo(wireMockRuntimeInfo.getHttpBaseUrl()), null, null);
+  }
 
-    @BeforeAll
-    static void setUpDiscovery(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        DISCOVERY_RESPONSE = new DiscoveryResponse(
-                new DiscoveryResponse.HomeserverInfo(wireMockRuntimeInfo.getHttpBaseUrl()),
-                null, null
-        );
-    }
+  private static Result getResult(Path tempDir) throws IOException {
+    String roomMessageType = "m.room.message";
+    String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
-    @BeforeEach
-    void createClient() {
-        client = MatrixClient.create(DISCOVERY_RESPONSE, AUTH_TOKEN);
-    }
+    String serverName = "matrix.org";
+    String mediaId = "fakeMediaId123";
+    URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
 
-    private static Result getResult(Path tempDir) throws IOException {
-        String roomMessageType = "m.room.message";
-        String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
+    Path tempFile = tempDir.resolve("fileContent.txt");
+    Files.writeString(tempFile, "Test");
+    return new Result(
+        ROOM_ID, roomMessageType, expectedEventId, serverName, mediaId, mockMxcUri, tempFile);
+  }
 
-        String serverName = "matrix.org";
-        String mediaId = "fakeMediaId123";
-        URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
+  @BeforeEach
+  void createClient() {
+    client = MatrixClient.create(DISCOVERY_RESPONSE, AUTH_TOKEN);
+  }
 
-        Path tempFile = tempDir.resolve("fileContent.txt");
-        Files.writeString(tempFile, "Test");
-        return new Result(ROOM_ID, roomMessageType, expectedEventId, serverName, mediaId, mockMxcUri, tempFile);
-    }
-
-    @Test
-    void getEvent_WithACorrectPayload_ThenReturnAClientEvent() {
-        String eventId = "$143273582443PhrSn:example.org";
-        stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/event/" + eventId)
-                .willReturn(okJson("""
+  @Test
+  void getEvent_WithACorrectPayload_ThenReturnAClientEvent() {
+    String eventId = "$143273582443PhrSn:example.org";
+    stubFor(
+        get("/_matrix/client/v3/rooms/" + ROOM_ID + "/event/" + eventId)
+            .willReturn(
+                okJson(
+                    """
                         {
                           "content": {
                             "body": "This is an example text message",
@@ -87,15 +93,18 @@ class EventServiceTest {
                         }
                         """)));
 
-        var response = client.events().getEvent(ROOM_ID, eventId);
-        assertThat(response).isNotNull();
-        assertThat(response.eventId()).isEqualTo(eventId);
-    }
+    var response = client.events().getEvent(ROOM_ID, eventId);
+    assertThat(response).isNotNull();
+    assertThat(response.eventId()).isEqualTo(eventId);
+  }
 
-    @Test
-    void getJoinedMembers_WithACorrectPayload_ThenReturnARoomMembers() {
-        stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/joined_members")
-                .willReturn(okJson("""
+  @Test
+  void getJoinedMembers_WithACorrectPayload_ThenReturnARoomMembers() {
+    stubFor(
+        get("/_matrix/client/v3/rooms/" + ROOM_ID + "/joined_members")
+            .willReturn(
+                okJson(
+                    """
                         {
                           "joined": {
                             "@bar:example.com": {
@@ -104,23 +113,26 @@ class EventServiceTest {
                             }
                           }
                         }
-                        
+
                         """)));
-        var response = client.events().getJoinedMembers(ROOM_ID);
-        assertThat(response).isNotNull();
-    }
+    var response = client.events().getJoinedMembers(ROOM_ID);
+    assertThat(response).isNotNull();
+  }
 
-    @Test()
-    void getMembers_WithACorrectPayload_thenReturnAListOfClientEvent() {
-        final String TOKEN = "FAKE_PAGINATION_TOKEN";
+  @Test()
+  void getMembers_WithACorrectPayload_thenReturnAListOfClientEvent() {
+    final String TOKEN = "FAKE_PAGINATION_TOKEN";
 
-        stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/members"))
-                .withQueryParams(
-                        Map.ofEntries(
-                                Map.entry("at", equalTo(TOKEN)),
-                                Map.entry("membership", equalTo(Membership.JOIN.getValue())),
-                                Map.entry("not_membership", equalTo(Membership.JOIN.getValue()))))
-                .willReturn(okJson("""
+    stubFor(
+        get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/members"))
+            .withQueryParams(
+                Map.ofEntries(
+                    Map.entry("at", equalTo(TOKEN)),
+                    Map.entry("membership", equalTo(Membership.JOIN.getValue())),
+                    Map.entry("not_membership", equalTo(Membership.JOIN.getValue()))))
+            .willReturn(
+                okJson(
+                    """
                         {
                           "chunk": [
                             {
@@ -143,18 +155,21 @@ class EventServiceTest {
                             }
                           ]
                         }
-                        
-                        """)));
-        var response = client.events().getMembers(ROOM_ID, TOKEN, Membership.JOIN, Membership.JOIN);
-        assertThat(response).isNotNull();
-        assertThat(response).hasSize(1);
-        assertThat(response.getFirst().eventId()).isEqualTo("$143273582443PhrSn:example.org");
-    }
 
-    @Test
-    void getStateEvents_WithACorrectPaYload_thenReturnAListOfClientEvent() {
-        stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/state")
-                .willReturn(okJson("""
+                        """)));
+    var response = client.events().getMembers(ROOM_ID, TOKEN, Membership.JOIN, Membership.JOIN);
+    assertThat(response).isNotNull();
+    assertThat(response).hasSize(1);
+    assertThat(response.getFirst().eventId()).isEqualTo("$143273582443PhrSn:example.org");
+  }
+
+  @Test
+  void getStateEvents_WithACorrectPaYload_thenReturnAListOfClientEvent() {
+    stubFor(
+        get("/_matrix/client/v3/rooms/" + ROOM_ID + "/state")
+            .willReturn(
+                okJson(
+                    """
                         [
                           {
                             "content": {
@@ -241,21 +256,24 @@ class EventServiceTest {
                             }
                           }
                         ]
-                        
+
                         """)));
-        var response = client.events().getStateEvents(ROOM_ID);
-        assertThat(response).isNotNull();
-        assertThat(response).hasSize(4);
+    var response = client.events().getStateEvents(ROOM_ID);
+    assertThat(response).isNotNull();
+    assertThat(response).hasSize(4);
+  }
 
-    }
-
-    @Test
-    void getStateEventsOverride_WithACorrectPaYload_thenReturnAListOfClientEvent() {
-        final String EVENT_TYPE = "EVENT_TYPE";
-        final String STATE_KEY = "STATE_KEY";
-        stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/state/" + EVENT_TYPE + "/" + STATE_KEY))
-                .withQueryParam("format", equalTo("event"))
-                .willReturn(okJson("""
+  @Test
+  void getStateEventsOverride_WithACorrectPaYload_thenReturnAListOfClientEvent() {
+    final String EVENT_TYPE = "EVENT_TYPE";
+    final String STATE_KEY = "STATE_KEY";
+    stubFor(
+        get(urlPathEqualTo(
+                "/_matrix/client/v3/rooms/" + ROOM_ID + "/state/" + EVENT_TYPE + "/" + STATE_KEY))
+            .withQueryParam("format", equalTo("event"))
+            .willReturn(
+                okJson(
+                    """
                         {
                           "type": "m.room.name",
                           "event_id": "$143273582443PhrSn:example.org",
@@ -275,28 +293,32 @@ class EventServiceTest {
                           }
                         }
                         """)));
-        var response = client.events().getStateEvent(ROOM_ID, EVENT_TYPE, STATE_KEY);
-        assertThat(response).isNotNull();
-        assertThat(response.eventId()).isEqualTo("$143273582443PhrSn:example.org");
-        assertThat(response.sender()).isEqualTo("@alice:example.org");
-        assertThat(response.unsigned().age()).isEqualTo(1234);
-    }
+    var response = client.events().getStateEvent(ROOM_ID, EVENT_TYPE, STATE_KEY);
+    assertThat(response).isNotNull();
+    assertThat(response.eventId()).isEqualTo("$143273582443PhrSn:example.org");
+    assertThat(response.sender()).isEqualTo("@alice:example.org");
+    assertThat(response.unsigned().age()).isEqualTo(1234);
+  }
 
-    @Test
-    void getMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
-        String expectedChunkEventId = "$abcdefg12345:matrix.org";
+  @Test
+  void getMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
+    String expectedChunkEventId = "$abcdefg12345:matrix.org";
 
+    QueryParametersMessages mockParams =
+        new QueryParametersMessages("some_start_token", 20, "some_end_token");
+    ChronologicalDirection direction =
+        ChronologicalDirection.CHRONOLOGICAL_ORDER; // Adjust to your enum
+    // name if needed
 
-        QueryParametersMessages mockParams = new QueryParametersMessages("some_start_token", 20, "some_end_token");
-        ChronologicalDirection direction = ChronologicalDirection.CHRONOLOGICAL_ORDER; // Adjust to your enum
-        // name if needed
-
-        stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/messages"))
-                .withQueryParam("dir", equalTo("f"))
-                .withQueryParam("from", equalTo("some_start_token"))
-                .withQueryParam("limit", equalTo("20"))
-                .withQueryParam("to", equalTo("some_end_token"))
-                .willReturn(okJson("""
+    stubFor(
+        get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID + "/messages"))
+            .withQueryParam("dir", equalTo("f"))
+            .withQueryParam("from", equalTo("some_start_token"))
+            .withQueryParam("limit", equalTo("20"))
+            .withQueryParam("to", equalTo("some_end_token"))
+            .willReturn(
+                okJson(
+                    """
                         {
                           "start": "some_start_token",
                           "end": "another_end_token",
@@ -309,46 +331,58 @@ class EventServiceTest {
                             }
                           ]
                         }
-                        """.formatted(expectedChunkEventId))));
+                        """
+                        .formatted(expectedChunkEventId))));
 
+    Messages actualResponse = client.events().getMessages(ROOM_ID, direction, mockParams);
 
-        Messages actualResponse = client.events().getMessages(ROOM_ID, direction, mockParams);
+    assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");
+    assertEquals(
+        "some_start_token", actualResponse.start(), "The start pagination token should match");
+    assertEquals(
+        "another_end_token", actualResponse.end(), "The end pagination token should match");
+    assertFalse(
+        actualResponse.chunk().isEmpty(), "The chunked event stream list should contain events");
 
+    // Ensure serialization / list indexing works correctly downstream
+    var firstEventId = actualResponse.chunk().getFirst().eventId();
+    assertEquals(
+        expectedChunkEventId,
+        firstEventId,
+        "The mapped chunk payload did not match the expected event " + "structure");
+  }
 
-        assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");
-        assertEquals("some_start_token", actualResponse.start(), "The start pagination token should match");
-        assertEquals("another_end_token", actualResponse.end(), "The end pagination token should match");
-        assertFalse(actualResponse.chunk().isEmpty(), "The chunked event stream list should contain events");
-
-        // Ensure serialization / list indexing works correctly downstream
-        var firstEventId = actualResponse.chunk().getFirst().eventId();
-        assertEquals(expectedChunkEventId, firstEventId, "The mapped chunk payload did not match the expected event " +
-                "structure");
-    }
-
-    @Test
-    void getEventCLosestToTimestamp_WithACorrectPayload_ThenReturnAnEventMetadata() {
-        ChronologicalDirection chronologicalDirection = ChronologicalDirection.CHRONOLOGICAL_ORDER;
-        int randomUnixDate = Math.abs(new Random().nextInt());
-        long originServerTs = 1432735824653L;
-        stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID))
-                .withQueryParam("dir", equalTo(chronologicalDirection.getValue()))
-                .withQueryParam("ts", equalTo(String.valueOf(randomUnixDate)))
-                .willReturn(okJson("""
+  @Test
+  void getEventCLosestToTimestamp_WithACorrectPayload_ThenReturnAnEventMetadata() {
+    ChronologicalDirection chronologicalDirection = ChronologicalDirection.CHRONOLOGICAL_ORDER;
+    int randomUnixDate = Math.abs(new Random().nextInt());
+    long originServerTs = 1432735824653L;
+    stubFor(
+        get(urlPathEqualTo("/_matrix/client/v3/rooms/" + ROOM_ID))
+            .withQueryParam("dir", equalTo(chronologicalDirection.getValue()))
+            .withQueryParam("ts", equalTo(String.valueOf(randomUnixDate)))
+            .willReturn(
+                okJson(
+                    """
                         {
                           "event_id": "$143273582443PhrSn:example.org",
                           "origin_server_ts": %d
                         }
-                        """.formatted(originServerTs))));
-        var response = client.events().getEventClosestToTimestamp(ROOM_ID, chronologicalDirection, randomUnixDate);
-        assertThat(response).isNotNull();
-        assertThat(response.originServerTs()).isEqualTo(originServerTs);
-    }
+                        """
+                        .formatted(originServerTs))));
+    var response =
+        client.events().getEventClosestToTimestamp(ROOM_ID, chronologicalDirection, randomUnixDate);
+    assertThat(response).isNotNull();
+    assertThat(response.originServerTs()).isEqualTo(originServerTs);
+  }
 
-    @Test
-    void getInitialSync_WithACorrectPayload_ThenReturnRoomInfo() {
-        stubFor(get("/_matrix/client/v3/rooms/" + ROOM_ID + "/initialSync")
-                .willReturn(okJson("""
+  @Test
+  void getInitialSync_WithACorrectPayload_ThenReturnRoomInfo() {
+    stubFor(
+        get("/_matrix/client/v3/rooms/" + ROOM_ID + "/initialSync")
+            .willReturn(
+                okJson(
+                    """
                         {
                           "account_data": [
                             {
@@ -497,94 +531,123 @@ class EventServiceTest {
                           "visibility": "private"
                         }
                         """)));
-        var response = client.events().getInitialSync(ROOM_ID);
-        assertThat(response).isNotNull();
-    }
+    var response = client.events().getInitialSync(ROOM_ID);
+    assertThat(response).isNotNull();
+  }
 
-    @Test
-    void sendStateEvent_WithACorrectPayload_ThenReturnAString() {
-        // TODO pending interface to confirm fields to assert
-    }
+  @Test
+  void sendStateEvent_WithACorrectPayload_ThenReturnAString() {
+    // TODO pending interface to confirm fields to assert
+  }
 
-    @Test
-    void sendMessageEvent_WithACorrectPayload_thenReturnAString() {
-        String roomMessageType = "m.room.message";
-        String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
+  @Test
+  void sendMessageEvent_WithACorrectPayload_thenReturnAString() {
+    String roomMessageType = "m.room.message";
+    String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
 
-
-        stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + ROOM_ID + "/send/" + roomMessageType + "/[^/]+"))
-                .withRequestBody(equalToJson("""
+    stubFor(
+        put(urlPathMatching(
+                "/_matrix/client/v3/rooms/" + ROOM_ID + "/send/" + roomMessageType + "/[^/]+"))
+            .withRequestBody(
+                equalToJson(
+                    """
                         {
                             "body": "Hello World",
                             "msgtype": "m.text"
                         }
-                        """, true, true))
-                .willReturn(okJson("""
+                        """,
+                    true,
+                    true))
+            .willReturn(
+                okJson(
+                    """
                         {"event_id": "%s"}
-                        """.formatted(expectedEventId))));
+                        """
+                        .formatted(expectedEventId))));
 
+    RoomMessage textEvent = new TextContent("Hello World", null, null);
+    var actualEventId = client.events().sendMessageEvent(ROOM_ID, textEvent);
 
-        RoomMessageEvent textEvent = new Text("Hello World", null, null);
-        var actualEventId = client.events().sendMessageEvent(ROOM_ID, textEvent);
+    assertNotNull(actualEventId, "The returned event ID should not be null");
+    assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
+  }
 
-        assertNotNull(actualEventId, "The returned event ID should not be null");
-        assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
-    }
+  @Test
+  void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir)
+      throws IOException {
+    Result result = getResult(tempDir);
 
-    @Test
-    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException {
-        Result result = getResult(tempDir);
+    // Mock the MXC Request (v1 create endpoint)
+    stubFor(
+        post(urlEqualTo("/_matrix/media/v1/create"))
+            .willReturn(okJson("{\"content_uri\": \"" + result.mockMxcUri() + "\"}")));
 
-        // Mock the MXC Request (v1 create endpoint)
-        stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
-                .willReturn(okJson("{\"content_uri\": \"" + result.mockMxcUri() + "\"}")));
+    // Mock the File Upload (v3 upload endpoint with filename query param)
+    stubFor(
+        put(urlEqualTo(
+                "/_matrix/media/v3/upload/"
+                    + result.serverName()
+                    + "/"
+                    + result.mediaId()
+                    + "?filename=file.txt"))
+            .withRequestBody(containing("Test"))
+            .willReturn(ok()));
 
-        // Mock the File Upload (v3 upload endpoint with filename query param)
-        stubFor(put(urlEqualTo("/_matrix/media/v3/upload/" + result.serverName() + "/" + result.mediaId() + "?filename=file.txt"))
-                .withRequestBody(containing("Test"))
-                .willReturn(ok()));
+    // Mock the Message Publication (v3 client send timeline endpoint)
+    stubFor(
+        put(urlPathMatching(
+                "/_matrix/client/v3/rooms/"
+                    + result.roomId()
+                    + "/send/"
+                    + result.roomMessageType()
+                    + "/[^/]+"))
+            .withRequestBody(containing(String.valueOf(result.mockMxcUri)))
+            .withRequestBody(containing("file.txt"))
+            .willReturn(okJson("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
-        // Mock the Message Publication (v3 client send timeline endpoint)
-        stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + result.roomId() + "/send/" + result.roomMessageType() + "/[^/]+"))
-                .withRequestBody(containing(String.valueOf(result.mockMxcUri)))
-                .withRequestBody(containing("file.txt"))
-                .willReturn(okJson("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
+    var mxc = client.events().uploadResource(result.tempFile);
 
+    FileContent file =
+        new FileContent(
+            "Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
+    var actualEventId = client.events().sendMessageEvent(result.roomId(), file);
 
-        var mxc = client.events().uploadResource(result.tempFile);
+    assertNotNull(actualEventId, "The returned event ID should not be null");
+    assertEquals(
+        result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
+  }
 
-        File file = new File("Test caption", null, result.tempFile.toString(), null, null, null,
-                URI.create(mxc));
-        var actualEventId = client.events().sendMessageEvent(result.roomId(), file);
+  @Test
+  void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir)
+      throws IOException {
+    Result result = getResult(tempDir);
 
-        assertNotNull(actualEventId, "The returned event ID should not be null");
-        assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
-    }
+    stubFor(
+        post(urlEqualTo("/_matrix/media/v1/create"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{ malformed json : [")));
 
-    @Test
-    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir) throws IOException {
-        Result result = getResult(tempDir);
+    assertThatThrownBy(() -> client.events().uploadResource(result.tempFile))
+        .isInstanceOf(MatrixIOException.class);
+  }
 
-        stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{ malformed json : [")));
+  @Test
+  void getSync_WithValidQueryParameters_thenReturnSyncResponse() {
+    String joinedRoomId = "!726s6s6q:example.com";
+    String invitedRoomId = "!696r7674:example.com";
+    String knockedRoomId = "!223asd456:example.com";
+    String leftRoomId = "!left12345:example.com";
+    String expectedChunkEventId = "$143273582443PhrSn:example.org";
+    String expectedNextBatch = "s72595_4483_1934";
 
-        assertThatThrownBy(() ->client.events().uploadResource(result.tempFile)).isInstanceOf(MatrixIOException.class);
-    }
-
-    @Test
-    void getSync_WithValidQueryParameters_thenReturnSyncResponse() {
-        String joinedRoomId = "!726s6s6q:example.com";
-        String invitedRoomId = "!696r7674:example.com";
-        String knockedRoomId = "!223asd456:example.com";
-        String leftRoomId = "!left12345:example.com";
-        String expectedChunkEventId = "$143273582443PhrSn:example.org";
-        String expectedNextBatch = "s72595_4483_1934";
-
-        stubFor(get(urlPathEqualTo("/_matrix/client/v3/sync"))
-                .willReturn(okJson("""
+    stubFor(
+        get(urlPathEqualTo("/_matrix/client/v3/sync"))
+            .willReturn(
+                okJson(
+                    """
                         {
                           "account_data": {
                             "events": [
@@ -818,42 +881,66 @@ class EventServiceTest {
                         }
                         """)));
 
-        Sync actualResponse = client.events().sync(new QueryParametersSync(null, true, null, null, null, null));
+    Sync actualResponse =
+        client.events().sync(new QueryParametersSync(null, true, null, null, null, null));
 
-        assertNotNull(actualResponse, "The returned SyncResponse payload shouldn't be null");
-        assertEquals(expectedNextBatch, actualResponse.nextBatch(), "The next_batch token should match");
+    assertNotNull(actualResponse, "The returned SyncResponse payload shouldn't be null");
+    assertEquals(
+        expectedNextBatch, actualResponse.nextBatch(), "The next_batch token should match");
 
-        // rooms.join
-        assertTrue(actualResponse.rooms().join().containsKey(joinedRoomId), "Joined rooms should contain the test room");
-        var joinedRoom = actualResponse.rooms().join().get(joinedRoomId);
-        assertFalse(joinedRoom.timeline().events().isEmpty(), "Joined room timeline should contain events");
-        assertEquals(expectedChunkEventId, joinedRoom.timeline().events().getFirst().eventId(),
-                "The mapped timeline event did not match the expected event structure");
-        assertEquals(2, joinedRoom.summary().mJoinedMemberCount(), "Joined member count should match");
-        assertEquals(1, joinedRoom.unreadNotifications().highlightCount(), "Highlight count should match");
+    // rooms.join
+    assertTrue(
+        actualResponse.rooms().join().containsKey(joinedRoomId),
+        "Joined rooms should contain the test room");
+    var joinedRoom = actualResponse.rooms().join().get(joinedRoomId);
+    assertFalse(
+        joinedRoom.timeline().events().isEmpty(), "Joined room timeline should contain events");
+    assertEquals(
+        expectedChunkEventId,
+        joinedRoom.timeline().events().getFirst().eventId(),
+        "The mapped timeline event did not match the expected event structure");
+    assertEquals(2, joinedRoom.summary().mJoinedMemberCount(), "Joined member count should match");
+    assertEquals(
+        1, joinedRoom.unreadNotifications().highlightCount(), "Highlight count should match");
 
-        // rooms.invite
-        assertTrue(actualResponse.rooms().invite().containsKey(invitedRoomId), "Invited rooms should contain the test room");
-        assertFalse(actualResponse.rooms().invite().get(invitedRoomId).inviteState().events().isEmpty(),
-                "Invite state should contain stripped state events");
+    // rooms.invite
+    assertTrue(
+        actualResponse.rooms().invite().containsKey(invitedRoomId),
+        "Invited rooms should contain the test room");
+    assertFalse(
+        actualResponse.rooms().invite().get(invitedRoomId).inviteState().events().isEmpty(),
+        "Invite state should contain stripped state events");
 
-        // rooms.knock
-        assertTrue(actualResponse.rooms().knock().containsKey(knockedRoomId), "Knocked rooms should contain the test room");
-        assertFalse(actualResponse.rooms().knock().get(knockedRoomId).knockState().events().isEmpty(),
-                "Knock state should contain stripped state events");
+    // rooms.knock
+    assertTrue(
+        actualResponse.rooms().knock().containsKey(knockedRoomId),
+        "Knocked rooms should contain the test room");
+    assertFalse(
+        actualResponse.rooms().knock().get(knockedRoomId).knockState().events().isEmpty(),
+        "Knock state should contain stripped state events");
 
-        // rooms.leave
-        assertTrue(actualResponse.rooms().leave().containsKey(leftRoomId), "Left rooms should contain the test room");
+    // rooms.leave
+    assertTrue(
+        actualResponse.rooms().leave().containsKey(leftRoomId),
+        "Left rooms should contain the test room");
 
-        // top-level fields
-        assertFalse(actualResponse.accountData().events().isEmpty(), "Account data events should be present");
-        assertFalse(actualResponse.presence().events().isEmpty(), "Presence events should be present");
-        assertEquals(List.of("@alice:matrix.org"), actualResponse.deviceLists().changed(), "Device list changed should match");
-        assertFalse(actualResponse.toDevice().events().isEmpty(), "To-device events should be present");
-    }
+    // top-level fields
+    assertFalse(
+        actualResponse.accountData().events().isEmpty(), "Account data events should be present");
+    assertFalse(actualResponse.presence().events().isEmpty(), "Presence events should be present");
+    assertEquals(
+        List.of("@alice:matrix.org"),
+        actualResponse.deviceLists().changed(),
+        "Device list changed should match");
+    assertFalse(actualResponse.toDevice().events().isEmpty(), "To-device events should be present");
+  }
 
-    private record Result(RoomID roomId, String roomMessageType, String expectedEventId, String serverName,
-                          String mediaId, URI mockMxcUri, Path tempFile) {
-    }
-
+  private record Result(
+      RoomID roomId,
+      String roomMessageType,
+      String expectedEventId,
+      String serverName,
+      String mediaId,
+      URI mockMxcUri,
+      Path tempFile) {}
 }

@@ -4,6 +4,4 @@ package io.github.hikingc.matrixsdk.api.rooms;
 ///
 /// @param genericSearchTerm
 /// @param roomTypes
-public record RoomFilter(String genericSearchTerm,
-                         String roomTypes) {
-}
+public record RoomFilter(String genericSearchTerm, String roomTypes) {}

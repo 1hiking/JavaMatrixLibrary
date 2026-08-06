@@ -8,58 +8,58 @@ import io.github.hikingc.matrixsdk.services.rooms.RoomService;
 import io.github.hikingc.matrixsdk.services.userdata.UserDataService;
 import org.jspecify.annotations.NullMarked;
 
-/// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant server.
+/// A [MatrixClient] provides all the functionality required to interact with a Matrix compliant
+/// server.
 @NullMarked
 public class MatrixClient {
-    private final Event event;
-    private final Room roomService;
-    private final UserData userDataService;
-    private final Filter filter;
+  private final Event event;
+  private final Room roomService;
+  private final UserData userDataService;
+  private final Filter filter;
 
-    private MatrixClient(DiscoveryResponse discoveryResponse, String authToken) {
-        var context = new ClientContext(authToken, discoveryResponse);
-        this.event = new EventService(context);
-        this.roomService = new RoomService(context);
-        this.userDataService = new UserDataService(context);
-        this.filter = new FilterService(context);
-    }
+  private MatrixClient(DiscoveryResponse discoveryResponse, String authToken) {
+    var context = new ClientContext(authToken, discoveryResponse);
+    this.event = new EventService(context);
+    this.roomService = new RoomService(context);
+    this.userDataService = new UserDataService(context);
+    this.filter = new FilterService(context);
+  }
 
-    /// Default factory, which will make the initial payloads to request necessary data for further requests
-    ///
-    /// @param discoveryResponse [DiscoveryResponse] of a server.
-    /// @param authToken         a valid non-expired auth token.
-    /// @return an authenticated client.
-    public static MatrixClient create(DiscoveryResponse discoveryResponse, String authToken) {
-        return new MatrixClient(discoveryResponse, authToken);
-    }
+  /// Default factory, which will make the initial payloads to request necessary data for further
+  /// requests
+  ///
+  /// @param discoveryResponse [DiscoveryResponse] of a server.
+  /// @param authToken a valid non-expired auth token.
+  /// @return an authenticated client.
+  public static MatrixClient create(DiscoveryResponse discoveryResponse, String authToken) {
+    return new MatrixClient(discoveryResponse, authToken);
+  }
 
-    /// Exposes the underlying [Event] service for operations.
-    ///
-    /// @return the underlying [Event] instance.
-    public Event events() {
-        return this.event;
-    }
+  /// Exposes the underlying [Event] service for operations.
+  ///
+  /// @return the underlying [Event] instance.
+  public Event events() {
+    return this.event;
+  }
 
-    /// Exposes the underlying [Room] for operations.
-    ///
-    /// @return the underlying [Room] instance.
-    public Room room() {
-        return this.roomService;
-    }
+  /// Exposes the underlying [Room] for operations.
+  ///
+  /// @return the underlying [Room] instance.
+  public Room room() {
+    return this.roomService;
+  }
 
-    /// Exposes the underlying [UserData] service for operations.
-    ///
-    /// @return the underlying [UserData] instance.
-    public UserData userData() {
-        return this.userDataService;
-    }
+  /// Exposes the underlying [UserData] service for operations.
+  ///
+  /// @return the underlying [UserData] instance.
+  public UserData userData() {
+    return this.userDataService;
+  }
 
-    /// Exposes the underlying [Filter] service for operations.
-    ///
-    /// @return the underlying [Filter] instance.
-    public Filter filter() {
-        return this.filter;
-    }
-
-
+  /// Exposes the underlying [Filter] service for operations.
+  ///
+  /// @return the underlying [Filter] instance.
+  public Filter filter() {
+    return this.filter;
+  }
 }
