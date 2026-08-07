@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.github.hikingc.matrixsdk.api.MatrixClient;
 import io.github.hikingc.matrixsdk.api.events.*;
-import io.github.hikingc.matrixsdk.api.events.RoomMessage;
+import io.github.hikingc.matrixsdk.api.events.content.RoomMessage;
 import io.github.hikingc.matrixsdk.api.events.content.roommessages.FileContent;
 import io.github.hikingc.matrixsdk.api.events.content.roommessages.TextContent;
 import io.github.hikingc.matrixsdk.api.events.queries.ChronologicalDirection;
@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,7 @@ class EventServiceTest {
     String mediaId = "fakeMediaId123";
     URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
 
-    Path tempFile = tempDir.resolve("fileContent.txt");
+    Path tempFile = tempDir.resolve("file.txt");
     Files.writeString(tempFile, "Test");
     return new Result(
         ROOM_ID, roomMessageType, expectedEventId, serverName, mediaId, mockMxcUri, tempFile);
@@ -424,7 +425,7 @@ class EventServiceTest {
                                     "mimetype": "application/msword",
                                     "size": 46144
                                   },
-                                  "msgtype": "m.fileContent",
+                                  "msgtype": "m.file",
                                   "url": "mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"
                                 },
                                 "event_id": "$143273582443PhrSn:example.org",
@@ -566,7 +567,9 @@ class EventServiceTest {
                         .formatted(expectedEventId))));
 
     RoomMessage textEvent = new TextContent("Hello World", null, null);
-    var actualEventId = client.events().sendMessageEvent(ROOM_ID, textEvent);
+
+    var actualEventId =
+        client.events().sendMessageEvent(ROOM_ID, String.valueOf(UUID.randomUUID()), textEvent);
 
     assertNotNull(actualEventId, "The returned event ID should not be null");
     assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
@@ -610,7 +613,8 @@ class EventServiceTest {
     FileContent file =
         new FileContent(
             "Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
-    var actualEventId = client.events().sendMessageEvent(result.roomId(), file);
+    var actualEventId =
+        client.events().sendMessageEvent(result.roomId(), String.valueOf(UUID.randomUUID()), file);
 
     assertNotNull(actualEventId, "The returned event ID should not be null");
     assertEquals(
