@@ -35,26 +35,6 @@ public class EventService implements Event {
     this.context = context;
   }
 
-  /// Method in charge of returning the correct type of each content record
-  ///
-  /// @param content a [StateEventContent] record.
-  /// @return it's type as defined in the spec.
-  private static String resolveStateWireType(StateEventContent content) {
-    return switch (content) {
-      case RoomCreate _ -> "m.room.create";
-      case RoomGuestAccess _ -> "m.room.guest_access";
-      case RoomHistoryVisibility _ -> "m.room.history_visibility";
-      case RoomJoinRules _ -> "m.room.join_rules";
-      case RoomName _ -> "m.room.name";
-      case RoomPinnedEvents _ -> "m.room.pinned_events";
-      case RoomPowerLevels _ -> "m.room.power_levels";
-      case RoomTopic _ -> "m.room.topic";
-      case RoomAvatar _ -> "m.room.avatar";
-      case RoomCanonicalAlias _ -> "m.room.canonical_alias";
-      case RoomMember _ -> "m.room.member";
-    };
-  }
-
   @Override
   public ClientEvent<?> getEvent(RoomID roomId, String eventId) {
     Objects.requireNonNull(eventId, "The event ID must not be null");
@@ -184,19 +164,39 @@ public class EventService implements Event {
   }
 
   @Override
-  public String sendStateEvent(RoomID roomId, String stateKey, StateEventContent roomStateContent) {
+  public String sendStateEvent(RoomID roomId, String stateKey, StateEventContent content) {
     String jsonPayload;
     try {
-      jsonPayload = objectMapper.writeValueAsString(roomStateContent);
+      jsonPayload = objectMapper.writeValueAsString(content);
     } catch (JacksonException e) {
       throw new MatrixIOException("Failed to parse input data", e);
     }
-    String type = resolveStateWireType(roomStateContent);
+    String type = resolveStateWireType(content);
 
     URI uri =
         httpTransport.generateEncodedURI(
             context.discoveryResponse().homeserver().baseUrl(),
             ROOM_ENDPOINT + roomId + "/state/" + type + "/" + stateKey,
+            null);
+    String response = httpTransport.putEvent(uri, jsonPayload, context.token());
+    return Mapper.getStringValueOfAJsonKey(response, "event_id");
+  }
+
+  @Override
+  public String sendMessageEvent(RoomID roomId, String txnId, MessageEventContent content) {
+    Objects.requireNonNull(txnId, "The transaction id is required.");
+    String type = resolveMessageWireType(content);
+    String jsonPayload;
+    try {
+      jsonPayload = objectMapper.writeValueAsString(content);
+    } catch (JacksonException e) {
+      throw new MatrixIOException("Failed to parse input data", e);
+    }
+
+    URI uri =
+        httpTransport.generateEncodedURI(
+            context.discoveryResponse().homeserver().baseUrl(),
+            ROOM_ENDPOINT + roomId + "/send/" + type + "/" + txnId,
             null);
     String response = httpTransport.putEvent(uri, jsonPayload, context.token());
     return Mapper.getStringValueOfAJsonKey(response, "event_id");
@@ -265,25 +265,6 @@ public class EventService implements Event {
     return Mapper.getObjectFromString(response, Sync.class);
   }
 
-  @Override
-  public String sendMessageEvent(RoomID roomId, RoomMessage roomMessage) {
-
-    String jsonPayload;
-    try {
-      jsonPayload = objectMapper.writeValueAsString(roomMessage);
-    } catch (JacksonException e) {
-      throw new MatrixIOException("Failed to parse input data", e);
-    }
-
-    URI uri =
-        httpTransport.generateEncodedURI(
-            context.discoveryResponse().homeserver().baseUrl(),
-            ROOM_ENDPOINT + roomId + "/send/m.room.message/" + UUID.randomUUID(),
-            null);
-    String response = httpTransport.putEvent(uri, jsonPayload, context.token());
-    return Mapper.getStringValueOfAJsonKey(response, "event_id");
-  }
-
   /// Creates a new mxc:// for immediate usage.
   ///
   /// @return a [String] representing the MXC
@@ -298,5 +279,35 @@ public class EventService implements Event {
             this.context.token());
 
     return Mapper.getStringValueOfAJsonKey(queryResponse, "content_uri");
+  }
+
+  /// Method in charge of returning the correct type of each state content record
+  ///
+  /// @param content a [StateEventContent] record.
+  /// @return it's type as defined in the spec.
+  private static String resolveStateWireType(StateEventContent content) {
+    return switch (content) {
+      case RoomCreate _ -> "m.room.create";
+      case RoomGuestAccess _ -> "m.room.guest_access";
+      case RoomHistoryVisibility _ -> "m.room.history_visibility";
+      case RoomJoinRules _ -> "m.room.join_rules";
+      case RoomName _ -> "m.room.name";
+      case RoomPinnedEvents _ -> "m.room.pinned_events";
+      case RoomPowerLevels _ -> "m.room.power_levels";
+      case RoomTopic _ -> "m.room.topic";
+      case RoomAvatar _ -> "m.room.avatar";
+      case RoomCanonicalAlias _ -> "m.room.canonical_alias";
+      case RoomMember _ -> "m.room.member";
+    };
+  }
+
+  /// Method in charge of returning the correct type of each message content record
+  ///
+  /// @param content a [MessageEventContent] record.
+  /// @return it's type as defined in the spec.
+  private static String resolveMessageWireType(MessageEventContent content) {
+    return switch (content) {
+      case RoomMessage _ -> "m.room.message";
+    };
   }
 }
