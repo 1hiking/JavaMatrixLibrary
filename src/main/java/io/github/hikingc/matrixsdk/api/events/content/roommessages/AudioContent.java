@@ -1,6 +1,7 @@
 package io.github.hikingc.matrixsdk.api.events.content.roommessages;
 
-import io.github.hikingc.matrixsdk.api.events.RoomMessage;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.github.hikingc.matrixsdk.api.events.content.RoomMessage;
 import io.github.hikingc.matrixsdk.api.events.crypto.EncryptedFile;
 import java.net.URI;
 
@@ -17,6 +18,7 @@ import java.net.URI;
 ///   `format` is specified.
 /// @param info metadata for the audio clip referred to by `url`.
 /// @param url required if the file is unencrypted.
+@JsonTypeName("m.audio")
 public record AudioContent(
     String body,
     EncryptedFile file,

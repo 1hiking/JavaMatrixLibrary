@@ -25,8 +25,7 @@ public class MatrixClient {
     this.filter = new FilterService(context);
   }
 
-  /// Default factory, which will make the initial payloads to request necessary data for further
-  /// requests
+  /// Default factory, which will initialize all services and set context data for further requests.
   ///
   /// @param discoveryResponse [DiscoveryResponse] of a server.
   /// @param authToken a valid non-expired auth token.
@@ -42,7 +41,7 @@ public class MatrixClient {
     return this.event;
   }
 
-  /// Exposes the underlying [Room] for operations.
+  /// Exposes the underlying [Room] service for operations.
   ///
   /// @return the underlying [Room] instance.
   public Room room() {

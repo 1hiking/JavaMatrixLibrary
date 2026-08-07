@@ -13,7 +13,6 @@ public sealed interface SingletonStateEvent<C> extends StateEvent<C>
         RoomGuestAcessEvent,
         RoomHistoryVisibilityEvent,
         RoomJoinRulesEvent,
-        RoomMemberEvent,
         RoomNameEvent,
         RoomPinnedEventsEvent,
         RoomPowerLevelsEvent,

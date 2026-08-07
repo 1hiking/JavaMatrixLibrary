@@ -2,6 +2,12 @@ package io.github.hikingc.matrixsdk.api.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import io.github.hikingc.matrixsdk.api.Room;
+import io.github.hikingc.matrixsdk.api.events.content.RoomMessage;
+import io.github.hikingc.matrixsdk.api.events.queries.ChronologicalDirection;
+import io.github.hikingc.matrixsdk.api.events.queries.QueryParametersMessages;
+import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
+import io.github.hikingc.matrixsdk.api.rooms.PublicRoomRequest;
 
 /// Represents the current state of a room
 ///
@@ -12,8 +18,8 @@ import java.util.List;
 /// @param state if the user is a member of the room this will be the current state of the room as a
 ///   list of events. **If the user has left the room this will be the state of the room when they
 ///   left it.**
-/// @param visibility If it's visible in either [Room#getPublishedRoomDirectory(Integer, String,
-///   String)] or [Room#getPublishedRoomDirectory(PublicRoomRequest)]
+/// @param visibility If it's visible in either [Room#getPublishedRoomDirectory(Integer, String, String)] or
+///                   [Room#getPublishedRoomDirectory(PublicRoomRequest)]
 public record RoomInfo(
     List<Event> accountData,
     String membership,
@@ -38,11 +44,9 @@ public record RoomInfo(
   ///   messages for this room, otherwise if the user has left the room then the messages that
   ///   preceded them before leaving. This array will consist of at most `limit` elements.
   /// @param end a token which correlates to the end of `chunk`. Can be used in
-  ///   [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection ,
-  ///   QueryParametersMessages)] to retrieve later events.
+  ///   [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection , QueryParametersMessages)] to retrieve later events.
   /// @param start a token which correlates to the start of `chunk`. Can be used in
-  ///   [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection,
-  ///   QueryParametersMessages)] to retrieve earlier events.
+  ///   [io.github.hikingc.matrixsdk.api.Event#getMessages(RoomID, ChronologicalDirection, QueryParametersMessages)] to retrieve earlier events.
   public record PaginationChunk(
       @JsonProperty(required = true) List<ClientEvent<?>> chunk,
       @JsonProperty(required = true) String end,

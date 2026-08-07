@@ -1,7 +1,7 @@
 package io.github.hikingc.matrixsdk.api.events.model;
 
 import io.github.hikingc.matrixsdk.api.events.MessageEvent;
-import io.github.hikingc.matrixsdk.api.events.RoomMessage;
+import io.github.hikingc.matrixsdk.api.events.content.RoomMessage;
 import io.github.hikingc.matrixsdk.api.events.UnsignedData;
 
 /// Represents all the types `m.room.message` events from the server.

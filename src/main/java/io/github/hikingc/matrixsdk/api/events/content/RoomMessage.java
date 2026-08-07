@@ -1,11 +1,13 @@
-package io.github.hikingc.matrixsdk.api.events;
+package io.github.hikingc.matrixsdk.api.events.content;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.hikingc.matrixsdk.api.events.content.roommessages.*;
 
 /// Interface that enforces fields required by all `m.room.message` content events.
-public sealed interface RoomMessage
-    permits AudioContent, FileContent, LocationContent, ImageContent, TextContent, VideoContent {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "msgtype")
+public sealed interface RoomMessage extends MessageEventContent
+        permits AudioContent, FileContent, LocationContent, ImageContent, TextContent, VideoContent {
 
   /// Message type constant field required by all types of messages.
   ///

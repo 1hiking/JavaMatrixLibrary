@@ -1,6 +1,7 @@
 package io.github.hikingc.matrixsdk.api.events.content.roommessages;
 
-import io.github.hikingc.matrixsdk.api.events.RoomMessage;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.github.hikingc.matrixsdk.api.events.content.RoomMessage;
 import io.github.hikingc.matrixsdk.api.events.crypto.EncryptedFile;
 
 /// This type of message represents a real-world location.
@@ -9,6 +10,7 @@ import io.github.hikingc.matrixsdk.api.events.crypto.EncryptedFile;
 ///   otherwise, a caption for the image.
 /// @param info metadata for the audio clip referred to by `url`.
 /// @param geoUri A geo URI (RFC5870) representing this location.
+@JsonTypeName("m.location")
 public record LocationContent(String body, String geoUri, LocationInfo info)
     implements RoomMessage {
 
