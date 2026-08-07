@@ -1,6 +1,7 @@
 package io.github.hikingc.matrixsdk.api;
 
 import io.github.hikingc.matrixsdk.api.events.*;
+import io.github.hikingc.matrixsdk.api.events.content.MessageEventContent;
 import io.github.hikingc.matrixsdk.api.events.content.StateEventContent;
 import io.github.hikingc.matrixsdk.api.events.model.RoomMemberEvent;
 import io.github.hikingc.matrixsdk.api.events.queries.ChronologicalDirection;
@@ -97,15 +98,24 @@ public interface Event {
   /// @return [RoomInfo] with current state of the room.
   RoomInfo getInitialSync(RoomID roomId);
 
+  /// Sends a state event.
+  ///
   /// @param roomId the room ID where to send the event.
   /// @param stateKey if required to be set the state key, otherwise an empty [String] ("").
-  /// @param roomStateContent any type of state event.
+  /// @param content of any type of state event.
   /// @return a [String] representing a unique identifier of the event.
   /// @throws MatrixIOException when the payload cannot be processed.
   /// @throws MatrixNetworkException when the response status is not successful.
-  String sendStateEvent(RoomID roomId, String stateKey, StateEventContent roomStateContent);
+  String sendStateEvent(RoomID roomId, String stateKey, StateEventContent content);
 
-  String sendEvent(RoomID roomId, MessageEventContent content, String txnId);
+  /// Sends a message event.
+  ///
+  /// @param roomId  the room ID where to send the event.
+  /// @param txnId   for this event. Clients should generate an ID unique across requests with the
+  ///   same access token; it will be used by the server to ensure idempotency of requests.
+  /// @param content of any type of message event.
+  /// @return a [String] representing a unique identifier of the event.
+  String sendMessageEvent(RoomID roomId, String txnId, MessageEventContent content);
 
   /// Strips all information out of an event which isn’t critical to the integrity of the
   /// server-side representation of the room.
@@ -113,13 +123,15 @@ public interface Event {
   /// **This cannot be undone.**
   ///
   /// If the server advertises support for sending a state event using `m.room.redact`, use
-  /// [#sendEvent(RoomID, MessageEventContent , String)]
+  /// [#sendMessageEvent(RoomID, String, MessageEventContent)]
   ///
   /// @param roomId the room ID where to redact the event.
   /// @param eventId the event ID of the event to target and redact.
   /// @param txnId the transaction ID of the event.
   /// @param reason the reason of the redaction.
   /// @return a [String] representing a unique identifier of the event.
+  /// @throws MatrixIOException when the payload cannot be processed.
+  /// @throws MatrixNetworkException when the response status is not successful.
   String redactEvent(RoomID roomId, String eventId, String txnId, String reason);
 
   /// Synchronously uploads a local multimedia resource to the Matrix media server.
