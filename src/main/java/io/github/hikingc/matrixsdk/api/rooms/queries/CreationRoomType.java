@@ -1,27 +1,18 @@
 package io.github.hikingc.matrixsdk.api.rooms.queries;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /// The room type keys used to tell the client what available preset should the server create the
 /// room with.
 public enum CreationRoomType {
 
   /// Recommended to use this to configure when you want to make 1 to 1 conversations.
-  PRIVATE_CHAT("private_chat"),
-  /// Same as PRIVATE\_CHAT except all invitees are given the same power level as the room creator.
-  TRUSTED_PRIVATE_CHAT("trusted_private_chat"),
+  @JsonProperty("private_chat")
+  PRIVATE_CHAT,
+  /// Same as [#PRIVATE_CHAT] except all invitees are given the same power level as the room creator.
+  @JsonProperty("trusted_private_chat")
+  TRUSTED_PRIVATE_CHAT,
   /// For public access, unlike the other types, choosing this will forbid guest access.
-  PUBLIC_CHAT("public_chat");
-
-  private final String value;
-
-  CreationRoomType(String value) {
-    this.value = value;
-  }
-
-  /// Returns the string room type value ('private\_chat', 'public\_chat' or
-  /// 'trusted\_private\_chat') expected by the Matrix homeserver.
-  ///
-  /// @return the parameter string
-  public String getValue() {
-    return this.value;
-  }
+  @JsonProperty("public_chat")
+  PUBLIC_CHAT
 }

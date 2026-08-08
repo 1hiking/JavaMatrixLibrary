@@ -6,7 +6,6 @@ import io.github.hikingc.matrixsdk.api.identifiers.Validator;
 import io.github.hikingc.matrixsdk.api.rooms.*;
 import io.github.hikingc.matrixsdk.api.rooms.models.ResolvedAlias;
 import io.github.hikingc.matrixsdk.api.rooms.models.RoomSummary;
-import io.github.hikingc.matrixsdk.api.rooms.queries.CreationRoomType;
 import io.github.hikingc.matrixsdk.api.rooms.queries.JoinRoomRequest;
 import io.github.hikingc.matrixsdk.api.rooms.queries.VisibilityRoomType;
 import io.github.hikingc.matrixsdk.exceptions.MatrixIOException;
@@ -21,25 +20,13 @@ import java.util.List;
 /// @see <a href="https://spec.matrix.org/v1.19/client-server-api/#rooms">Matrix Client-Server API
 ///   Specification for Rooms</a>
 public interface Room {
-  /// Creates a room, this method will let the homeserver choose the default configuration for most
-  /// tasks and the following parameters will overwrite them if set to a non-null value.
+  /// Creates a room based on the received [InitialRoomConfiguration].
   ///
-  /// @param isFederated if the room will be federated
-  /// @param name the room's name, if any.
-  /// @param aliasName the room's canonical alias, if any
-  /// @param topic the room's topic, if any.
-  /// @param type the [CreationRoomType]
-  /// @param isVisible if the room will be visible to the public
+  /// @param configuration of the room.
   /// @return the created room’s ID.
   /// @throws MatrixIOException when the payload cannot be processed
   /// @throws MatrixNetworkException when the response status is not successful
-  String create(
-      boolean isFederated,
-      String name,
-      String aliasName,
-      String topic,
-      CreationRoomType type,
-      boolean isVisible);
+  String create(InitialRoomConfiguration configuration);
 
   /// Requests the server to resolve a room alias if not possible, the server will use the
   /// federation API.
@@ -184,7 +171,7 @@ public interface Room {
   /// @param since a pagination token from a previous request, allowing you to get the next or
   ///   previous batch of rooms. The direction of pagination is specified by which token is
   ///   supplied.
-  /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published
+  /// @return a [PublicRoomDirectory] containing [io.github.hikingc.matrixsdk.api.rooms.models.PublishedRoomsChunk] records of the published
   ///   rooms on the server.
   /// @throws MatrixIOException when the payload cannot be processed.
   /// @throws NullPointerException when the roomId is null.
@@ -195,7 +182,7 @@ public interface Room {
   /// Lists a server’s published room directory.
   ///
   /// @param request a [PublicRoomRequest] with additional filters for the request.
-  /// @return a [PublicRoomDirectory] containing [PublishedRoomsChunk] records of the published
+  /// @return a [PublicRoomDirectory] containing [io.github.hikingc.matrixsdk.api.rooms.models.PublishedRoomsChunk] records of the published
   ///   rooms on the server.
   PublicRoomDirectory getPublishedRoomDirectory(PublicRoomRequest request);
 

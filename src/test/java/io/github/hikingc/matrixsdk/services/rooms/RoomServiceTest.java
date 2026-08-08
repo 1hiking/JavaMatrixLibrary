@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.github.hikingc.matrixsdk.api.MatrixClient;
+import io.github.hikingc.matrixsdk.api.events.content.RoomPowerLevels;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomAlias;
 import io.github.hikingc.matrixsdk.api.identifiers.RoomID;
 import io.github.hikingc.matrixsdk.api.identifiers.Validator;
@@ -15,6 +16,8 @@ import io.github.hikingc.matrixsdk.api.rooms.queries.JoinRoomRequest;
 import io.github.hikingc.matrixsdk.api.rooms.queries.VisibilityRoomType;
 import io.github.hikingc.matrixsdk.context.DiscoveryResponse;
 import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,15 +54,60 @@ class RoomServiceTest {
             .withRequestBody(
                 equalToJson(
                     """
-                        {
-                          "creation_content": { "m.federate": true },
-                          "name": "name",
-                          "preset": "public_chat",
-                          "room_alias_name": "alias",
-                          "topic": "topic",
-                          "visibility": "public"
-                        }
-                        """,
+                            {
+                              "visibility": "private",
+                              "room_alias_name": "thepub",
+                              "name": "The Grand Duke Pub",
+                              "topic": "All about happy hour",
+                              "invite": ["@alice:example.com", "@bob:example.com"],
+                              "invite_3pid": [
+                                {
+                                  "id_server": "identity.example.com",
+                                  "id_access_token": "abc123_OpaqueString",
+                                  "medium": "email",
+                                  "address": "alice@example.com"
+                                }
+                              ],
+                              "room_version": "11",
+                              "creation_content": {
+                                "m.federate": false
+                              },
+                              "initial_state": [
+                                {
+                                  "type": "m.room.join_rules",
+                                  "state_key": "",
+                                  "content": {
+                                    "join_rule": "public"
+                                  }
+                                },
+                                {
+                                  "type": "m.room.history_visibility",
+                                  "state_key": "",
+                                  "content": {
+                                    "history_visibility": "shared"
+                                  }
+                                }
+                              ],
+                              "preset": "private_chat",
+                              "is_direct": false,
+                              "power_level_content_override": {
+                                "users_default": 0,
+                                "events_default": 0,
+                                "state_default": 50,
+                                "ban": 50,
+                                "kick": 50,
+                                "redact": 50,
+                                "invite": 0,
+                                "events": {
+                                  "m.room.name": 50,
+                                  "m.room.power_levels": 100
+                                },
+                                "users": {
+                                  "@alice:example.com": 100
+                                }
+                              }
+                            }
+                            """,
                     true,
                     true))
             .willReturn(
@@ -68,10 +116,51 @@ class RoomServiceTest {
                         { "room_id": "%s" }
                         """
                         .formatted(expectedRoomId))));
-
+    InitialRoomConfiguration config = new InitialRoomConfiguration(
+            new InitialRoomConfiguration.CreationContent(false), // m.federate: false
+            List.of(
+                    new InitialRoomConfiguration.StateEvent(
+                            Map.of("join_rule", "public"),
+                            "",
+                            "m.room.join_rules"),
+                    new InitialRoomConfiguration.StateEvent(
+                            Map.of("history_visibility", "shared"),
+                            "",
+                            "m.room.history_visibility")
+            ),
+            List.of("@alice:example.com", "@bob:example.com"),
+            List.of(
+                    new InitialRoomConfiguration.Invite3pid(
+                            "alice@example.com",
+                            "abc123_OpaqueString",
+                            "identity.example.com",
+                            "email")
+            ),
+            false, // is_direct
+            "The Grand Duke Pub",
+            new RoomPowerLevels(
+                    50,   // ban
+                    Map.of(
+                            "m.room.name", 50,
+                            "m.room.power_levels", 100
+                    ),    // events
+                    0,    // eventsDefault
+                    0,    // invite
+                    50,   // kick
+                    null, // notifications — not present in source JSON
+                    50,   // redact
+                    50,   // stateDefault
+                    Map.of("@alice:example.com", 100), // users
+                    0     // users_default
+            ),
+            CreationRoomType.PRIVATE_CHAT,
+            "thepub",
+            "11",
+            "All about happy hour",
+            VisibilityRoomType.PRIVATE
+    );
     var response =
-        client.room().create(true, "name", "alias", "topic", CreationRoomType.PUBLIC_CHAT, true);
-
+        client.room().create(config);
     assertEquals(expectedRoomId, response);
   }
 
