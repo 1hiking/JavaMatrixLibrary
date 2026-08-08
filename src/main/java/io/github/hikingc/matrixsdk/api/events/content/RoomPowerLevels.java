@@ -14,7 +14,7 @@ public record RoomPowerLevels(
     Integer redact,
     Integer stateDefault,
     Map<String, Integer> users,
-    Integer users_default)
+    Integer usersDefault)
     implements StateEventContent {
 
   public record Notifications(
